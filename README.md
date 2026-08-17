@@ -35,6 +35,29 @@ python -m http.server 8731 --directory D:/sikaku/ST/app
 出典: IPA 情報処理技術者試験 過去問題（https://www.ipa.go.jp/shiken/mondai-kaiotu/）
 原本PDFは `D:\sikaku\ST\kako` に保存。
 
+## 学習履歴のクラウド同期（Firebase・無料）
+
+`js/firebase-config.js` にFirebaseプロジェクトの設定を書くと、設定画面に「Googleでログインして端末間同期」ボタンが現れる。ログイン中は履歴がFirestore（`users/{uid}`）に保存され、全端末で自動同期される（オフライン時はSDKがキャッシュし復帰時に同期）。未設定・未ログイン時は従来どおり端末内保存。
+
+Firebase側の設定（初回のみ）:
+1. https://console.firebase.google.com/ でプロジェクト作成（無料Sparkプラン）
+2. ウェブアプリを追加し `firebaseConfig` を `js/firebase-config.js` に貼る（apiKey等は公開可能な識別子）
+3. Authentication → ログイン方法で「Google」を有効化
+4. Firestore Database を作成（本番環境モード、asia-northeast1推奨）し、ルールに以下を設定:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+5. 公開サイトのドメイン（例: `<user>.github.io`）を Authentication の承認済みドメインに追加
+
 ## 新しい試験回の追加方法
 
 1. IPAから問題PDF（`*_st_am2_qs.pdf`）と解答PDF（`*_st_am2_ans.pdf`）を `D:\sikaku\ST\kako` にダウンロード

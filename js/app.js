@@ -26,7 +26,11 @@
   });
 
   /* ---------- 学習履歴 (localStorage) ---------- */
+  function syncActive() {
+    return !!(window.STSync && window.STSync.active());
+  }
   function loadStats() {
+    if (syncActive()) return window.STSync.getStats();
     try { return JSON.parse(localStorage.getItem(STATS_KEY)) || {}; }
     catch (e) { return {}; }
   }
@@ -40,7 +44,8 @@
     if (correct) s.c += 1;
     s.t = Date.now();
     stats[key] = s;
-    saveStats(stats);
+    if (syncActive()) window.STSync.recordAnswer(key, s);
+    else saveStats(stats);
   }
 
   /* ---------- ユーティリティ ---------- */
@@ -385,7 +390,8 @@
 
     $("#btn-reset-stats").addEventListener("click", function () {
       if (confirm("学習履歴（解答回数・正答率）をすべて削除します。よろしいですか？")) {
-        try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ignore */ }
+        if (syncActive()) window.STSync.resetAll();
+        else { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ignore */ } }
         renderStatsSummary();
       }
     });
@@ -421,20 +427,24 @@
           var payload = JSON.parse(reader.result);
           var incoming = payload && payload.app === "st-am2-trainer" ? payload.stats : null;
           if (!incoming || typeof incoming !== "object") throw new Error("format");
-          var stats = loadStats();
           var merged = 0;
-          Object.keys(incoming).forEach(function (key) {
-            var inc = incoming[key];
-            if (!inc || typeof inc.a !== "number" || typeof inc.c !== "number") return;
-            var cur = stats[key] || { a: 0, c: 0, t: 0 };
-            stats[key] = {
-              a: cur.a + inc.a,
-              c: Math.min(cur.c + inc.c, cur.a + inc.a),
-              t: Math.max(cur.t || 0, inc.t || 0)
-            };
-            merged++;
-          });
-          saveStats(stats);
+          if (syncActive()) {
+            merged = window.STSync.mergeIn(incoming);
+          } else {
+            var stats = loadStats();
+            Object.keys(incoming).forEach(function (key) {
+              var inc = incoming[key];
+              if (!inc || typeof inc.a !== "number" || typeof inc.c !== "number") return;
+              var cur = stats[key] || { a: 0, c: 0, t: 0 };
+              stats[key] = {
+                a: cur.a + inc.a,
+                c: Math.min(cur.c + inc.c, cur.a + inc.a),
+                t: Math.max(cur.t || 0, inc.t || 0)
+              };
+              merged++;
+            });
+            saveStats(stats);
+          }
           renderStatsSummary();
           alert(merged + "問分の履歴を取り込み、この端末の履歴と合算しました。");
         } catch (e) {
@@ -461,4 +471,11 @@
   renderSetup();
   bind();
   showScreen("setup");
+
+  // クラウド同期の状態変化（ログイン/ログアウト/他端末の更新）でサマリを更新
+  if (window.STSync) {
+    window.STSync.setOnChange(function () {
+      if (!$("#screen-setup").hidden) renderStatsSummary();
+    });
+  }
 })();
