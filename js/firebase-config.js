@@ -12,4 +12,11 @@
 //   messagingSenderId: "...",
 //   appId: "1:...:web:..."
 // };
-window.FIREBASE_CONFIG = null;
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBiY4Unn86wegfjNH_dk3fnBoYnJcHYllg",
+  authDomain: "st-kakomon.firebaseapp.com",
+  projectId: "st-kakomon",
+  storageBucket: "st-kakomon.firebasestorage.app",
+  messagingSenderId: "680019817654",
+  appId: "1:680019817654:web:ca56416d4fa1195ad9e217"
+};
