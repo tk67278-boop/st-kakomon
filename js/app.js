@@ -390,6 +390,60 @@
       }
     });
 
+    // 履歴のエクスポート（JSONファイルとして保存）
+    $("#btn-export-stats").addEventListener("click", function () {
+      var payload = {
+        app: "st-am2-trainer",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        stats: loadStats()
+      };
+      var blob = new Blob([JSON.stringify(payload, null, 1)], { type: "application/json" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      var d = new Date();
+      a.download = "st-quiz-history_" + d.getFullYear() +
+        ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) + ".json";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    });
+
+    // 履歴のインポート（既存履歴と合算マージ）
+    $("#btn-import-stats").addEventListener("click", function () { $("#import-file").click(); });
+    $("#import-file").addEventListener("change", function () {
+      var file = this.files[0];
+      this.value = "";
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          var payload = JSON.parse(reader.result);
+          var incoming = payload && payload.app === "st-am2-trainer" ? payload.stats : null;
+          if (!incoming || typeof incoming !== "object") throw new Error("format");
+          var stats = loadStats();
+          var merged = 0;
+          Object.keys(incoming).forEach(function (key) {
+            var inc = incoming[key];
+            if (!inc || typeof inc.a !== "number" || typeof inc.c !== "number") return;
+            var cur = stats[key] || { a: 0, c: 0, t: 0 };
+            stats[key] = {
+              a: cur.a + inc.a,
+              c: Math.min(cur.c + inc.c, cur.a + inc.a),
+              t: Math.max(cur.t || 0, inc.t || 0)
+            };
+            merged++;
+          });
+          saveStats(stats);
+          renderStatsSummary();
+          alert(merged + "問分の履歴を取り込み、この端末の履歴と合算しました。");
+        } catch (e) {
+          alert("インポートに失敗しました。このアプリでエクスポートしたJSONファイルを選択してください。");
+        }
+      };
+      reader.readAsText(file);
+    });
+
     document.addEventListener("keydown", function (e) {
       if ($("#screen-quiz").hidden) return;
       if (e.key >= "1" && e.key <= "4" && !session.answered) {

@@ -67,9 +67,13 @@
       <div class="group-head">
         <h2>学習履歴</h2>
         <span class="spacer"></span>
+        <button class="linkbtn" id="btn-export-stats">エクスポート</button>
+        <button class="linkbtn" id="btn-import-stats">インポート</button>
         <button class="linkbtn danger" id="btn-reset-stats">履歴をリセット</button>
       </div>
       <div id="stats-summary" class="stats-summary"></div>
+      <p class="stats-note">履歴はこの端末のブラウザ内にのみ保存されます。他の端末（PC⇔スマホ）と共有するには、エクスポートしたファイルを相手の端末でインポートしてください（履歴は合算されます）。</p>
+      <input type="file" id="import-file" accept=".json,application/json" hidden>
     </div>
 
     <div class="start-row">
