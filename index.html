@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ITストラテジスト 午前II 過去問トレーナー</title>
+<meta name="theme-color" content="#1e3a8a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <h1>ST 午前II 過去問トレーナー</h1>
+    <p class="sub">ITストラテジスト試験 午前II 一問一答（解説付き）</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= 設定画面 ================= -->
+  <section id="screen-setup">
+    <div class="card">
+      <div class="group-head">
+        <h2>試験回</h2>
+        <span class="spacer"></span>
+        <button class="linkbtn" id="btn-exams-recent5">直近5回</button>
+        <button class="linkbtn" id="btn-exams-recent10">直近10回</button>
+        <button class="linkbtn" id="btn-exams-all">すべて選択</button>
+        <button class="linkbtn" id="btn-exams-none">すべて解除</button>
+      </div>
+      <div id="exam-list" class="checks"></div>
+
+      <div class="group-head">
+        <h2>分野</h2>
+        <span class="spacer"></span>
+        <button class="linkbtn" id="btn-cats-all">すべて選択</button>
+        <button class="linkbtn" id="btn-cats-none">すべて解除</button>
+      </div>
+      <div id="cat-list" class="checks"></div>
+    </div>
+
+    <div class="card">
+      <h2>出題方法</h2>
+      <div class="opt-grid">
+        <label class="opt">出題数
+          <select id="opt-count">
+            <option value="all">すべて</option>
+            <option value="10">10問</option>
+            <option value="25">25問</option>
+            <option value="50">50問</option>
+          </select>
+        </label>
+        <div class="opt">
+          <span>出題順</span>
+          <label class="radio"><input type="radio" name="opt-order" value="random" checked>ランダム</label>
+          <label class="radio"><input type="radio" name="opt-order" value="ordered">試験回・問番号順</label>
+        </div>
+        <label class="opt check"><input type="checkbox" id="opt-shuffle-choices">選択肢の順番もシャッフルする</label>
+        <label class="opt check"><input type="checkbox" id="opt-weak-first">苦手・未挑戦の問題を優先する</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="group-head">
+        <h2>学習履歴</h2>
+        <span class="spacer"></span>
+        <button class="linkbtn danger" id="btn-reset-stats">履歴をリセット</button>
+      </div>
+      <div id="stats-summary" class="stats-summary"></div>
+    </div>
+
+    <div class="start-row">
+      <div id="pool-info" class="pool-info"></div>
+      <button id="btn-start" class="primary big">学習を開始する</button>
+    </div>
+  </section>
+
+  <!-- ================= 出題画面 ================= -->
+  <section id="screen-quiz" hidden>
+    <div class="quiz-top">
+      <div id="q-progress" class="q-progress"></div>
+      <div id="q-score" class="q-score"></div>
+      <span class="spacer"></span>
+      <button class="linkbtn" id="btn-quit">中断して結果へ</button>
+    </div>
+    <div class="progressbar"><div id="q-bar"></div></div>
+
+    <div class="card q-card">
+      <div class="q-meta">
+        <span class="badge exam" id="q-exam"></span>
+        <span class="badge cat" id="q-cat"></span>
+        <span class="q-history" id="q-history"></span>
+      </div>
+      <div id="q-text" class="q-text"></div>
+      <div id="q-extra" class="q-extra"></div>
+      <div id="q-image-wrap" class="q-image-wrap" hidden><img id="q-image" alt="問題図"></div>
+      <ol id="q-choices" class="choices"></ol>
+
+      <div id="q-feedback" class="feedback" hidden>
+        <div class="fb-head">
+          <span id="fb-result"></span>
+          <span id="fb-answer"></span>
+        </div>
+        <p id="fb-explanation"></p>
+        <p class="fb-src" id="fb-src"></p>
+      </div>
+      <div class="q-actions">
+        <button id="btn-next" class="primary" hidden>次の問題へ</button>
+      </div>
+      <p class="kbd-hint">キー操作: <kbd>1</kbd>〜<kbd>4</kbd> で解答 / <kbd>Enter</kbd> で次へ</p>
+    </div>
+  </section>
+
+  <!-- ================= 結果画面 ================= -->
+  <section id="screen-result" hidden>
+    <div class="card">
+      <h2>結果</h2>
+      <div id="r-score" class="r-score"></div>
+      <table class="r-cats" id="r-cats"></table>
+      <div id="r-wrong-wrap">
+        <h3>間違えた問題</h3>
+        <ul id="r-wrong" class="r-wrong"></ul>
+        <button id="btn-retry-wrong">間違えた問題だけ再挑戦</button>
+      </div>
+      <div class="r-actions">
+        <button id="btn-again" class="primary">同じ条件でもう一度</button>
+        <button id="btn-back">設定に戻る</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    問題・図表の出典: <a href="https://www.ipa.go.jp/shiken/mondai-kaiotu/" target="_blank" rel="noopener">IPA 情報処理技術者試験 過去問題</a>（個人学習用）
+  </div>
+</footer>
+
+<script src="js/data/2009h21a_am2.js"></script>
+<script src="js/data/2010h22a_am2.js"></script>
+<script src="js/data/2011h23a_am2.js"></script>
+<script src="js/data/2012h24a_am2.js"></script>
+<script src="js/data/2013h25a_am2.js"></script>
+<script src="js/data/2014h26a_am2.js"></script>
+<script src="js/data/2015h27a_am2.js"></script>
+<script src="js/data/2016h28a_am2.js"></script>
+<script src="js/data/2017h29a_am2.js"></script>
+<script src="js/data/2018h30a_am2.js"></script>
+<script src="js/data/2019r01a_am2.js"></script>
+<script src="js/data/2021r03h_am2.js"></script>
+<script src="js/data/2022r04h_am2.js"></script>
+<script src="js/data/2023r05h_am2.js"></script>
+<script src="js/data/2024r06h_am2.js"></script>
+<script src="js/data/2025r07h_am2.js"></script>
+<script src="js/app.js"></script>
+<script>
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+</body>
+</html>
