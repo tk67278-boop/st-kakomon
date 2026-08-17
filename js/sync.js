@@ -163,11 +163,11 @@
   Promise.all(SDK_FILES.map(function (f) { return loadScript(SDK_BASE + f); }))
     .then(function () {
       firebase.initializeApp(window.FIREBASE_CONFIG);
-      // オフライン永続化（複数タブ対応）。失敗しても同期自体は動く
-      return firebase.firestore().enablePersistence({ synchronizeTabs: true })
-        .catch(function () { /* private mode等では無効のまま */ });
-    })
-    .then(function () {
+      // オフライン永続化（複数タブ対応）。環境により使えないことがあるため待たずに進める
+      try {
+        firebase.firestore().enablePersistence({ synchronizeTabs: true })
+          .catch(function () { /* private mode等では無効のまま */ });
+      } catch (e) { /* ignore */ }
       state.ready = true;
       firebase.auth().onAuthStateChanged(handleUser);
       renderUi();
