@@ -23,6 +23,7 @@
     <button class="mode-tab active" data-mode="am2">午前II</button>
     <button class="mode-tab" data-mode="pm1">午後I</button>
     <button class="mode-tab" data-mode="pm2">午後II</button>
+    <button class="mode-tab" data-mode="terms">用語</button>
   </div>
 </nav>
 
@@ -165,6 +166,18 @@
   </div>
   <div id="pm-list"></div>
 </div>
+
+<div id="mode-terms" hidden>
+  <div class="card">
+    <div class="group-head">
+      <h2>用語辞典</h2>
+      <span class="spacer"></span>
+      <span id="terms-count" class="pm-progress"></span>
+    </div>
+    <div id="terms-controls" class="terms-controls"></div>
+  </div>
+  <div id="terms-list"></div>
+</div>
 </main>
 
 <footer class="site-footer">
@@ -192,8 +205,10 @@
 <script src="js/data/2024r06h_am2.js"></script>
 <script src="js/data/2025r07h_am2.js"></script>
 <script src="js/data/pm_index.js"></script>
+<script src="js/data/terms.js"></script>
 <script src="js/app.js"></script>
 <script src="js/pm.js"></script>
+<script src="js/terms.js"></script>
 <script>
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("sw.js");

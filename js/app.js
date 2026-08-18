@@ -496,6 +496,14 @@
     });
   }
 
+  // 用語モード等から特定の1問だけを演習するためのフック
+  window.AM2Practice = function (examId, no) {
+    var item = null;
+    ALL.forEach(function (it) { if (it.exam.examId === examId && it.q.no === no) item = it; });
+    if (!item) return;
+    startSession([item], { count: "all", order: "ordered", shuffleChoices: false, weakFirst: false });
+  };
+
   /* ---------- 起動 ---------- */
   renderSetup();
   bind();

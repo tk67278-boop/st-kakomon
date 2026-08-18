@@ -91,9 +91,16 @@
     if (mode === "am2") {
       $("#mode-am2").hidden = false;
       $("#mode-pm").hidden = true;
+      $("#mode-terms").hidden = true;
+    } else if (mode === "terms") {
+      $("#mode-am2").hidden = true;
+      $("#mode-pm").hidden = true;
+      $("#mode-terms").hidden = false;
+      if (window.TermsUI) window.TermsUI.onShow();
     } else {
       $("#mode-am2").hidden = true;
       $("#mode-pm").hidden = false;
+      $("#mode-terms").hidden = true;
       filters = { industry: "all", theme: "all", status: "all" };
       $("#pm-heading").textContent = mode === "pm1" ? "午後I 過去問" : "午後II 過去問";
       renderFilters(mode);
@@ -104,7 +111,7 @@
   function restoreMode() {
     var saved = "am2";
     try { saved = localStorage.getItem(MODE_KEY) || "am2"; } catch (e) { /* ignore */ }
-    if (saved !== "am2" && saved !== "pm1" && saved !== "pm2") saved = "am2";
+    if (saved !== "am2" && saved !== "pm1" && saved !== "pm2" && saved !== "terms") saved = "am2";
     switchMode(saved);
   }
 
