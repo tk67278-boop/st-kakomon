@@ -23,6 +23,7 @@
     <button class="mode-tab active" data-mode="am2">午前II</button>
     <button class="mode-tab" data-mode="pm1">午後I</button>
     <button class="mode-tab" data-mode="pm2">午後II</button>
+    <button class="mode-tab" data-mode="textbook">教科書</button>
     <button class="mode-tab" data-mode="terms">用語</button>
   </div>
 </nav>
@@ -178,6 +179,11 @@
   </div>
   <div id="terms-list"></div>
 </div>
+
+<div id="mode-textbook" hidden>
+  <div id="tb-toc"></div>
+  <div id="tb-reader" hidden></div>
+</div>
 </main>
 
 <footer class="site-footer">
@@ -206,9 +212,18 @@
 <script src="js/data/2025r07h_am2.js"></script>
 <script src="js/data/pm_index.js"></script>
 <script src="js/data/terms.js"></script>
+<script src="js/data/tb_ch1.js"></script>
+<script src="js/data/tb_ch2.js"></script>
+<script src="js/data/tb_ch3.js"></script>
+<script src="js/data/tb_ch4.js"></script>
+<script src="js/data/tb_ch5.js"></script>
+<script src="js/data/tb_ch6.js"></script>
+<script src="js/data/tb_ch7.js"></script>
+<script src="js/data/tb_ch8.js"></script>
 <script src="js/app.js"></script>
 <script src="js/pm.js"></script>
 <script src="js/terms.js"></script>
+<script src="js/textbook.js"></script>
 <script>
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("sw.js");

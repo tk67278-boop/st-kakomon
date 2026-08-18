@@ -121,6 +121,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .sync-badge.on { background: var(--ok-soft); color: var(--ok); }
 .sync-badge.off { background: var(--chip); color: var(--muted); }
 .sync-mail { font-size: 13px; color: var(--muted); }
+.term-refs-head { margin: 10px 0 6px; font-size: 12.5px; color: var(--muted); }
 
 .start-row { display: flex; align-items: center; gap: 16px; justify-content: flex-end; }
 .pool-info { color: var(--muted); font-size: 14px; }
@@ -363,4 +364,78 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 @media (max-width: 560px) {
   .terms-search { flex-basis: 100%; }
   .term-row { padding: 12px 4px; }
+}
+
+/* ---------- 教科書モード ---------- */
+.tb-progress-card { padding: 16px 20px; }
+.tb-progress-text { font-size: 13.5px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+
+.tb-chapter-card h2 { font-size: 16.5px; margin: 0 0 12px; }
+.tb-section-list { list-style: none; margin: 0; padding: 0; }
+.tb-section-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 6px; border-bottom: 1px solid var(--line);
+  cursor: pointer; border-radius: 8px; user-select: none;
+}
+.tb-section-row:last-child { border-bottom: none; }
+.tb-section-row:hover { background: var(--chip); }
+.tb-row-no {
+  flex: none; min-width: 2.6em; text-align: center;
+  font-size: 12px; font-weight: 700; color: var(--accent);
+  background: var(--accent-soft); border-radius: 999px; padding: 3px 8px;
+}
+.tb-row-title { flex: 1; font-size: 15px; }
+.tb-row-check {
+  flex: none; width: 20px; text-align: center;
+  color: var(--ok); font-weight: 700; font-size: 15px;
+}
+
+.tb-reader-head { margin-bottom: 8px; }
+.tb-reader-chapter { font-size: 13px; color: var(--muted); font-weight: 600; }
+.tb-reader-title { font-size: 19px; margin: 4px 0 20px; }
+
+.tb-body { max-width: 720px; font-size: 16px; line-height: 1.9; }
+.tb-body p { margin: 0 0 1.2em; }
+.tb-body p:last-child { margin-bottom: 0; }
+.tb-body ul { margin: 0 0 1.2em; padding-left: 1.4em; }
+.tb-body li { margin-bottom: 0.4em; }
+
+.tb-points-box {
+  max-width: 720px; margin: 22px 0; padding: 14px 18px;
+  border-radius: 10px; border: 1px solid var(--accent);
+  background: var(--accent-soft);
+}
+.tb-points-box h3 { margin: 0 0 8px; font-size: 14.5px; color: var(--accent); }
+.tb-points-box ul { margin: 0; padding-left: 1.2em; }
+.tb-points-box li { font-size: 14.5px; margin-bottom: 4px; }
+.tb-points-box li:last-child { margin-bottom: 0; }
+
+.tb-terms-wrap { max-width: 720px; margin: 22px 0; }
+.tb-terms-wrap h3 { margin: 0 0 8px; font-size: 14.5px; color: var(--muted); }
+.tb-terms-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tb-term-chip {
+  font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--chip); color: var(--accent);
+}
+.tb-term-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+.tb-quiz-action { margin: 22px 0 12px; }
+.tb-done-action { margin: 0 0 22px; }
+.tb-btn-done { font-weight: 600; }
+.tb-btn-done.done { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+
+.tb-nav-row {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding-top: 16px; border-top: 1px solid var(--line);
+}
+
+@media (max-width: 560px) {
+  .tb-section-row { padding: 10px 4px; gap: 8px; }
+  .tb-row-title { font-size: 14px; }
+  .tb-reader-title { font-size: 17px; }
+  .tb-body { font-size: 15.5px; }
+  .tb-nav-row { flex-wrap: wrap; }
+  .tb-nav-row button { flex: 1 1 45%; }
+  .tb-quiz-action button,
+  .tb-done-action button { width: 100%; }
 }

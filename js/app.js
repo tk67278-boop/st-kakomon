@@ -504,6 +504,18 @@
     startSession([item], { count: "all", order: "ordered", shuffleChoices: false, weakFirst: false });
   };
 
+  // 教科書の確認問題など、複数問セットの演習を起動するフック
+  window.AM2PracticeSet = function (refs) {
+    var items = [];
+    (refs || []).forEach(function (ref) {
+      ALL.forEach(function (it) {
+        if (it.exam.examId === ref[0] && it.q.no === ref[1]) items.push(it);
+      });
+    });
+    if (!items.length) return;
+    startSession(items, { count: "all", order: "ordered", shuffleChoices: false, weakFirst: false });
+  };
+
   /* ---------- 起動 ---------- */
   renderSetup();
   bind();

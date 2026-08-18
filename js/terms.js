@@ -178,6 +178,7 @@
     }
 
     if (refs.length) {
+      html += '<p class="term-refs-head">登場した問題（正解・選択肢としての登場を含む）: タップでその場で演習</p>';
       html += '<div class="term-refs">';
       refs.forEach(function (ref, i) {
         var label = escapeHtml(refLabel(ref));
