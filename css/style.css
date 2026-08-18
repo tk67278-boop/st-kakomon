@@ -220,3 +220,98 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
   .start-row { flex-direction: column; align-items: stretch; text-align: center; }
   .r-actions { flex-direction: column; }
 }
+
+/* ---------- モード切替タブ ---------- */
+.mode-tabs { background: var(--card); border-bottom: 1px solid var(--line); }
+.mode-tabs .wrap { display: flex; }
+.mode-tab {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 13px 6px 11px;
+}
+.mode-tab:hover { color: var(--accent); border-bottom-color: transparent; }
+.mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ---------- 午後I・午後II 一覧 ---------- */
+.pm-progress { font-size: 14px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.pm-filters { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 4px; }
+.pm-filters select {
+  font: inherit; padding: 4px 8px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--card); color: var(--text);
+}
+
+.pm-exam-card { padding: 14px 18px 6px; }
+.pm-exam-head {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px;
+  margin-bottom: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--line);
+}
+.pm-exam-head h3 { margin: 0; font-size: 15.5px; flex: none; }
+.pm-exam-links { display: flex; gap: 12px; margin-left: auto; }
+.pm-exam-links a { font-size: 13px; color: var(--accent); text-decoration: none; }
+.pm-exam-links a:hover { text-decoration: underline; }
+
+.pm-row { border-bottom: 1px solid var(--line); padding: 12px 0; }
+.pm-row:last-child { border-bottom: none; }
+.pm-row-main { display: flex; align-items: flex-start; gap: 12px; }
+.badge.pm-no { flex: none; background: var(--accent-soft); color: var(--accent); }
+.pm-row-body { flex: 1; min-width: 0; }
+.pm-row-title { font-weight: 700; font-size: 15px; }
+.pm-row-desc { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.pm-row-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.pm-row-actions { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+.pm-status {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.pm-status.todo { background: var(--chip); color: var(--muted); }
+.pm-status.done { background: var(--ok-soft); color: var(--ok); }
+.pm-status.review { background: var(--ng-soft); color: var(--ng); }
+
+.pm-empty { color: var(--muted); text-align: center; padding: 30px 0; }
+
+.pm-record-panel {
+  margin-top: 12px; padding: 14px; border-radius: 10px;
+  background: var(--chip); display: flex; flex-wrap: wrap; gap: 12px 18px;
+}
+.pm-record-panel .opt { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-size: 13px; color: var(--muted); }
+.pm-record-panel select,
+.pm-record-panel input[type="number"] {
+  font: inherit; padding: 5px 8px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--card); color: var(--text);
+}
+.pm-record-panel input[type="number"] { width: 90px; }
+.pm-note-label { flex: 1 1 100%; }
+.pm-note-label textarea {
+  width: 100%; font: inherit; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--card); color: var(--text); resize: vertical;
+}
+.pm-panel-actions { flex: 1 1 100%; display: flex; justify-content: flex-end; }
+
+/* ---------- 演習タイマー ---------- */
+.pm-timer-card .group-head { flex-wrap: wrap; row-gap: 8px; }
+.pm-timer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pm-timer select {
+  font: inherit; padding: 5px 8px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--card); color: var(--text);
+}
+.pm-timer-display {
+  font-variant-numeric: tabular-nums;
+  font-family: "Consolas", "SF Mono", Menlo, monospace;
+  font-size: 30px; font-weight: 700; min-width: 100px; text-align: center;
+}
+
+@media (max-width: 560px) {
+  .mode-tab { font-size: 13.5px; padding: 11px 4px 9px; }
+  .pm-exam-head { flex-direction: column; align-items: flex-start; }
+  .pm-exam-links { margin-left: 0; }
+  .pm-row-main { flex-wrap: wrap; }
+  .pm-row-actions { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; }
+  .pm-timer-display { font-size: 26px; }
+}

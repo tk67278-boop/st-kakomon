@@ -48,6 +48,17 @@
     else saveStats(stats);
   }
 
+  // 午後I・IIの演習記録（js/pm.jsと同じ保存キー）。エクスポート/インポートで一緒に扱うためのみに使用。
+  var PM_RECORDS_KEY = "st_pm_records_v1";
+  function loadPmRecords() {
+    if (syncActive() && window.STSync.getPm) return window.STSync.getPm();
+    try { return JSON.parse(localStorage.getItem(PM_RECORDS_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function savePmRecordsLocal(records) {
+    try { localStorage.setItem(PM_RECORDS_KEY, JSON.stringify(records)); } catch (e) { /* ignore */ }
+  }
+
   /* ---------- ユーティリティ ---------- */
   function shuffle(arr) {
     for (var i = arr.length - 1; i > 0; i--) {
@@ -402,7 +413,8 @@
         app: "st-am2-trainer",
         version: 1,
         exportedAt: new Date().toISOString(),
-        stats: loadStats()
+        stats: loadStats(),
+        pm: loadPmRecords()
       };
       var blob = new Blob([JSON.stringify(payload, null, 1)], { type: "application/json" });
       var a = document.createElement("a");
@@ -445,6 +457,23 @@
             });
             saveStats(stats);
           }
+
+          var incomingPm = payload && payload.pm && typeof payload.pm === "object" ? payload.pm : null;
+          if (incomingPm) {
+            if (syncActive() && window.STSync.mergePmIn) {
+              window.STSync.mergePmIn(incomingPm);
+            } else {
+              var pmRecords = loadPmRecords();
+              Object.keys(incomingPm).forEach(function (key) {
+                var incRec = incomingPm[key];
+                if (!incRec) return;
+                var curRec = pmRecords[key];
+                if (!curRec || (incRec.t || 0) >= (curRec.t || 0)) pmRecords[key] = incRec;
+              });
+              savePmRecordsLocal(pmRecords);
+            }
+          }
+
           renderStatsSummary();
           alert(merged + "問分の履歴を取り込み、この端末の履歴と合算しました。");
         } catch (e) {

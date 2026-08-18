@@ -18,8 +18,17 @@
   </div>
 </header>
 
+<nav class="mode-tabs">
+  <div class="wrap">
+    <button class="mode-tab active" data-mode="am2">午前II</button>
+    <button class="mode-tab" data-mode="pm1">午後I</button>
+    <button class="mode-tab" data-mode="pm2">午後II</button>
+  </div>
+</nav>
+
 <main class="wrap">
 
+<div id="mode-am2">
   <!-- ================= 設定画面 ================= -->
   <section id="screen-setup">
     <div class="card">
@@ -136,6 +145,26 @@
       </div>
     </div>
   </section>
+</div>
+
+<div id="mode-pm" hidden>
+  <div class="card">
+    <div class="group-head">
+      <h2 id="pm-heading">午後I 過去問</h2>
+      <span class="spacer"></span>
+      <span id="pm-progress" class="pm-progress"></span>
+    </div>
+    <div id="pm-filters" class="pm-filters"></div>
+  </div>
+  <div class="card pm-timer-card">
+    <div class="group-head">
+      <h2>演習タイマー</h2>
+      <span class="spacer"></span>
+      <div id="pm-timer" class="pm-timer"></div>
+    </div>
+  </div>
+  <div id="pm-list"></div>
+</div>
 </main>
 
 <footer class="site-footer">
@@ -162,7 +191,9 @@
 <script src="js/data/2023r05h_am2.js"></script>
 <script src="js/data/2024r06h_am2.js"></script>
 <script src="js/data/2025r07h_am2.js"></script>
+<script src="js/data/pm_index.js"></script>
 <script src="js/app.js"></script>
+<script src="js/pm.js"></script>
 <script>
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("sw.js");
