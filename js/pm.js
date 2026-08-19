@@ -114,6 +114,7 @@
       $("#pm-heading").textContent = mode === "pm1" ? "午後I 過去問" : "午後II 過去問";
       renderFilters(mode);
       renderList();
+      if (window.DrillUI) window.DrillUI.onPmModeShown(mode);
     }
   }
 

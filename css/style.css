@@ -439,3 +439,7 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
   .tb-quiz-action button,
   .tb-done-action button { width: 100%; }
 }
+
+/* ---------- 骨子ドリル（午後IIモード内） ---------- */
+.badge.drill-type { background: var(--accent-soft); color: var(--accent-dark); }
+.drill-intro-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
