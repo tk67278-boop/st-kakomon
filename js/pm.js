@@ -39,6 +39,15 @@
     theme.questions.forEach(function (tq) { if (tq.no === no) found = tq; });
     return found;
   }
+  // 午後I学習画面（js/pm1study.js）用データの参照。データが無い年度・問はnullを返す
+  // （window.PM1_TEXT は該当データファイル読み込み時にのみ examId キーで生える）。
+  function pm1TextFor(examId, no) {
+    var theme = window.PM1_TEXT && window.PM1_TEXT[examId];
+    if (!theme || !theme.questions) return null;
+    var found = null;
+    theme.questions.forEach(function (tq) { if (tq.no === no) found = tq; });
+    return found;
+  }
 
   /* ---------- 演習記録 (localStorage / STSync) ---------- */
   function syncActive() {
@@ -234,9 +243,11 @@
     var status = (rec && rec.s) ? rec.s : "todo";
     var tg = q.tags || {};
 
-    // pm2学習画面用データがある問だけ「学習」ボタンを出し、正式タイトルがあれば優先表示する
+    // pm1/pm2学習画面用データがある問だけ「学習」ボタンを出し、正式タイトルがあれば優先表示する
     var pm2t = (currentMode === "pm2") ? pm2TextFor(it.exam.examId, q.no) : null;
-    var displayTitle = (pm2t && pm2t.title) ? pm2t.title : q.title;
+    var pm1t = (currentMode === "pm1") ? pm1TextFor(it.exam.examId, q.no) : null;
+    var studyData = pm2t || pm1t;
+    var displayTitle = (studyData && studyData.title) ? studyData.title : q.title;
 
     var row = document.createElement("div");
     row.className = "pm-row";
@@ -256,7 +267,7 @@
       '<div class="pm-row-actions">' +
       '<span class="pm-status ' + status + '">' + STATUS_LABEL[status] + (rec && rec.g ? " " + escapeHtml(rec.g) : "") + "</span>" +
       '<span class="pm-row-btns">' +
-      (pm2t ? '<button type="button" class="linkbtn pm-btn-study">学習</button>' : "") +
+      (studyData ? '<button type="button" class="linkbtn pm-btn-study">学習</button>' : "") +
       '<button type="button" class="linkbtn pm-btn-record">記録</button>' +
       "</span>" +
       "</div>";
@@ -273,7 +284,11 @@
     var studyBtn = main.querySelector(".pm-btn-study");
     if (studyBtn) {
       studyBtn.addEventListener("click", function () {
-        if (window.PM2Study && window.PM2Study.open) window.PM2Study.open(it.exam.examId, q.no);
+        if (pm1t) {
+          if (window.PM1Study && window.PM1Study.open) window.PM1Study.open(it.exam.examId, q.no);
+        } else {
+          if (window.PM2Study && window.PM2Study.open) window.PM2Study.open(it.exam.examId, q.no);
+        }
       });
     }
 

@@ -47,6 +47,14 @@
     return docRef().collection("pm2docs").doc(docId);
   }
 
+  // 午後I学習画面（問題文・演習・対比採点・資料）用のサブコレクション参照。
+  // users/{uid}/pm1docs/{docId} に1問1ドキュメントで保存する。
+  // docId は themeKey ("<examId>#pm1#<no>") の "#" を "_" に置換したもの。
+  function pm1DocRef(themeKey) {
+    var docId = String(themeKey).replace(/#/g, "_");
+    return docRef().collection("pm1docs").doc(docId);
+  }
+
   // 未ログイン時にローカルへ貯まった履歴を、初回ログイン時にクラウドへ合算して取り込む
   function migrateLocalToCloud() {
     var localStats, localPm;
@@ -228,6 +236,29 @@
         return { ok: true };
       }).catch(function (err) {
         console.warn("savePm2Doc error", err);
+        return { __error: "denied" };
+      });
+    },
+    // 午後I学習画面（js/pm1study.js）用: users/{uid}/pm1docs/{docId} の読み込み。
+    // ログイン中のみ呼ばれる想定。エラー時（Firestoreルール未更新でpermission-denied等）は
+    // 例外を投げず { __error: "denied" } を resolve する（呼び出し側がlocalStorageにフォールバックする）。
+    loadPm1Doc: function (themeKey) {
+      if (!(state.ready && state.user)) return Promise.resolve(null);
+      return pm1DocRef(themeKey).get().then(function (snap) {
+        return snap.exists ? snap.data() : null;
+      }).catch(function (err) {
+        console.warn("loadPm1Doc error", err);
+        return { __error: "denied" };
+      });
+    },
+    // 午後I学習画面用: users/{uid}/pm1docs/{docId} へドキュメント全体を置き換え保存する。
+    // エラー時は同様に { __error: "denied" } を resolve する。
+    savePm1Doc: function (themeKey, obj) {
+      if (!(state.ready && state.user)) return Promise.resolve({ __error: "denied" });
+      return pm1DocRef(themeKey).set(obj).then(function () {
+        return { ok: true };
+      }).catch(function (err) {
+        console.warn("savePm1Doc error", err);
         return { __error: "denied" };
       });
     }

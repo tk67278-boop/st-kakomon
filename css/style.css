@@ -550,3 +550,26 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
   .pm2-tab-btn { font-size: 13px; padding: 6px 12px; }
   .pm2-version-actions { margin-left: 0; width: 100%; justify-content: flex-end; }
 }
+
+/* ---------- 午後I 学習画面 ---------- */
+.pm1-figure-wrap { margin: 14px 0; }
+.pm1-figure-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+
+.pm1-limit-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.pm1-ans-ta {
+  width: 100%; font: inherit; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--card); color: var(--text);
+  resize: vertical; min-height: 90px; font-size: 15px; line-height: 1.7;
+}
+
+.pm1-compare-box { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; }
+.pm1-compare-mine { background: var(--chip); }
+.pm1-compare-model { background: var(--ok-soft); border-color: var(--ok); }
+.pm1-compare-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+.pm1-compare-text { white-space: pre-wrap; font-size: 14.5px; }
+.pm1-empty-inline { color: var(--muted); }
+
+.pm1-grade-row { display: flex; gap: 8px; margin-top: 4px; }
+.pm1-grade-btn { min-width: 46px; font-weight: 700; font-size: 16px; }
+.pm1-grade-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
