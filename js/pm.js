@@ -30,6 +30,15 @@
   function recKey(examId, mode, no) {
     return examId + "#" + mode + "#" + no;
   }
+  // 午後II学習画面（js/pm2study.js）用データの参照。データが無い年度・問はnullを返す
+  // （window.PM2_TEXT は該当データファイル読み込み時にのみ examId キーで生える）。
+  function pm2TextFor(examId, no) {
+    var theme = window.PM2_TEXT && window.PM2_TEXT[examId];
+    if (!theme || !theme.questions) return null;
+    var found = null;
+    theme.questions.forEach(function (tq) { if (tq.no === no) found = tq; });
+    return found;
+  }
 
   /* ---------- 演習記録 (localStorage / STSync) ---------- */
   function syncActive() {
@@ -225,6 +234,10 @@
     var status = (rec && rec.s) ? rec.s : "todo";
     var tg = q.tags || {};
 
+    // pm2学習画面用データがある問だけ「学習」ボタンを出し、正式タイトルがあれば優先表示する
+    var pm2t = (currentMode === "pm2") ? pm2TextFor(it.exam.examId, q.no) : null;
+    var displayTitle = (pm2t && pm2t.title) ? pm2t.title : q.title;
+
     var row = document.createElement("div");
     row.className = "pm-row";
 
@@ -233,7 +246,7 @@
     main.innerHTML =
       '<span class="badge pm-no">問' + q.no + "</span>" +
       '<div class="pm-row-body">' +
-      '<div class="pm-row-title">' + escapeHtml(q.title) + "</div>" +
+      '<div class="pm-row-title">' + escapeHtml(displayTitle) + "</div>" +
       '<div class="pm-row-desc">' + escapeHtml(q.desc || "") + "</div>" +
       '<div class="pm-row-tags">' +
       (tg.industry ? '<span class="badge cat">' + escapeHtml(tg.industry) + "</span>" : "") +
@@ -242,7 +255,10 @@
       "</div>" +
       '<div class="pm-row-actions">' +
       '<span class="pm-status ' + status + '">' + STATUS_LABEL[status] + (rec && rec.g ? " " + escapeHtml(rec.g) : "") + "</span>" +
+      '<span class="pm-row-btns">' +
+      (pm2t ? '<button type="button" class="linkbtn pm-btn-study">学習</button>' : "") +
       '<button type="button" class="linkbtn pm-btn-record">記録</button>' +
+      "</span>" +
       "</div>";
     row.appendChild(main);
 
@@ -253,6 +269,13 @@
     main.querySelector(".pm-btn-record").addEventListener("click", function () {
       panel.hidden = !panel.hidden;
     });
+
+    var studyBtn = main.querySelector(".pm-btn-study");
+    if (studyBtn) {
+      studyBtn.addEventListener("click", function () {
+        if (window.PM2Study && window.PM2Study.open) window.PM2Study.open(it.exam.examId, q.no);
+      });
+    }
 
     return row;
   }
@@ -429,6 +452,15 @@
     updateTimerButtons();
     updateTimerDisplay();
   }
+
+  /* ---------- 午後II学習画面（js/pm2study.js）向け公開API ---------- */
+  // 学習画面から一覧へ戻る際に、記録状態の変化（骨子・執筆等はpm2study側の別ストアだが、
+  // 念のため）を反映して一覧を再描画するためのフック。
+  window.PmUI = {
+    refreshList: function () {
+      if (currentMode !== "am2") renderList();
+    }
+  };
 
   /* ---------- 起動 ---------- */
   bindModeTabs();

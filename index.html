@@ -150,23 +150,26 @@
 </div>
 
 <div id="mode-pm" hidden>
-  <div class="card">
-    <div class="group-head">
-      <h2 id="pm-heading">午後I 過去問</h2>
-      <span class="spacer"></span>
-      <span id="pm-progress" class="pm-progress"></span>
+  <div id="pm-main">
+    <div class="card">
+      <div class="group-head">
+        <h2 id="pm-heading">午後I 過去問</h2>
+        <span class="spacer"></span>
+        <span id="pm-progress" class="pm-progress"></span>
+      </div>
+      <div id="pm-filters" class="pm-filters"></div>
     </div>
-    <div id="pm-filters" class="pm-filters"></div>
-  </div>
-  <div class="card pm-timer-card">
-    <div class="group-head">
-      <h2>演習タイマー</h2>
-      <span class="spacer"></span>
-      <div id="pm-timer" class="pm-timer"></div>
+    <div class="card pm-timer-card">
+      <div class="group-head">
+        <h2>演習タイマー</h2>
+        <span class="spacer"></span>
+        <div id="pm-timer" class="pm-timer"></div>
+      </div>
     </div>
+    <div id="pm-drill"></div>
+    <div id="pm-list"></div>
   </div>
-  <div id="pm-drill"></div>
-  <div id="pm-list"></div>
+  <div id="pm2-study" hidden></div>
 </div>
 
 <div id="mode-terms" hidden>
@@ -213,6 +216,22 @@
 <script src="js/data/2025r07h_am2.js"></script>
 <script src="js/data/pm_index.js"></script>
 <script src="js/data/drill_common.js"></script>
+<script src="js/data/pm2/2009h21a_pm2.js"></script>
+<script src="js/data/pm2/2010h22a_pm2.js"></script>
+<script src="js/data/pm2/2011h23a_pm2.js"></script>
+<script src="js/data/pm2/2012h24a_pm2.js"></script>
+<script src="js/data/pm2/2013h25a_pm2.js"></script>
+<script src="js/data/pm2/2014h26a_pm2.js"></script>
+<script src="js/data/pm2/2015h27a_pm2.js"></script>
+<script src="js/data/pm2/2016h28a_pm2.js"></script>
+<script src="js/data/pm2/2017h29a_pm2.js"></script>
+<script src="js/data/pm2/2018h30a_pm2.js"></script>
+<script src="js/data/pm2/2019r01a_pm2.js"></script>
+<script src="js/data/pm2/2021r03h_pm2.js"></script>
+<script src="js/data/pm2/2022r04h_pm2.js"></script>
+<script src="js/data/pm2/2023r05h_pm2.js"></script>
+<script src="js/data/pm2/2024r06h_pm2.js"></script>
+<script src="js/data/pm2/2025r07h_pm2.js"></script>
 <script src="js/data/terms.js"></script>
 <script src="js/data/tb_ch1.js"></script>
 <script src="js/data/tb_ch2.js"></script>
@@ -225,6 +244,7 @@
 <script src="js/app.js"></script>
 <script src="js/pm.js"></script>
 <script src="js/drill.js"></script>
+<script src="js/pm2study.js"></script>
 <script src="js/terms.js"></script>
 <script src="js/textbook.js"></script>
 <script>

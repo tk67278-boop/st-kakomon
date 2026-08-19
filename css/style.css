@@ -443,3 +443,96 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 /* ---------- 骨子ドリル（午後IIモード内） ---------- */
 .badge.drill-type { background: var(--accent-soft); color: var(--accent-dark); }
 .drill-intro-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+/* ---------- 午後I・IIの一覧行: 学習ボタン ---------- */
+.pm-row-btns { display: flex; gap: 6px; align-items: center; }
+.pm-btn-study { font-weight: 700; color: var(--accent); }
+
+/* ---------- 午後II 学習画面 ---------- */
+.pm2-warning {
+  background: var(--ng-soft); color: var(--ng); border: 1px solid var(--ng);
+  border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13.5px;
+}
+
+.pm2-head-card { padding: 16px 20px; }
+.pm2-head-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 10px; margin: 6px 0 14px; }
+.pm2-title { margin: 0; font-size: 17px; flex: 1 1 auto; min-width: 0; }
+
+.pm2-subtabs {
+  display: flex; gap: 8px; overflow-x: auto; white-space: nowrap;
+  -webkit-overflow-scrolling: touch; padding-bottom: 2px;
+}
+.pm2-tab-btn {
+  flex: none; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--chip); color: var(--muted); font-weight: 600;
+  font-size: 14px; padding: 7px 16px;
+}
+.pm2-tab-btn:hover { color: var(--accent); border-color: var(--accent); }
+.pm2-tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.pm2-lead p { margin: 0 0 1.1em; }
+.pm2-lead p:last-child { margin-bottom: 0; }
+
+.pm2-limit-label {
+  font-size: 12px; font-weight: 700; color: var(--accent);
+  background: var(--accent-soft); border-radius: 999px; padding: 3px 10px; white-space: nowrap;
+}
+.pm2-setumon-body { white-space: pre-wrap; font-size: 15px; margin-top: 10px; }
+
+.pm2-links { display: flex; gap: 14px; flex-wrap: wrap; }
+.pm2-links a { color: var(--accent); font-size: 14px; text-decoration: none; }
+.pm2-links a:hover { text-decoration: underline; }
+
+.pm2-pre {
+  white-space: pre-wrap; font: inherit; font-size: 14.5px; margin: 0;
+  max-height: 420px; overflow-y: auto;
+}
+
+.pm2-field { margin-bottom: 16px; }
+.pm2-field-label { display: block; font-size: 13.5px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+
+.pm2-outline-ta,
+.pm2-essay-ta,
+.pm2-ai-result {
+  width: 100%; font: inherit; padding: 10px 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--card); color: var(--text);
+  resize: vertical;
+}
+.pm2-outline-ta { min-height: 110px; }
+.pm2-essay-ta { min-height: 220px; font-size: 16px; line-height: 1.8; }
+.pm2-ai-result { min-height: 140px; margin-top: 4px; }
+
+.pm2-count { margin-top: 6px; font-size: 13px; font-weight: 700; text-align: right; }
+.pm2-count.muted { color: var(--muted); }
+.pm2-count.ok { color: var(--ok); }
+.pm2-count.ng { color: var(--ng); }
+
+.pm2-version-list { list-style: none; margin: 0; padding: 0; }
+.pm2-version-row {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px;
+  padding: 10px 4px; border-bottom: 1px solid var(--line);
+}
+.pm2-version-row:last-child { border-bottom: none; }
+.pm2-version-date { font-size: 13px; font-weight: 600; }
+.pm2-version-meta { font-size: 12.5px; color: var(--muted); }
+.pm2-version-actions { margin-left: auto; display: flex; gap: 4px; }
+
+.pm2-checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pm2-check-row {
+  display: flex; align-items: flex-start; gap: 10px; padding: 9px 8px;
+  border-radius: 8px; cursor: pointer; font-size: 14.5px;
+}
+.pm2-check-row:hover { background: var(--chip); }
+.pm2-check-row input { margin-top: 3px; flex: none; }
+
+.pm2-ai-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.pm2-copy-status { font-size: 13px; color: var(--ok); font-weight: 600; }
+
+.pm2-timer-actions { display: flex; gap: 10px; margin-top: 10px; }
+.pm2-save-status { font-size: 13px; color: var(--ok); font-weight: 600; margin-right: auto; }
+
+@media (max-width: 560px) {
+  .pm2-title { font-size: 15.5px; }
+  .pm2-tab-btn { font-size: 13px; padding: 6px 12px; }
+  .pm2-version-actions { margin-left: 0; width: 100%; justify-content: flex-end; }
+}
