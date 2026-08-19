@@ -299,6 +299,23 @@
   }
 
   /* =====================================================================
+     骨子・執筆タブ共通: 問題文の参照表示
+     ===================================================================== */
+  // 前文の折りたたみ表示（執筆・骨子タブの先頭に置く）
+  function leadDetailsHtml() {
+    return '<div class="card pm2-lead-card">' +
+      '<details class="pm2-lead-details">' +
+      '<summary>前文（問題文）を表示</summary>' +
+      '<div class="pm2-lead">' + renderParagraphs(state.q.lead || "") + '</div>' +
+      '</details></div>';
+  }
+  // 各入力欄の直上に出す設問文ボックス
+  function setumonInlineHtml(k) {
+    var qq = state.q.q || {};
+    return '<div class="pm2-setumon-inline">' + escapeHtml(qq[k] || "") + '</div>';
+  }
+
+  /* =====================================================================
      骨子タブ
      ===================================================================== */
   var OUTLINE_PLACEHOLDER = {
@@ -311,11 +328,13 @@
     if (!state.outlineLive) state.outlineLive = { a: "", i: "", u: "" };
 
     body.innerHTML =
+      leadDetailsHtml() +
       '<div class="card">' +
         '<div class="group-head"><h2>骨子メモ</h2></div>' +
         KEY_ORDER.map(function (k) {
           return '<div class="pm2-field">' +
             '<label class="pm2-field-label">' + KANA_LABEL[k] + 'の章立て</label>' +
+            setumonInlineHtml(k) +
             '<textarea class="pm2-outline-ta" id="pm2-outline-' + k + '" rows="5" placeholder="' + escapeAttr(OUTLINE_PLACEHOLDER[k]) + '"></textarea>' +
           '</div>';
         }).join("") +
@@ -547,10 +566,12 @@
           '<button type="button" id="pm2-write-timer-reset">リセット</button>' +
         '</div>' +
       '</div>' +
+      leadDetailsHtml() +
       '<div class="card">' +
         KEY_ORDER.map(function (k) {
           return '<div class="pm2-field pm2-essay-field">' +
             '<label class="pm2-field-label">' + KANA_LABEL[k] + '（' + escapeHtml(LIMITS[k].label) + '）</label>' +
+            setumonInlineHtml(k) +
             '<textarea class="pm2-essay-ta" id="pm2-essay-' + k + '"></textarea>' +
             '<div class="pm2-count" id="pm2-count-' + k + '"></div>' +
           '</div>';

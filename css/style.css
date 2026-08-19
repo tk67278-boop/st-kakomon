@@ -123,6 +123,20 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .sync-mail { font-size: 13px; color: var(--muted); }
 .term-refs-head { margin: 10px 0 6px; font-size: 12.5px; color: var(--muted); }
 
+/* 執筆・骨子タブの問題文参照表示 */
+.pm2-lead-card { padding: 10px 16px; }
+.pm2-lead-details summary {
+  cursor: pointer; font-size: 14px; font-weight: 600; color: var(--accent);
+  padding: 4px 0; user-select: none;
+}
+.pm2-lead-details[open] summary { margin-bottom: 8px; }
+.pm2-setumon-inline {
+  white-space: pre-wrap; font-size: 13.5px; line-height: 1.7;
+  background: var(--chip); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; padding: 8px 12px; margin: 4px 0 8px;
+  color: var(--text);
+}
+
 .start-row { display: flex; align-items: center; gap: 16px; justify-content: flex-end; }
 .pool-info { color: var(--muted); font-size: 14px; }
 
