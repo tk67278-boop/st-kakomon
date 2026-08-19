@@ -148,9 +148,22 @@
     }
 
     /* ---------- 出題セッション ---------- */
+    // 正解位置の規則性（データ上の並び）を悟られないよう、表示時に選択肢をシャッフルする
+    function shuffledOrder() {
+      var order = [0, 1, 2, 3];
+      for (var i = order.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = order[i]; order[i] = order[j]; order[j] = t;
+      }
+      return order;
+    }
+
     function startSession(qs) {
       if (!qs || !qs.length) return;
-      session = { questions: qs, idx: 0, results: [], answered: false };
+      session = {
+        questions: qs, idx: 0, results: [], answered: false,
+        perms: qs.map(function () { return shuffledOrder(); })
+      };
       renderQuestionScreen();
     }
 
@@ -169,8 +182,8 @@
           '<div class="q-meta"><span class="badge drill-type">' + escapeHtml(q.type) + '</span></div>' +
           '<div class="q-text">' + escapeHtml(q.question) + '</div>' +
           '<ol class="choices">' +
-            q.choices.map(function (c, i) {
-              return '<li><button type="button" data-idx="' + i + '"><span class="kana">' + KANA[i] + '</span><span>' + escapeHtml(c) + '</span></button></li>';
+            session.perms[session.idx].map(function (origIdx, dispIdx) {
+              return '<li><button type="button" data-idx="' + origIdx + '"><span class="kana">' + KANA[dispIdx] + '</span><span>' + escapeHtml(q.choices[origIdx]) + '</span></button></li>';
             }).join("") +
           '</ol>' +
           '<div class="feedback" id="drill-feedback" hidden>' +
@@ -220,7 +233,8 @@
       fb.classList.remove("good", "bad");
       fb.classList.add(result.correct ? "good" : "bad");
       $c("#drill-fb-result").textContent = result.correct ? "正解！" : "不正解";
-      $c("#drill-fb-answer").textContent = "正解は「" + KANA[q.answer] + "」";
+      var dispPos = session.perms[session.idx].indexOf(q.answer);
+      $c("#drill-fb-answer").textContent = "正解は「" + KANA[dispPos >= 0 ? dispPos : q.answer] + "」";
       $c("#drill-fb-explanation").textContent = q.explanation || "";
 
       var nextBtn = $c("#drill-btn-next");
