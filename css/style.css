@@ -430,6 +430,8 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 .tb-fig .fgng { fill: var(--ng); }
 .tb-fig .fgl  { stroke: var(--muted); fill: none; }
 .tb-fig .fgah { fill: var(--muted); }
+.tb-fig .fgbns { fill: var(--ng-soft); stroke: var(--ng); }
+.tb-fig .fgbos { fill: var(--ok-soft); stroke: var(--ok); }
 
 .tb-points-box {
   max-width: 720px; margin: 22px 0; padding: 14px 18px;
