@@ -30,14 +30,27 @@
   // body文字列を段落表示用のHTMLに変換する。
   // ・空行(\n\n以上)区切りのブロックごとに <p>
   // ・ブロック内の全行が「・」始まりなら <ul><li> の箇条書きにする
-  // 組み立て前に必ずHTMLエスケープする。
-  function renderBody(body) {
+  // ・"{{図id}}"だけのブロックは、節データの figures 配列（自作の信頼済みSVG）の図に置換し
+  //   図番号付きのキャプションを付ける
+  // 図以外のテキストは組み立て前に必ずHTMLエスケープする。
+  function renderBody(body, figures) {
+    var figMap = {};
+    (figures || []).forEach(function (f) { figMap[f.id] = f; });
+    var figNo = 0;
     var text = String(body || "");
     var blocks = text.split(/\n{2,}/);
     var html = "";
     blocks.forEach(function (block) {
       var trimmed = block.replace(/^\s+|\s+$/g, "");
       if (!trimmed) return;
+      var fm = trimmed.match(/^\{\{([\w-]+)\}\}$/);
+      if (fm && figMap[fm[1]]) {
+        figNo += 1;
+        var fig = figMap[fm[1]];
+        html += '<figure class="tb-fig">' + fig.html +
+          '<figcaption>図' + figNo + '　' + escapeHtml(fig.title || "") + '</figcaption></figure>';
+        return;
+      }
       var lines = trimmed.split("\n");
       var allBullets = lines.length > 0 && lines.every(function (line) { return /^\s*・/.test(line); });
       if (allBullets) {
@@ -179,7 +192,7 @@
     html += '<div class="tb-reader-head"><button type="button" class="linkbtn" id="tb-btn-back">&larr; 目次へ戻る</button></div>';
     html += '<div class="tb-reader-chapter">第' + ch.order + '章 ' + escapeHtml(ch.title) + '</div>';
     html += '<h2 class="tb-reader-title">' + escapeHtml(sec.title) + '</h2>';
-    html += '<div class="tb-body">' + renderBody(sec.body) + '</div>';
+    html += '<div class="tb-body">' + renderBody(sec.body, sec.figures) + '</div>';
 
     if (sec.points && sec.points.length) {
       html += '<div class="tb-points-box"><h3>頻出ポイント</h3><ul>' +

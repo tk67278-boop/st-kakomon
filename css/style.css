@@ -414,6 +414,23 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 .tb-body ul { margin: 0 0 1.2em; padding-left: 1.4em; }
 .tb-body li { margin-bottom: 0.4em; }
 
+/* 教科書の本文内図解（{{図id}} を置換して表示）。色はCSS変数経由でライト/ダーク両対応 */
+.tb-fig { margin: 6px 0 1.6em; }
+.tb-fig svg { display: block; width: 100%; max-width: 480px; height: auto; margin: 0 auto; font-family: inherit; }
+.tb-fig figcaption { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.tb-fig .fgb  { fill: var(--chip); stroke: var(--line); }
+.tb-fig .fgb2 { fill: var(--accent-soft); stroke: var(--accent); }
+.tb-fig .fgb3 { fill: var(--card); stroke: var(--line); }
+.tb-fig .fgbA { fill: var(--accent); }
+.tb-fig .fgt  { fill: var(--text); }
+.tb-fig .fgtm { fill: var(--muted); }
+.tb-fig .fgta { fill: var(--accent); }
+.tb-fig .fgtw { fill: #fff; }
+.tb-fig .fgok { fill: var(--ok); }
+.tb-fig .fgng { fill: var(--ng); }
+.tb-fig .fgl  { stroke: var(--muted); fill: none; }
+.tb-fig .fgah { fill: var(--muted); }
+
 .tb-points-box {
   max-width: 720px; margin: 22px 0; padding: 14px 18px;
   border-radius: 10px; border: 1px solid var(--accent);
