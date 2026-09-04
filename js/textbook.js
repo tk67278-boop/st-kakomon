@@ -102,6 +102,157 @@
     saveRecord(tbKey(sectionId), { s: done ? "todo" : "done", t: Date.now() });
   }
 
+  /* ---------- 読み上げ（Web Speech API・端末内蔵の音声合成を利用） ---------- */
+  var TTS = (function () {
+    var supported = ("speechSynthesis" in window) && ("SpeechSynthesisUtterance" in window);
+    var RATE_KEY = "st_tts_rate_v1";
+    var playing = false;
+    var chunks = [];   // {text, el} elは読み上げ中ハイライト対象
+    var idx = 0;
+    var gen = 0;       // 世代トークン。cancel後に古いonendが走っても無視するため
+    var rate = 1;
+    var voice = null;
+    var currentU = null; // Chromeが発話中のutteranceをGCしてonendが来なくなる既知問題への対策で参照を保持
+
+    try {
+      var saved = parseFloat(localStorage.getItem(RATE_KEY));
+      if (saved >= 0.5 && saved <= 2) rate = saved;
+    } catch (e) { /* ignore */ }
+
+    function pickVoice() {
+      var vs = window.speechSynthesis.getVoices();
+      var ja = [];
+      for (var i = 0; i < vs.length; i++) {
+        if ((vs[i].lang || "").toLowerCase().indexOf("ja") === 0) ja.push(vs[i]);
+      }
+      if (!ja.length) { voice = null; return; }
+      var pref = null;
+      for (var j = 0; j < ja.length; j++) {
+        if (/Google|Nanami|Kyoko|Sayaka|Ichiro/i.test(ja[j].name)) { pref = ja[j]; break; }
+      }
+      voice = pref || ja[0];
+    }
+    if (supported) {
+      pickVoice();
+      window.speechSynthesis.onvoiceschanged = pickVoice;
+    }
+
+    // 「。」区切りで文に分け、読み上げが途切れにくい長さ（約110字）まで結合する
+    // （AndroidのChrome等では長すぎる発話が途中で止まる既知問題があるため）
+    function toChunks(text, el) {
+      var out = [];
+      var buf = "";
+      var sent = "";
+      for (var i = 0; i < text.length; i++) {
+        sent += text.charAt(i);
+        if (text.charAt(i) === "。") {
+          if (buf && (buf.length + sent.length) > 110) { out.push({ text: buf, el: el }); buf = ""; }
+          buf += sent;
+          sent = "";
+        }
+      }
+      buf += sent;
+      if (buf.replace(/\s/g, "")) out.push({ text: buf, el: el });
+      return out;
+    }
+
+    // 表示中の本文（段落・箇条書き）と頻出ポイントを読み上げ対象に集める。図は飛ばす
+    function collect() {
+      chunks = [];
+      var body = document.querySelector("#tb-reader .tb-body");
+      if (body) {
+        for (var i = 0; i < body.children.length; i++) {
+          var el = body.children[i];
+          if (el.tagName === "P" || el.tagName === "UL") {
+            chunks = chunks.concat(toChunks(el.textContent, el));
+          }
+        }
+      }
+      var points = document.querySelector("#tb-reader .tb-points-box");
+      if (points) {
+        var lis = points.querySelectorAll("li");
+        var t = "頻出ポイント。";
+        for (var k = 0; k < lis.length; k++) t += lis[k].textContent + "。";
+        chunks = chunks.concat(toChunks(t, points));
+      }
+    }
+
+    function setActive(el) {
+      var prev = document.querySelector(".tb-tts-active");
+      if (prev) prev.classList.remove("tb-tts-active");
+      if (el) {
+        el.classList.add("tb-tts-active");
+        try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+        catch (e) { /* ignore */ }
+      }
+    }
+
+    function updateButtons() {
+      var play = document.getElementById("tb-tts-play");
+      var stopBtn = document.getElementById("tb-tts-stop");
+      if (play) play.hidden = playing;
+      if (stopBtn) stopBtn.hidden = !playing;
+    }
+
+    function speakNext() {
+      if (!playing) return;
+      if (idx >= chunks.length) { stop(); return; }
+      var myGen = gen;
+      var c = chunks[idx];
+      setActive(c.el);
+      var u = new SpeechSynthesisUtterance(c.text);
+      u.lang = "ja-JP";
+      if (voice) u.voice = voice;
+      u.rate = rate;
+      u.onend = function () {
+        if (playing && myGen === gen) { idx += 1; speakNext(); }
+      };
+      u.onerror = function () { if (myGen === gen) stop(); };
+      currentU = u;
+      window.speechSynthesis.speak(u);
+    }
+
+    function start() {
+      if (!supported) return;
+      stop();
+      collect();
+      if (!chunks.length) return;
+      idx = 0;
+      gen += 1;
+      playing = true;
+      updateButtons();
+      speakNext();
+    }
+
+    function stop() {
+      playing = false;
+      gen += 1;
+      currentU = null;
+      if (supported) window.speechSynthesis.cancel();
+      setActive(null);
+      updateButtons();
+    }
+
+    // 再生中に速度を変えた場合は、現在のチャンクから新しい速度で読み直す
+    function setRate(r) {
+      rate = r;
+      try { localStorage.setItem(RATE_KEY, String(r)); } catch (e) { /* ignore */ }
+      if (playing) {
+        gen += 1;
+        window.speechSynthesis.cancel();
+        speakNext();
+      }
+    }
+
+    return {
+      supported: supported,
+      start: start,
+      stop: stop,
+      setRate: setRate,
+      getRate: function () { return rate; }
+    };
+  })();
+
   /* ---------- 状態 ---------- */
   var currentFlatIndex = -1; // リーダー表示中の節（FLATのindex）。-1なら目次表示中。
 
@@ -183,6 +334,7 @@
   function renderReader() {
     var el = $("#tb-reader");
     if (!el || currentFlatIndex < 0 || currentFlatIndex >= FLAT.length) return;
+    TTS.stop(); // 再描画でDOMが差し替わるため読み上げは止める
     var f = FLAT[currentFlatIndex];
     var ch = f.chapter, sec = f.section;
     var records = loadRecords();
@@ -192,6 +344,16 @@
     html += '<div class="tb-reader-head"><button type="button" class="linkbtn" id="tb-btn-back">&larr; 目次へ戻る</button></div>';
     html += '<div class="tb-reader-chapter">第' + ch.order + '章 ' + escapeHtml(ch.title) + '</div>';
     html += '<h2 class="tb-reader-title">' + escapeHtml(sec.title) + '</h2>';
+    if (TTS.supported) {
+      html += '<div class="tb-tts">' +
+        '<button type="button" id="tb-tts-play">▶ 読み上げ</button>' +
+        '<button type="button" id="tb-tts-stop" hidden>■ 停止</button>' +
+        '<label class="tb-tts-rate">速度<select id="tb-tts-rate">' +
+        [0.8, 1, 1.25, 1.5].map(function (r) {
+          return '<option value="' + r + '"' + (TTS.getRate() === r ? ' selected' : '') + '>' + r + '×</option>';
+        }).join('') +
+        '</select></label></div>';
+    }
     html += '<div class="tb-body">' + renderBody(sec.body, sec.figures) + '</div>';
 
     if (sec.points && sec.points.length) {
@@ -235,6 +397,15 @@
     var quizBtn = $("#tb-btn-quiz");
     if (quizBtn) quizBtn.addEventListener("click", function () { startSectionQuiz(sec); });
 
+    var ttsPlay = $("#tb-tts-play");
+    if (ttsPlay) {
+      ttsPlay.addEventListener("click", function () { TTS.start(); });
+      $("#tb-tts-stop").addEventListener("click", function () { TTS.stop(); });
+      $("#tb-tts-rate").addEventListener("change", function (e) {
+        TTS.setRate(parseFloat(e.target.value));
+      });
+    }
+
     findAll(el, ".tb-term-chip").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var idx = parseInt(btn.dataset.termIdx, 10);
@@ -257,6 +428,7 @@
     showReaderByIndex(idx);
   }
   function backToToc() {
+    TTS.stop();
     currentFlatIndex = -1;
     $("#tb-reader").hidden = true;
     $("#tb-toc").hidden = false;
@@ -279,6 +451,11 @@
       else renderReader();
     });
   }
+
+  // 他モードのタブへ切り替えたら読み上げを止める
+  findAll(document, ".mode-tab").forEach(function (btn) {
+    btn.addEventListener("click", function () { TTS.stop(); });
+  });
 
   /* ---------- 起動 ---------- */
   // js/pm.js の restoreMode() は本スクリプトの読み込みより先に実行されるため、
