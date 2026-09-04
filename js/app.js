@@ -93,6 +93,13 @@
     restoreSettings();
     updatePoolInfo();
     renderStatsSummary();
+    renderMockSetup();
+  }
+
+  // 出典表示。模擬試験（新規作問）は本試験の過去問ではないことを明示する
+  function sourceText(item) {
+    if (item.exam.mock) return "出典: " + item.exam.examLabel + " 問" + item.q.no + "（新規作問。本試験の過去問ではありません）";
+    return "出典: " + item.exam.examLabel + " ITストラテジスト試験 午前II 問" + item.q.no;
   }
 
   function selectedExamIds() {
@@ -281,7 +288,7 @@
     res.className = correct ? "good" : "bad";
     $("#fb-answer").textContent = "正解は「" + dispKanaOfCorrect + "」";
     $("#fb-explanation").textContent = q.explanation || "";
-    $("#fb-src").textContent = "出典: " + item.exam.examLabel + " ITストラテジスト試験 午前II 問" + q.no;
+    $("#fb-src").textContent = sourceText(item);
 
     var nextBtn = $("#btn-next");
     nextBtn.textContent = session.idx + 1 >= session.pool.length ? "結果を見る" : "次の問題へ";
@@ -344,11 +351,238 @@
     renderStatsSummary();
   }
 
+  /* ---------- 模擬試験（本番形式・一括採点） ----------
+     解答中は正誤を出さず、制限時間（1問あたり96秒＝25問で40分）終了または「終了して採点」で採点する。
+     解答結果は通常演習と同じ学習履歴（stats）に記録し、セットごとの最新結果は
+     午後演習と同じ保存先（st_pm_records_v1 / STSync.setPmRecord）に "mock#examId" キーで保存する。 */
+  var MOCK_SEC_PER_Q = 96;
+  var mock = null;
+  var mockTimer = null;
+
+  function mockKey(examId) { return "mock#" + examId; }
+  function loadMockRecord(examId) { return loadPmRecords()[mockKey(examId)] || null; }
+  function saveMockRecord(examId, rec) {
+    if (syncActive() && window.STSync.setPmRecord) {
+      window.STSync.setPmRecord(mockKey(examId), rec);
+    } else {
+      var records = loadPmRecords();
+      records[mockKey(examId)] = rec;
+      savePmRecordsLocal(records);
+    }
+  }
+  function examById(examId) {
+    return EXAMS.filter(function (e) { return e.examId === examId; })[0] || null;
+  }
+  // 選択肢の並び: 模擬試験セット（新規作問）を先頭に、過去問は新しい年度から
+  function mockExamsOrdered() {
+    var mocks = EXAMS.filter(function (e) { return e.mock; });
+    var real = EXAMS.filter(function (e) { return !e.mock; }).slice().reverse();
+    return mocks.concat(real);
+  }
+  function fmtTime(sec) {
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+  function fmtDate(t) {
+    var d = new Date(t);
+    return d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
+  }
+
+  function renderMockSetup() {
+    var sel = $("#mock-set");
+    if (!sel) return;
+    var prev = sel.value;
+    sel.innerHTML = "";
+    mockExamsOrdered().forEach(function (e) {
+      var o = document.createElement("option");
+      o.value = e.examId;
+      o.textContent = e.examLabel + "（" + e.questions.length + "問）";
+      sel.appendChild(o);
+    });
+    if (prev && examById(prev)) sel.value = prev;
+    updateMockInfo();
+  }
+  function updateMockInfo() {
+    var sel = $("#mock-set");
+    if (!sel) return;
+    var exam = examById(sel.value);
+    if (!exam) return;
+    var n = exam.questions.length;
+    $("#mock-info").textContent = n + "問・制限時間" + Math.round(n * MOCK_SEC_PER_Q / 60) + "分（合格ライン60%＝" + Math.ceil(n * 0.6) + "問）";
+    var rec = loadMockRecord(exam.examId);
+    $("#mock-last").textContent = rec
+      ? "前回 " + rec.c + "/" + rec.n + "（" + pct(rec.c, rec.n) + "％・" + fmtDate(rec.t) + "）"
+      : "未受験";
+  }
+
+  function startMock(examId) {
+    var exam = examById(examId);
+    if (!exam) return;
+    var items = ALL.filter(function (it) { return it.exam === exam; });
+    var shuf = $("#mock-shuffle").checked;
+    mock = {
+      exam: exam,
+      items: items,
+      idx: 0,
+      answers: items.map(function () { return -1; }),
+      orders: items.map(function () { var o = [0, 1, 2, 3]; return shuf ? shuffle(o) : o; }),
+      startAt: Date.now(),
+      limitSec: items.length * MOCK_SEC_PER_Q,
+      finished: false
+    };
+    if (mockTimer) clearInterval(mockTimer);
+    mockTimer = setInterval(tickMock, 1000);
+    showScreen("mock");
+    renderMockQuestion();
+    tickMock();
+  }
+  function tickMock() {
+    if (!mock || mock.finished) return;
+    var remain = mock.limitSec - Math.floor((Date.now() - mock.startAt) / 1000);
+    var t = $("#m-timer");
+    if (remain <= 0) {
+      t.textContent = "残り 0:00";
+      finishMock(true);
+      return;
+    }
+    t.textContent = "残り " + fmtTime(remain);
+    if (remain <= 300) t.classList.add("warn"); else t.classList.remove("warn");
+  }
+
+  function renderMockQuestion() {
+    var n = mock.items.length;
+    var it = mock.items[mock.idx], q = it.q;
+    $("#m-progress").textContent = "問 " + (mock.idx + 1) + " / " + n;
+    $("#m-exam").textContent = mock.exam.examLabel + " 問" + q.no;
+    $("#m-text").textContent = q.question;
+    $("#m-extra").innerHTML = q.html || "";
+    if (q.image) {
+      $("#m-image").src = q.image;
+      $("#m-image-wrap").hidden = false;
+    } else {
+      $("#m-image").removeAttribute("src");
+      $("#m-image-wrap").hidden = true;
+    }
+
+    var ol = $("#m-choices");
+    ol.innerHTML = "";
+    mock.orders[mock.idx].forEach(function (origIdx, dispIdx) {
+      var li = document.createElement("li");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      if (mock.answers[mock.idx] === origIdx) btn.className = "selected";
+      btn.innerHTML = '<span class="kana">' + KANA[dispIdx] + '</span><span>' + escapeHtml(q.choices[origIdx]) + '</span>';
+      btn.addEventListener("click", function () {
+        mock.answers[mock.idx] = origIdx;
+        renderMockQuestion();
+      });
+      li.appendChild(btn);
+      ol.appendChild(li);
+    });
+
+    var grid = $("#m-grid");
+    grid.innerHTML = "";
+    var answered = 0;
+    mock.items.forEach(function (_, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = i + 1;
+      if (mock.answers[i] >= 0) { b.className = "done"; answered += 1; }
+      if (i === mock.idx) b.classList.add("cur");
+      b.addEventListener("click", function () { mock.idx = i; renderMockQuestion(); });
+      grid.appendChild(b);
+    });
+    $("#m-status").textContent = "回答済み " + answered + " / " + n;
+    $("#btn-mock-prev").disabled = mock.idx === 0;
+    $("#btn-mock-next").textContent = mock.idx + 1 >= n ? "終了して採点" : "次へ →";
+  }
+
+  function finishMock(timeUp) {
+    if (!mock || mock.finished) return;
+    mock.finished = true;
+    if (mockTimer) { clearInterval(mockTimer); mockTimer = null; }
+    var elapsed = Math.min(mock.limitSec, Math.floor((Date.now() - mock.startAt) / 1000));
+    var results = mock.items.map(function (it, i) {
+      var chosen = mock.answers[i];
+      var correct = chosen === it.q.answer; // 未回答は不正解扱い
+      recordAnswer(it.key, correct);
+      return { item: it, chosen: chosen, correct: correct, order: mock.orders[i] };
+    });
+    var c = results.filter(function (r) { return r.correct; }).length;
+    saveMockRecord(mock.exam.examId, { s: "done", t: Date.now(), n: results.length, c: c, sec: elapsed });
+    renderMockResult(results, elapsed, timeUp);
+    showScreen("mockresult");
+    renderStatsSummary();
+  }
+
+  function renderMockResult(results, elapsed, timeUp) {
+    var n = results.length;
+    var c = results.filter(function (r) { return r.correct; }).length;
+    var passLine = Math.ceil(n * 0.6);
+    var passed = c >= passLine;
+    $("#mr-score").innerHTML =
+      "<b>" + c + "</b> ／ " + n + " 問正解（正答率 " + pct(c, n) + "％）" +
+      '<span class="mock-pass ' + (passed ? "ok" : "ng") + '">' +
+      (passed ? "合格ライン（60%）クリア" : "合格ラインまであと " + (passLine - c) + " 問") + "</span>";
+    var unanswered = results.filter(function (r) { return r.chosen < 0; }).length;
+    $("#mr-meta").textContent = mock.exam.examLabel + "／所要時間 " + fmtTime(elapsed) +
+      (timeUp ? "（時間切れで自動採点）" : "") + "／未回答 " + unanswered + " 問";
+
+    var byCat = {};
+    results.forEach(function (r) {
+      var cat = r.item.q.category;
+      byCat[cat] = byCat[cat] || { a: 0, c: 0 };
+      byCat[cat].a += 1;
+      if (r.correct) byCat[cat].c += 1;
+    });
+    var rows = "<tr><th>分野</th><th>正答率</th><th style='text-align:right'>正解数</th></tr>";
+    Object.keys(byCat).forEach(function (cat) {
+      var s = byCat[cat], p = pct(s.c, s.a);
+      rows += "<tr><td>" + cat + "</td>" +
+        "<td><span class='minibar'><i style='width:" + p + "%'></i></span>" + p + "％</td>" +
+        "<td class='num'>" + s.c + " / " + s.a + "</td></tr>";
+    });
+    $("#mr-cats").innerHTML = rows;
+
+    var ol = $("#mr-list");
+    ol.innerHTML = "";
+    results.forEach(function (r, i) {
+      var q = r.item.q;
+      var kanaChosen = r.chosen >= 0 ? KANA[r.order.indexOf(r.chosen)] : "未回答";
+      var kanaAns = KANA[r.order.indexOf(q.answer)];
+      var snippet = q.question.split("\n")[0];
+      if (snippet.length > 48) snippet = snippet.slice(0, 48) + "…";
+      var choicesHtml = r.order.map(function (origIdx, dispIdx) {
+        var cls = (origIdx === q.answer ? "is-correct" : "") + (origIdx === r.chosen ? " is-chosen" : "");
+        return "<li class='" + cls + "'>" + KANA[dispIdx] + "　" + escapeHtml(q.choices[origIdx]) +
+          (origIdx === q.answer ? "　✔" : "") + "</li>";
+      }).join("");
+      var li = document.createElement("li");
+      li.className = r.correct ? "ok" : "ng";
+      li.innerHTML =
+        "<details><summary>" +
+        "<span class='mr-no'>問" + (i + 1) + "</span>" +
+        "<span class='mr-mark'>" + (r.correct ? "○" : "×") + "</span>" +
+        "<span class='mr-snippet'>" + escapeHtml(snippet) + "</span>" +
+        "<span class='mr-ans'>あなた: " + kanaChosen + " ／ 正解: " + kanaAns + "</span>" +
+        "</summary><div class='mr-body'>" +
+        "<div class='q-text'>" + escapeHtml(q.question) + "</div>" + (q.html || "") +
+        (q.image ? "<div class='q-image-wrap'><img src='" + q.image + "' alt='問題図'></div>" : "") +
+        "<ol>" + choicesHtml + "</ol>" +
+        "<p class='mr-exp'>" + escapeHtml(q.explanation || "") + "</p>" +
+        "<p class='fb-src'>" + escapeHtml(sourceText(r.item)) + "</p>" +
+        "</div></details>";
+      ol.appendChild(li);
+    });
+  }
+
   /* ---------- 画面切替 ---------- */
   function showScreen(name) {
-    $("#screen-setup").hidden = name !== "setup";
-    $("#screen-quiz").hidden = name !== "quiz";
-    $("#screen-result").hidden = name !== "result";
+    var ids = { setup: "#screen-setup", quiz: "#screen-quiz", result: "#screen-result", mock: "#screen-mock", mockresult: "#screen-mock-result" };
+    Object.keys(ids).forEach(function (key) {
+      var el = $(ids[key]);
+      if (el) el.hidden = key !== name;
+    });
     window.scrollTo(0, 0);
   }
 
@@ -357,7 +591,7 @@
     $("#btn-exams-all").addEventListener("click", function () { $$(".ck-exam").forEach(function (c) { c.checked = true; }); updatePoolInfo(); });
     $("#btn-exams-none").addEventListener("click", function () { $$(".ck-exam").forEach(function (c) { c.checked = false; }); updatePoolInfo(); });
     function selectRecent(n) {
-      var ids = EXAMS.map(function (e) { return e.examId; }).slice(-n);
+      var ids = EXAMS.filter(function (e) { return !e.mock; }).map(function (e) { return e.examId; }).slice(-n);
       $$(".ck-exam").forEach(function (c) { c.checked = ids.indexOf(c.value) >= 0; });
       updatePoolInfo();
     }
@@ -483,7 +717,52 @@
       reader.readAsText(file);
     });
 
+    // 模擬試験（古いindex.htmlがキャッシュされている間に新しいapp.jsが配信されても壊れないよう存在確認）
+    if ($("#mock-set") && $("#btn-mock-start")) {
+      $("#mock-set").addEventListener("change", updateMockInfo);
+      $("#btn-mock-start").addEventListener("click", function () { startMock($("#mock-set").value); });
+      $("#btn-mock-prev").addEventListener("click", function () {
+        if (!mock || mock.idx === 0) return;
+        mock.idx -= 1;
+        renderMockQuestion();
+        window.scrollTo(0, 0);
+      });
+      $("#btn-mock-next").addEventListener("click", function () {
+        if (!mock || mock.finished) return;
+        if (mock.idx + 1 >= mock.items.length) {
+          var un = mock.answers.filter(function (a) { return a < 0; }).length;
+          if (un > 0 && !confirm("未回答が " + un + " 問あります。終了して採点しますか？")) return;
+          finishMock(false);
+        } else {
+          mock.idx += 1;
+          renderMockQuestion();
+          window.scrollTo(0, 0);
+        }
+      });
+      $("#btn-mock-finish").addEventListener("click", function () {
+        if (mock && !mock.finished && confirm("試験を終了して採点します。よろしいですか？")) finishMock(false);
+      });
+      $("#btn-mock-again").addEventListener("click", function () { if (mock) startMock(mock.exam.examId); });
+      $("#btn-mock-back").addEventListener("click", function () {
+        renderStatsSummary();
+        updateMockInfo();
+        showScreen("setup");
+      });
+    }
+
     document.addEventListener("keydown", function (e) {
+      if (!$("#screen-mock").hidden && mock && !mock.finished) {
+        if (e.key >= "1" && e.key <= "4") {
+          var mb = $$("#m-choices button")[parseInt(e.key, 10) - 1];
+          if (mb) mb.click();
+        } else if (e.key === "ArrowRight" || e.key === "Enter") {
+          e.preventDefault();
+          $("#btn-mock-next").click();
+        } else if (e.key === "ArrowLeft") {
+          $("#btn-mock-prev").click();
+        }
+        return;
+      }
       if ($("#screen-quiz").hidden) return;
       if (e.key >= "1" && e.key <= "4" && !session.answered) {
         var dispIdx = parseInt(e.key, 10) - 1;
@@ -524,7 +803,7 @@
   // クラウド同期の状態変化（ログイン/ログアウト/他端末の更新）でサマリを更新
   if (window.STSync) {
     window.STSync.setOnChange(function () {
-      if (!$("#screen-setup").hidden) renderStatsSummary();
+      if (!$("#screen-setup").hidden) { renderStatsSummary(); updateMockInfo(); }
     });
   }
 })();

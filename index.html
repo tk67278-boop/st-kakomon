@@ -92,6 +92,68 @@
       <div id="pool-info" class="pool-info"></div>
       <button id="btn-start" class="primary big">学習を開始する</button>
     </div>
+
+    <div class="card" id="mock-card">
+      <div class="group-head">
+        <h2>模擬試験（本番形式）</h2>
+        <span class="spacer"></span>
+        <span id="mock-last" class="pm-progress"></span>
+      </div>
+      <p class="stats-note mock-note">試験セットを選んで本番同様に解きます。解答中は正誤が表示されず、制限時間（25問で40分）が来るか「終了して採点」を押すと一括採点します。新テーマ模擬試験は過去問にない最新テーマの新規作問です。</p>
+      <div class="opt-grid">
+        <label class="opt">試験セット
+          <select id="mock-set"></select>
+        </label>
+        <label class="opt check"><input type="checkbox" id="mock-shuffle">選択肢の順番をシャッフルする</label>
+      </div>
+      <div class="start-row">
+        <div id="mock-info" class="pool-info"></div>
+        <button id="btn-mock-start" class="primary">模擬試験を開始する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 模擬試験 解答画面 ================= -->
+  <section id="screen-mock" hidden>
+    <div class="quiz-top">
+      <div id="m-progress" class="q-progress"></div>
+      <div id="m-timer" class="m-timer"></div>
+      <span class="spacer"></span>
+      <button class="linkbtn" id="btn-mock-finish">終了して採点</button>
+    </div>
+    <div id="m-grid" class="m-grid"></div>
+
+    <div class="card q-card">
+      <div class="q-meta">
+        <span class="badge exam" id="m-exam"></span>
+      </div>
+      <div id="m-text" class="q-text"></div>
+      <div id="m-extra" class="q-extra"></div>
+      <div id="m-image-wrap" class="q-image-wrap" hidden><img id="m-image" alt="問題図"></div>
+      <ol id="m-choices" class="choices"></ol>
+      <div class="m-nav">
+        <button id="btn-mock-prev" type="button">&larr; 前へ</button>
+        <span class="m-nav-hint" id="m-status"></span>
+        <button id="btn-mock-next" type="button" class="primary">次へ &rarr;</button>
+      </div>
+      <p class="kbd-hint">キー操作: <kbd>1</kbd>〜<kbd>4</kbd> で選択 / <kbd>←</kbd> <kbd>→</kbd> で移動</p>
+    </div>
+  </section>
+
+  <!-- ================= 模擬試験 結果画面 ================= -->
+  <section id="screen-mock-result" hidden>
+    <div class="card">
+      <h2>模擬試験の結果</h2>
+      <div id="mr-score" class="r-score"></div>
+      <p id="mr-meta" class="stats-note"></p>
+      <table class="r-cats" id="mr-cats"></table>
+      <h3>全問の振り返り（タップで問題・解説を表示）</h3>
+      <ol id="mr-list" class="mr-list"></ol>
+      <div class="r-actions">
+        <button id="btn-mock-again" class="primary">同じセットをもう一度</button>
+        <button id="btn-mock-back">設定に戻る</button>
+      </div>
+    </div>
   </section>
 
   <!-- ================= 出題画面 ================= -->
@@ -215,6 +277,8 @@
 <script src="js/data/2023r05h_am2.js"></script>
 <script src="js/data/2024r06h_am2.js"></script>
 <script src="js/data/2025r07h_am2.js"></script>
+<script src="js/data/mock2026a_am2.js"></script>
+<script src="js/data/mock2026b_am2.js"></script>
 <script src="js/data/pm_index.js"></script>
 <script src="js/data/drill_common.js"></script>
 <script src="js/data/pm2/2009h21a_pm2.js"></script>

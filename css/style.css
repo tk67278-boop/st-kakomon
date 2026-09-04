@@ -225,6 +225,41 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 .r-wrong .w-meta { font-weight: 600; margin-right: 8px; }
 .r-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
 
+/* ---------- 模擬試験（本番形式） ---------- */
+.mock-note { margin: 0 0 12px; }
+.m-timer { font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.m-timer.warn { color: var(--ng); }
+.m-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.m-grid button { width: 36px; height: 30px; padding: 0; font-size: 12.5px; border-radius: 6px; }
+.m-grid button.done { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.m-grid button.cur { outline: 2px solid var(--accent); outline-offset: 1px; }
+.choices li button.selected { border-color: var(--accent); background: var(--accent-soft); color: inherit; }
+.choices li button.selected .kana { background: var(--accent); color: #fff; }
+.m-nav { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.m-nav .m-nav-hint { flex: 1; text-align: center; font-size: 13px; color: var(--muted); }
+.mock-pass { display: inline-block; margin-left: 12px; padding: 3px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; vertical-align: middle; }
+.mock-pass.ok { background: var(--ok-soft); color: var(--ok); }
+.mock-pass.ng { background: var(--ng-soft); color: var(--ng); }
+.mr-list { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mr-list li { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+.mr-list li.ok { background: var(--ok-soft); }
+.mr-list li.ng { background: var(--ng-soft); }
+.mr-list summary { cursor: pointer; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; list-style: none; }
+.mr-list summary::-webkit-details-marker { display: none; }
+.mr-list .mr-no { font-weight: 700; white-space: nowrap; }
+.mr-list .mr-mark { font-weight: 700; }
+.mr-list li.ok .mr-mark { color: var(--ok); }
+.mr-list li.ng .mr-mark { color: var(--ng); }
+.mr-list .mr-snippet { flex: 1; min-width: 140px; }
+.mr-list .mr-ans { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.mr-body { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.mr-body .q-text { font-size: 14.5px; }
+.mr-body ol { margin: 8px 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.mr-body ol li { padding: 5px 10px; border-radius: 6px; border: 1px solid transparent; background: var(--card); }
+.mr-body ol li.is-correct { border-color: var(--ok); font-weight: 600; }
+.mr-body ol li.is-chosen { text-decoration: underline; }
+.mr-body .mr-exp { margin: 8px 0 0; font-size: 14px; }
+
 .site-footer { padding: 14px 0 30px; color: var(--muted); font-size: 12.5px; }
 .site-footer a { color: var(--accent); }
 
