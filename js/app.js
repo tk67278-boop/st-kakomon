@@ -42,6 +42,7 @@
     var s = stats[key] || { a: 0, c: 0 };
     s.a += 1;
     if (correct) s.c += 1;
+    s.w = correct ? 0 : 1; // 直近の解答が不正解なら1（復習モードの絞り込みに使用）
     s.t = Date.now();
     stats[key] = s;
     if (syncActive()) window.STSync.recordAnswer(key, s);
@@ -108,17 +109,45 @@
   function selectedCats() {
     return $$(".ck-cat").filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
   }
+  function currentTarget() {
+    var el = $("#opt-target");
+    return el ? el.value : "all";
+  }
+  // 出題対象の判定。w（直近の正誤）が無い古い記録は、
+  // 全問不正解や正誤混在なら「直近も不正解」とみなす（全問正解なら対象外）。
+  function matchesTarget(it, stats, target) {
+    var s = stats[it.key];
+    var attempted = !!(s && s.a > 0);
+    var everWrong = attempted && s.c < s.a;
+    var lastWrong = attempted && (typeof s.w === "number" ? s.w === 1 : s.c < s.a);
+    if (target === "wrong") return everWrong;
+    if (target === "lastwrong") return lastWrong;
+    if (target === "unseen") return !attempted;
+    if (target === "wrong_unseen") return !attempted || everWrong;
+    return true;
+  }
   function filteredItems() {
     var ex = selectedExamIds(), cats = selectedCats();
+    var target = currentTarget();
+    var stats = target === "all" ? null : loadStats();
     return ALL.filter(function (it) {
-      return ex.indexOf(it.exam.examId) >= 0 && cats.indexOf(it.q.category) >= 0;
+      if (ex.indexOf(it.exam.examId) < 0 || cats.indexOf(it.q.category) < 0) return false;
+      return target === "all" ? true : matchesTarget(it, stats, target);
     });
   }
+  var TARGET_EMPTY_MSG = {
+    lastwrong: "直近が不正解の問題はありません（この条件では全問正解済みです）",
+    wrong: "間違えたことがある問題はありません",
+    unseen: "未挑戦の問題はありません",
+    wrong_unseen: "間違えた問題・未挑戦の問題はありません"
+  };
   function updatePoolInfo() {
     var n = filteredItems().length;
     var countSel = $("#opt-count").value;
     var take = countSel === "all" ? n : Math.min(n, parseInt(countSel, 10));
-    $("#pool-info").textContent = "対象 " + n + " 問中 " + take + " 問を出題";
+    $("#pool-info").textContent = n === 0
+      ? (TARGET_EMPTY_MSG[currentTarget()] || "対象の問題がありません")
+      : "対象 " + n + " 問中 " + take + " 問を出題";
     $("#btn-start").disabled = n === 0;
   }
   function renderStatsSummary() {
@@ -138,6 +167,7 @@
     var settings = {
       exams: selectedExamIds(),
       cats: selectedCats(),
+      target: currentTarget(),
       count: $("#opt-count").value,
       order: (document.querySelector('input[name="opt-order"]:checked') || {}).value || "random",
       shuffleChoices: $("#opt-shuffle-choices").checked,
@@ -152,6 +182,7 @@
     if (!s) return;
     $$(".ck-exam").forEach(function (c) { c.checked = !s.exams || s.exams.indexOf(c.value) >= 0; });
     $$(".ck-cat").forEach(function (c) { c.checked = !s.cats || s.cats.indexOf(c.value) >= 0; });
+    if (s.target && $("#opt-target")) $("#opt-target").value = s.target;
     if (s.count) $("#opt-count").value = s.count;
     $$('input[name="opt-order"]').forEach(function (r) { r.checked = r.value === (s.order || "random"); });
     $("#opt-shuffle-choices").checked = !!s.shuffleChoices;
@@ -803,7 +834,7 @@
   // クラウド同期の状態変化（ログイン/ログアウト/他端末の更新）でサマリを更新
   if (window.STSync) {
     window.STSync.setOnChange(function () {
-      if (!$("#screen-setup").hidden) { renderStatsSummary(); updateMockInfo(); }
+      if (!$("#screen-setup").hidden) { renderStatsSummary(); updateMockInfo(); updatePoolInfo(); }
     });
   }
 })();

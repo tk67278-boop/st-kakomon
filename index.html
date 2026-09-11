@@ -56,6 +56,15 @@
     <div class="card">
       <h2>出題方法</h2>
       <div class="opt-grid">
+        <label class="opt">出題対象
+          <select id="opt-target">
+            <option value="all">すべての問題</option>
+            <option value="lastwrong">復習（直近が不正解の問題）</option>
+            <option value="wrong">間違えたことがある問題</option>
+            <option value="unseen">未挑戦の問題</option>
+            <option value="wrong_unseen">間違えた＋未挑戦</option>
+          </select>
+        </label>
         <label class="opt">出題数
           <select id="opt-count">
             <option value="all">すべて</option>
