@@ -628,6 +628,34 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 .pm1-grade-btn { min-width: 46px; font-weight: 700; font-size: 16px; }
 .pm1-grade-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
+/* ---------- 問題タグ ---------- */
+.tag-hint { font-size: 12px; color: var(--muted); }
+.q-tags { margin: 0 0 12px; }
+.q-tags-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.q-tags-head { font-size: 12px; color: var(--muted); margin-right: 2px; }
+.q-tags-none { font-size: 12.5px; color: var(--muted); }
+.q-tag {
+  font-size: 12.5px; padding: 3px 11px; border-radius: 999px;
+  background: var(--chip); border: 1px solid var(--line); color: var(--text); line-height: 1.6;
+}
+.q-tag.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.q-tag-add { font-size: 12px; padding: 3px 11px; border-radius: 999px; color: var(--accent); }
+.q-tag-panel {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  margin-top: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--chip);
+}
+.q-tag-panel[hidden] { display: none; }
+.q-tag-new { display: flex; gap: 6px; align-items: center; flex: 1; min-width: 200px; }
+.q-tag-new input {
+  flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text);
+}
+.q-tag-new button { font-size: 12.5px; padding: 6px 14px; }
+.rep-tagchip {
+  display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  background: var(--chip); border: 1px solid var(--line); color: var(--muted); margin: 0 4px 0 0;
+}
+
 /* ---------- 学習レポート ---------- */
 .rep-launch { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
 .rep-launch button { font-weight: 600; font-size: 13.5px; }

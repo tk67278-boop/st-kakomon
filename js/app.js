@@ -93,10 +93,96 @@
       catList.appendChild(label);
     });
 
+    renderTagFilter();
     restoreSettings();
     updatePoolInfo();
     renderStatsSummary();
     renderMockSetup();
+  }
+
+  // 設定画面のタグ絞り込み。チェックが無ければ絞り込まない。
+  function renderTagFilter() {
+    var wrap = $("#tag-list");
+    if (!wrap) return;
+    var prev = selectedTags();
+    var counts = tagCounts();
+    var names = tagNames();
+    wrap.innerHTML = "";
+    if (!names.length) {
+      var p = document.createElement("p");
+      p.className = "stats-note";
+      p.textContent = "タグはまだありません。問題を解く画面でタグを付けると、ここで絞り込めるようになります。";
+      wrap.appendChild(p);
+      return;
+    }
+    names.forEach(function (name) {
+      var label = document.createElement("label");
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "ck-tag";
+      cb.value = name;
+      cb.checked = prev.indexOf(name) >= 0;
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(" " + name + " "));
+      var cnt = document.createElement("span");
+      cnt.className = "cnt";
+      cnt.textContent = "(" + counts[name] + "問)";
+      label.appendChild(cnt);
+      wrap.appendChild(label);
+    });
+  }
+
+  /* ---------- 問題タグ ----------
+     午後の演習記録と同じ保存先（st_pm_records_v1 / STSync）に "tag#examId#問番号" のキーで
+     置くことで、クラウド同期の仕組みをそのまま利用する。値は { s:"tag", t:更新時刻, v:[タグ名] }。 */
+  var TAG_MAX_LEN = 14;   // タグ名の最大文字数
+  var TAG_MAX_PER_Q = 8;  // 1問に付けられるタグ数
+
+  function tagKey(key) { return "tag#" + key; }
+  function getTags(key) {
+    var r = loadPmRecords()[tagKey(key)];
+    return (r && Array.isArray(r.v)) ? r.v.slice() : [];
+  }
+  function setTags(key, arr) {
+    var rec = { s: "tag", t: Date.now(), v: arr };
+    if (syncActive() && window.STSync.setPmRecord) {
+      window.STSync.setPmRecord(tagKey(key), rec);
+    } else {
+      var records = loadPmRecords();
+      records[tagKey(key)] = rec;
+      savePmRecordsLocal(records);
+    }
+  }
+  function toggleTag(key, name) {
+    var tags = getTags(key);
+    var i = tags.indexOf(name);
+    if (i >= 0) tags.splice(i, 1);
+    else if (tags.length < TAG_MAX_PER_Q) tags.push(name);
+    setTags(key, tags);
+    return tags;
+  }
+  // 付けられているタグの一覧と件数（存在する問題に付いているものだけ数える）
+  function tagCounts() {
+    var records = loadPmRecords();
+    var known = {};
+    ALL.forEach(function (it) { known[it.key] = true; });
+    var counts = {};
+    Object.keys(records).forEach(function (k) {
+      if (k.indexOf("tag#") !== 0 || !known[k.slice(4)]) return;
+      var v = records[k] && records[k].v;
+      if (!Array.isArray(v)) return;
+      v.forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
+    });
+    return counts;
+  }
+  function tagNames() {
+    var counts = tagCounts();
+    return Object.keys(counts).sort(function (a, b) {
+      return counts[b] - counts[a] || (a < b ? -1 : 1);
+    });
+  }
+  function selectedTags() {
+    return $$(".ck-tag").filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
   }
 
   // 解答履歴のラベル（初挑戦／これまで〜）を表示するか
@@ -153,8 +239,24 @@
     var ex = selectedExamIds(), cats = selectedCats();
     var target = currentTarget();
     var stats = target === "all" ? null : loadStats();
+    var tags = selectedTags();
+    var tagged = null;
+    if (tags.length) {
+      // 選んだタグのいずれかが付いている問題だけに絞る
+      var records = loadPmRecords();
+      tagged = {};
+      Object.keys(records).forEach(function (k) {
+        if (k.indexOf("tag#") !== 0) return;
+        var v = records[k] && records[k].v;
+        if (!Array.isArray(v)) return;
+        for (var i = 0; i < tags.length; i++) {
+          if (v.indexOf(tags[i]) >= 0) { tagged[k.slice(4)] = true; return; }
+        }
+      });
+    }
     return ALL.filter(function (it) {
       if (ex.indexOf(it.exam.examId) < 0 || cats.indexOf(it.q.category) < 0) return false;
+      if (tagged && !tagged[it.key]) return false;
       return target === "all" ? true : matchesTarget(it, stats, target);
     });
   }
@@ -169,7 +271,9 @@
     var countSel = $("#opt-count").value;
     var take = countSel === "all" ? n : Math.min(n, parseInt(countSel, 10));
     $("#pool-info").textContent = n === 0
-      ? (TARGET_EMPTY_MSG[currentTarget()] || "対象の問題がありません")
+      ? (selectedTags().length
+        ? "選んだタグが付いた問題がありません（条件を見直してください）"
+        : (TARGET_EMPTY_MSG[currentTarget()] || "対象の問題がありません"))
       : "対象 " + n + " 問中 " + take + " 問を出題";
     $("#btn-start").disabled = n === 0;
   }
@@ -191,6 +295,7 @@
       exams: selectedExamIds(),
       cats: selectedCats(),
       target: currentTarget(),
+      tags: selectedTags(),
       count: $("#opt-count").value,
       order: (document.querySelector('input[name="opt-order"]:checked') || {}).value || "random",
       shuffleChoices: $("#opt-shuffle-choices").checked,
@@ -207,6 +312,7 @@
     $$(".ck-exam").forEach(function (c) { c.checked = !s.exams || s.exams.indexOf(c.value) >= 0; });
     $$(".ck-cat").forEach(function (c) { c.checked = !s.cats || s.cats.indexOf(c.value) >= 0; });
     if (s.target && $("#opt-target")) $("#opt-target").value = s.target;
+    if (s.tags) $$(".ck-tag").forEach(function (c) { c.checked = s.tags.indexOf(c.value) >= 0; });
     if (s.count) $("#opt-count").value = s.count;
     $$('input[name="opt-order"]').forEach(function (r) { r.checked = r.value === (s.order || "random"); });
     $("#opt-shuffle-choices").checked = !!s.shuffleChoices;
@@ -307,10 +413,118 @@
       ol.appendChild(li);
     });
 
+    renderQuestionTags(item);
+
     var fb = $("#q-feedback");
     fb.hidden = true;
     fb.classList.remove("good", "bad");
     $("#btn-next").hidden = true;
+  }
+
+  // 出題中の問題に付いたタグと、追加用のパネルを描画する
+  function renderQuestionTags(item) {
+    var wrap = $("#q-tags");
+    if (!wrap) return;
+    var key = item.key;
+    var mine = getTags(key);
+    wrap.innerHTML = "";
+
+    var row = document.createElement("div");
+    row.className = "q-tags-row";
+    var head = document.createElement("span");
+    head.className = "q-tags-head";
+    head.textContent = "タグ";
+    row.appendChild(head);
+
+    mine.forEach(function (name) {
+      var chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "q-tag on";
+      chip.title = "このタグを外す";
+      chip.textContent = name + " ×";
+      chip.addEventListener("click", function () {
+        toggleTag(key, name);
+        renderQuestionTags(item);
+        renderTagFilter();
+      });
+      row.appendChild(chip);
+    });
+    if (!mine.length) {
+      var none = document.createElement("span");
+      none.className = "q-tags-none";
+      none.textContent = "なし";
+      row.appendChild(none);
+    }
+
+    var addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "q-tag-add";
+    addBtn.textContent = "＋ タグを付ける";
+    row.appendChild(addBtn);
+    wrap.appendChild(row);
+
+    var panel = document.createElement("div");
+    panel.className = "q-tag-panel";
+    panel.hidden = true;
+    wrap.appendChild(panel);
+
+    addBtn.addEventListener("click", function () {
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) buildTagPanel(panel, item);
+    });
+  }
+
+  function buildTagPanel(panel, item) {
+    var key = item.key;
+    var mine = getTags(key);
+    panel.innerHTML = "";
+
+    tagNames().forEach(function (name) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "q-tag" + (mine.indexOf(name) >= 0 ? " on" : "");
+      b.textContent = name;
+      b.addEventListener("click", function () {
+        toggleTag(key, name);
+        renderQuestionTags(item);
+        renderTagFilter();
+      });
+      panel.appendChild(b);
+    });
+
+    var form = document.createElement("div");
+    form.className = "q-tag-new";
+    var input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = TAG_MAX_LEN;
+    input.placeholder = "新しいタグ（" + TAG_MAX_LEN + "文字まで）";
+    var ok = document.createElement("button");
+    ok.type = "button";
+    ok.className = "primary";
+    ok.textContent = "追加";
+    function add() {
+      var name = input.value.replace(/^\s+|\s+$/g, "").slice(0, TAG_MAX_LEN);
+      if (!name) return;
+      var cur = getTags(key);
+      if (cur.indexOf(name) < 0) {
+        if (cur.length >= TAG_MAX_PER_Q) {
+          alert("1問に付けられるタグは" + TAG_MAX_PER_Q + "個までです。");
+          return;
+        }
+        cur.push(name);
+        setTags(key, cur);
+      }
+      input.value = "";
+      renderQuestionTags(item);
+      renderTagFilter();
+    }
+    ok.addEventListener("click", add);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); add(); }
+    });
+    form.appendChild(input);
+    form.appendChild(ok);
+    panel.appendChild(form);
   }
 
   function escapeHtml(s) {
@@ -655,6 +869,11 @@
     }
     $("#btn-exams-recent5").addEventListener("click", function () { selectRecent(5); });
     $("#btn-exams-recent10").addEventListener("click", function () { selectRecent(10); });
+    $("#btn-tags-none").addEventListener("click", function () {
+      $$(".ck-tag").forEach(function (c) { c.checked = false; });
+      updatePoolInfo();
+      saveSettings();
+    });
     $("#btn-cats-all").addEventListener("click", function () { $$(".ck-cat").forEach(function (c) { c.checked = true; }); updatePoolInfo(); });
     $("#btn-cats-none").addEventListener("click", function () { $$(".ck-cat").forEach(function (c) { c.checked = false; }); updatePoolInfo(); });
 
@@ -690,6 +909,7 @@
     });
     $("#btn-back").addEventListener("click", function () {
       renderStatsSummary();
+      renderTagFilter();
       updatePoolInfo();
       showScreen("setup");
     });
@@ -812,6 +1032,9 @@
     }
 
     document.addEventListener("keydown", function (e) {
+      // タグ入力などの文字入力中はショートカットを効かせない
+      var t = e.target;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (!$("#screen-mock").hidden && mock && !mock.finished) {
         if (e.key >= "1" && e.key <= "4") {
           var mb = $$("#m-choices button")[parseInt(e.key, 10) - 1];
@@ -860,7 +1083,8 @@
   window.AM2Data = {
     exams: function () { return EXAMS; },
     all: function () { return ALL; },
-    loadStats: loadStats
+    loadStats: loadStats,
+    getTags: getTags
   };
 
   /* ---------- 起動 ---------- */

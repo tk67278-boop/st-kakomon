@@ -197,9 +197,13 @@
           '" title="' + (r[2] === "same" ? "同一問題" : "類似問題") + "：" + esc(shortLabel(r[0])) + " 問" + r[1] +
           '">' + (r[2] === "same" ? "同" : "類") + esc(shortLabel(r[0])) + "問" + r[1] + "</button>";
       }).join("");
+      var tags = (D.getTags ? D.getTags(it.key) : []).map(function (t) {
+        return '<span class="rep-tagchip">' + esc(t) + "</span>";
+      }).join("");
       return '<tr class="rep-qrow" data-exam="' + examId + '" data-no="' + it.q.no + '">' +
         '<td class="rep-qno">問' + it.q.no + "</td>" +
         '<td class="rep-qcat"><span class="rep-catname">' + esc(it.q.category) + "</span>" +
+        (tags ? '<div class="rep-rels">' + tags + "</div>" : "") +
         (rel ? '<div class="rep-rels">' + rel + "</div>" : "") +
         '<div class="rep-qdots">' + dots + "</div></td>" +
         '<td class="num">' + ((s && s.a) ? "正解 <b>" + s.c + "</b> / " + s.a : "-") + "</td>" +
