@@ -638,13 +638,9 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
   font-size: 12.5px; padding: 3px 11px; border-radius: 999px;
   background: var(--chip); border: 1px solid var(--line); color: var(--text); line-height: 1.6;
 }
-.q-tag.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
-.q-tag-add { font-size: 12px; padding: 3px 11px; border-radius: 999px; color: var(--accent); }
-.q-tag-panel {
-  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-  margin-top: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--chip);
-}
-.q-tag-panel[hidden] { display: none; }
+.q-tag:hover { border-color: var(--accent); color: var(--accent); }
+.q-tag.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.q-tag.on:hover { background: var(--accent-dark); color: #fff; }
 
 /* タグの管理画面 */
 .tag-dialog { max-width: 560px; }

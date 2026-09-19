@@ -104,7 +104,10 @@
   function renderTagFilter() {
     var wrap = $("#tag-list");
     if (!wrap) return;
-    var prev = selectedTags();
+    // まだチェックボックスを作っていない（同期の到着待ちだった）ときは、
+    // 保存しておいた選択内容から復元する
+    var built = $$(".ck-tag").length > 0;
+    var prev = built ? selectedTags() : savedTagSelection();
     var counts = tagCounts();
     // 実際に問題へ付いているタグだけを絞り込みの候補にする
     var names = tagNames().filter(function (t) { return counts[t]; });
@@ -234,6 +237,12 @@
   }
   function selectedTags() {
     return $$(".ck-tag").filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
+  }
+  function savedTagSelection() {
+    try {
+      var s = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+      return (s && Array.isArray(s.tags)) ? s.tags : [];
+    } catch (e) { return []; }
   }
 
   /* ---------- タグの管理画面 ---------- */
@@ -428,7 +437,8 @@
       exams: selectedExamIds(),
       cats: selectedCats(),
       target: currentTarget(),
-      tags: selectedTags(),
+      // 一覧が未作成（同期待ち）のときは、保存済みの選択を消さないようにする
+      tags: $$(".ck-tag").length ? selectedTags() : savedTagSelection(),
       count: $("#opt-count").value,
       order: (document.querySelector('input[name="opt-order"]:checked') || {}).value || "random",
       shuffleChoices: $("#opt-shuffle-choices").checked,
@@ -554,12 +564,14 @@
     $("#btn-next").hidden = true;
   }
 
-  // 出題中の問題に付いたタグと、追加用のパネルを描画する
+  // 出題中の問題のタグ。登録済みのタグを常に並べ、タップで付け外しする。
+  // タグ自体の追加は設定画面の「タグを管理」で行う。
   function renderQuestionTags(item) {
     var wrap = $("#q-tags");
     if (!wrap) return;
     var key = item.key;
     var mine = getTags(key);
+    var names = tagNames();
     wrap.innerHTML = "";
 
     var row = document.createElement("div");
@@ -569,66 +581,24 @@
     head.textContent = "タグ";
     row.appendChild(head);
 
-    mine.forEach(function (name) {
-      var chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "q-tag on";
-      chip.title = "このタグを外す";
-      chip.textContent = name + " ×";
-      chip.addEventListener("click", function () {
-        toggleTag(key, name);
-        renderQuestionTags(item);
-        renderTagFilter();
-      });
-      row.appendChild(chip);
-    });
-    if (!mine.length) {
+    if (!names.length) {
       var none = document.createElement("span");
       none.className = "q-tags-none";
-      none.textContent = "なし";
+      none.textContent = "登録済みのタグがありません（設定画面の「タグを管理」から追加できます）";
       row.appendChild(none);
-    }
-
-    var addBtn = document.createElement("button");
-    addBtn.type = "button";
-    addBtn.className = "q-tag-add";
-    addBtn.textContent = "＋ タグを付ける";
-    row.appendChild(addBtn);
-    wrap.appendChild(row);
-
-    var panel = document.createElement("div");
-    panel.className = "q-tag-panel";
-    panel.hidden = true;
-    wrap.appendChild(panel);
-
-    addBtn.addEventListener("click", function () {
-      panel.hidden = !panel.hidden;
-      if (!panel.hidden) buildTagPanel(panel, item);
-    });
-  }
-
-  // 出題画面では登録済みのタグから選ぶだけにする（タグ自体の追加は「タグを管理」画面）
-  function buildTagPanel(panel, item) {
-    var key = item.key;
-    var mine = getTags(key);
-    var names = tagNames();
-    panel.innerHTML = "";
-
-    if (!names.length) {
-      var note = document.createElement("span");
-      note.className = "q-tags-none";
-      note.textContent = "登録済みのタグがありません。設定画面の「タグを管理」から追加してください。";
-      panel.appendChild(note);
+      wrap.appendChild(row);
       return;
     }
 
     names.forEach(function (name) {
+      var on = mine.indexOf(name) >= 0;
       var b = document.createElement("button");
       b.type = "button";
-      b.className = "q-tag" + (mine.indexOf(name) >= 0 ? " on" : "");
+      b.className = "q-tag" + (on ? " on" : "");
       b.textContent = name;
+      b.title = on ? "タップでこのタグを外す" : "タップでこのタグを付ける";
       b.addEventListener("click", function () {
-        if (mine.indexOf(name) < 0 && getTags(key).length >= TAG_MAX_PER_Q) {
+        if (!on && getTags(key).length >= TAG_MAX_PER_Q) {
           alert("1問に付けられるタグは" + TAG_MAX_PER_Q + "個までです。");
           return;
         }
@@ -636,8 +606,9 @@
         renderQuestionTags(item);
         renderTagFilter();
       });
-      panel.appendChild(b);
+      row.appendChild(b);
     });
+    wrap.appendChild(row);
   }
 
   function escapeHtml(s) {
@@ -1220,7 +1191,13 @@
   // クラウド同期の状態変化（ログイン/ログアウト/他端末の更新）でサマリを更新
   if (window.STSync) {
     window.STSync.setOnChange(function () {
-      if (!$("#screen-setup").hidden) { renderStatsSummary(); updateMockInfo(); updatePoolInfo(); }
+      // クラウドの履歴・タグは読み込みが完了した時点で届くため、一覧を作り直す
+      if (!$("#screen-setup").hidden) {
+        renderStatsSummary();
+        renderTagFilter();
+        updateMockInfo();
+        updatePoolInfo();
+      }
     });
   }
 })();
