@@ -99,6 +99,27 @@
     renderMockSetup();
   }
 
+  // 解答履歴のラベル（初挑戦／これまで〜）を表示するか
+  function showHistoryLabel() {
+    var el = $("#opt-show-history");
+    return el ? el.checked : true;
+  }
+
+  // 他年度の同一問題（js/data/similar.js の "same"）の解答履歴も合算する。
+  // 同じ問題を別の年度で解いていたのに「初挑戦」と出てしまうのを防ぐ。
+  function mergedHistory(item, stats) {
+    var s = stats[item.key];
+    var own = { a: (s && s.a) || 0, c: (s && s.c) || 0 };
+    var ext = { a: 0, c: 0 };
+    var rel = (window.SIMILAR_QUESTIONS || {})[item.key] || [];
+    rel.forEach(function (r) {
+      if (r[2] !== "same") return;
+      var t = stats[r[0] + "#" + r[1]];
+      if (t && t.a) { ext.a += t.a; ext.c += t.c; }
+    });
+    return { own: own, ext: ext, a: own.a + ext.a, c: own.c + ext.c };
+  }
+
   // 出典表示。模擬試験（新規作問）は本試験の過去問ではないことを明示する
   function sourceText(item) {
     if (item.exam.mock) return "出典: " + item.exam.examLabel + " 問" + item.q.no + "（新規作問。本試験の過去問ではありません）";
@@ -173,7 +194,8 @@
       count: $("#opt-count").value,
       order: (document.querySelector('input[name="opt-order"]:checked') || {}).value || "random",
       shuffleChoices: $("#opt-shuffle-choices").checked,
-      weakFirst: $("#opt-weak-first").checked
+      weakFirst: $("#opt-weak-first").checked,
+      showHistory: showHistoryLabel()
     };
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ }
     return settings;
@@ -189,6 +211,8 @@
     $$('input[name="opt-order"]').forEach(function (r) { r.checked = r.value === (s.order || "random"); });
     $("#opt-shuffle-choices").checked = !!s.shuffleChoices;
     $("#opt-weak-first").checked = !!s.weakFirst;
+    // 未設定（この項目より前に保存された設定）のときは表示のままにする
+    if (typeof s.showHistory === "boolean") $("#opt-show-history").checked = s.showHistory;
   }
 
   /* ---------- 出題セッション ---------- */
@@ -249,10 +273,11 @@
     $("#q-exam").textContent = item.exam.examLabel + " 問" + q.no;
     $("#q-cat").textContent = q.category;
 
-    var s = loadStats()[item.key];
-    $("#q-history").textContent = (s && s.a > 0)
-      ? "これまで " + s.a + " 回中 " + s.c + " 回正解"
-      : "初挑戦";
+    var mh = mergedHistory(item, loadStats());
+    var histEl = $("#q-history");
+    histEl.hidden = !showHistoryLabel();
+    histEl.textContent = mh.a === 0 ? "初挑戦"
+      : "これまで " + mh.a + " 回中 " + mh.c + " 回正解" + (mh.ext.a ? "（他年度の同一問題を含む）" : "");
 
     $("#q-text").textContent = q.question;
     $("#q-extra").innerHTML = q.html || "";
@@ -634,7 +659,10 @@
     $("#btn-cats-none").addEventListener("click", function () { $$(".ck-cat").forEach(function (c) { c.checked = false; }); updatePoolInfo(); });
 
     document.addEventListener("change", function (e) {
-      if (e.target.closest && (e.target.closest("#screen-setup"))) updatePoolInfo();
+      if (e.target.closest && (e.target.closest("#screen-setup"))) {
+        updatePoolInfo();
+        saveSettings(); // 学習を開始しなくても設定を保存する
+      }
     });
 
     $("#btn-start").addEventListener("click", function () {
