@@ -43,6 +43,8 @@
     s.a += 1;
     if (correct) s.c += 1;
     s.w = correct ? 0 : 1; // 直近の解答が不正解なら1（復習モードの絞り込みに使用）
+    // 正誤の履歴（古い→新しい、1=正解/0=不正解）。レポートの○×表示と色分けに使用。最大12件。
+    s.h = ((typeof s.h === "string" ? s.h : "") + (correct ? "1" : "0")).slice(-12);
     s.t = Date.now();
     stats[key] = s;
     if (syncActive()) window.STSync.recordAnswer(key, s);
@@ -824,6 +826,13 @@
     });
     if (!items.length) return;
     startSession(items, { count: "all", order: "ordered", shuffleChoices: false, weakFirst: false });
+  };
+
+  // 学習レポート（js/report.js）から問題データと学習履歴を参照するための窓口
+  window.AM2Data = {
+    exams: function () { return EXAMS; },
+    all: function () { return ALL; },
+    loadStats: loadStats
   };
 
   /* ---------- 起動 ---------- */

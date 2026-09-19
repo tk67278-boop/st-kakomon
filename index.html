@@ -93,6 +93,10 @@
       </div>
       <div id="sync-ui" class="sync-ui"></div>
       <div id="stats-summary" class="stats-summary"></div>
+      <div class="rep-launch">
+        <button type="button" id="btn-report-grid">達成度レポート</button>
+        <button type="button" id="btn-report-exam">試験回別レポート</button>
+      </div>
       <p class="stats-note">同期ONの間は履歴がクラウド（あなた専用領域）に保存され、ログインした端末間で自動的に同じ状態になります。同期OFFの間はこの端末のブラウザ内にのみ保存されます（エクスポート／インポートで手動移行も可能）。</p>
       <input type="file" id="import-file" accept=".json,application/json" hidden>
     </div>
@@ -262,6 +266,25 @@
 </div>
 </main>
 
+<!-- ================= 学習レポート（モーダル） ================= -->
+<div id="report-modal" class="rep-overlay" hidden>
+  <div class="rep-dialog" role="dialog" aria-modal="true" aria-label="学習レポート">
+    <div class="rep-head">
+      <div class="rep-tabs">
+        <button type="button" class="rep-tab active" data-rep="grid">達成度</button>
+        <button type="button" class="rep-tab" data-rep="exam">試験回別</button>
+      </div>
+      <span class="spacer"></span>
+      <select id="rep-exam-select" hidden></select>
+      <button type="button" class="rep-close" id="rep-close" aria-label="閉じる">×</button>
+    </div>
+    <div class="rep-body" id="rep-body">
+      <div id="rep-grid"></div>
+      <div id="rep-exam" hidden></div>
+    </div>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="wrap">
     問題・図表の出典: <a href="https://www.ipa.go.jp/shiken/mondai-kaiotu/" target="_blank" rel="noopener">IPA 情報処理技術者試験 過去問題</a>（個人学習用）
@@ -338,6 +361,8 @@
 <script src="js/pm1study.js"></script>
 <script src="js/terms.js"></script>
 <script src="js/textbook.js"></script>
+<script src="js/data/similar.js"></script>
+<script src="js/report.js"></script>
 <script>
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("sw.js");
