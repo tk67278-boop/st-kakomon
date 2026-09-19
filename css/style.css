@@ -719,7 +719,13 @@ thead th.rep-rowhead { z-index: 4; }
 .rep-kpis > div { font-size: 12px; color: var(--muted); }
 .rep-kpis b { display: block; font-size: 22px; color: var(--text); line-height: 1.2; }
 
-table.rep-qtable { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 10px; font-size: 13px; }
+table.rep-qtable {
+  width: 100%; table-layout: fixed; border-collapse: collapse;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px; font-size: 13px;
+}
+.rep-qtable .rep-qno { width: 3.4em; }
+.rep-qtable td.num { width: 6.2em; }
+.rep-qtable .rep-qrate { width: 5.8em; }
 .rep-qrow { cursor: pointer; border-bottom: 1px solid var(--line); }
 .rep-qrow:last-child { border-bottom: none; }
 .rep-qrow:hover { background: var(--accent-soft); }
@@ -727,14 +733,29 @@ table.rep-qtable { width: 100%; border-collapse: collapse; background: var(--car
 .rep-qtable td.num { white-space: nowrap; font-size: 12.5px; }
 .rep-qno { font-weight: 700; white-space: nowrap; }
 .rep-qcat { color: var(--muted); font-size: 12.5px; }
-.rep-qrate { text-align: right; white-space: nowrap; font-weight: 700; }
-.rep-qrate.good { color: var(--ok); }
-.rep-qrate.bad { color: var(--ng); }
-.rep-qdots { text-align: right; white-space: nowrap; }
-.rep-dot { font-size: 11px; font-weight: 700; margin-left: 1px; }
+.rep-catname { color: var(--accent); }
+.rep-qrate { text-align: right; white-space: nowrap; }
+.rate-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 700; background: var(--chip); color: var(--muted);
+}
+.rate-badge.good { background: var(--ok-soft); color: var(--ok); }
+.rate-badge.mid { background: var(--accent-soft); color: var(--accent); }
+.rate-badge.bad { background: var(--ng-soft); color: var(--ng); }
+
+/* 正誤の履歴は分野名の下に1行で並べる */
+.rep-qdots { margin-top: 5px; line-height: 1.5; }
+.rep-dot { font-size: 14px; font-weight: 700; margin-right: 3px; letter-spacing: 0; }
 .rep-dot.o { color: var(--ok); }
 .rep-dot.x { color: var(--ng); }
-.rep-dot.none { color: var(--muted); font-weight: 400; }
+.rep-dot.approx { opacity: .38; }
+.rep-dot.none { font-size: 12px; color: var(--muted); font-weight: 400; }
+.rep-dots-legend {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px 4px;
+  font-size: 12px; color: var(--muted); margin: 0 0 8px 2px;
+}
+.rep-dots-legend .rep-dot { font-size: 13px; margin: 0 1px 0 6px; }
+.rep-dots-legend-sub { display: flex; align-items: center; margin-left: 6px; }
 .rep-rels { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 .rep-rel { font-size: 11px; padding: 2px 8px; border-radius: 999px; line-height: 1.5; }
 .rep-rel.same { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
@@ -756,4 +777,10 @@ table.rep-qtable { width: 100%; border-collapse: collapse; background: var(--car
   .rep-box .minibar { display: none; }
   .rep-box table.r-cats td { padding: 7px 4px; }
   .rep-box table.r-cats td:nth-child(3) { white-space: nowrap; }
+  .rep-qrow td { padding: 8px 5px; }
+  .rep-qtable .rep-qno { width: 2.9em; }
+  .rep-qtable td.num { width: 5.4em; }
+  .rep-qtable .rep-qrate { width: 4.9em; }
+  .rate-badge { padding: 2px 7px; font-size: 12px; }
+  .rep-dot { font-size: 13px; margin-right: 2px; }
 }

@@ -36,6 +36,39 @@
   };
   var STATUS_ORDER = ["bad", "warn", "silver", "gold", "none"];
 
+  // 一覧に表示する○×の並びを作る。{ok:正解か, approx:順序が記録されていない分か}
+  // 履歴(h)の記録を始める前の解答は正解数しか残っていないため、
+  // 件数だけを薄い○×で補い、順序が不明であることが分かるようにする。
+  function historyMarks(s) {
+    if (!s || !s.a) return [];
+    var known = (typeof s.h === "string" ? s.h : "");
+    // 履歴が無い古い記録でも、直近の正誤(w)だけは分かる
+    if (!known && typeof s.w === "number") known = s.w ? "0" : "1";
+    var marks = known.split("").map(function (c) { return { ok: c === "1", approx: false }; });
+    var knownOk = known.split("").filter(function (c) { return c === "1"; }).length;
+    var oldTotal = Math.max(0, s.a - known.length);
+    if (oldTotal) {
+      var oldOk = Math.min(oldTotal, Math.max(0, s.c - knownOk));
+      var pre = [];
+      for (var i = 0; i < oldOk; i++) pre.push({ ok: true, approx: true });
+      for (var j = 0; j < oldTotal - oldOk; j++) pre.push({ ok: false, approx: true });
+      marks = pre.concat(marks);
+    }
+    return marks.slice(-24);
+  }
+  function marksHtml(s) {
+    var marks = historyMarks(s);
+    if (!marks.length) return '<span class="rep-dot none">未解答</span>';
+    return marks.map(function (m) {
+      return '<span class="rep-dot ' + (m.ok ? "o" : "x") + (m.approx ? " approx" : "") + '"' +
+        (m.approx ? ' title="履歴の記録を始める前の解答です（正誤の件数のみ判明、順序は不明）"' : "") +
+        ">" + (m.ok ? "○" : "×") + "</span>";
+    }).join("");
+  }
+  function hasApprox(s) {
+    return historyMarks(s).filter(function (m) { return m.approx; }).length > 0;
+  }
+
   /* ---------- ユーティリティ ---------- */
   function examsOrdered() {
     var all = D.exams();
@@ -156,12 +189,9 @@
 
     var qRows = items.map(function (it) {
       var s = stats[it.key];
-      var h = historyOf(s);
-      var dots = h ? h.split("").map(function (c) {
-        return '<span class="rep-dot ' + (c === "1" ? "o" : "x") + '">' + (c === "1" ? "○" : "×") + "</span>";
-      }).join("") : '<span class="rep-dot none">未解答</span>';
+      var dots = marksHtml(s);
       var p = (s && s.a) ? pct(s.c, s.a) : null;
-      var pClass = p === null ? "" : (p >= 80 ? "good" : p >= 60 ? "" : "bad");
+      var pClass = p === null ? "" : (p >= 80 ? "good" : p >= 60 ? "mid" : "bad");
       var rel = (SIM[it.key] || []).map(function (r) {
         return '<button type="button" class="rep-rel ' + r[2] + '" data-exam="' + r[0] + '" data-no="' + r[1] +
           '" title="' + (r[2] === "same" ? "同一問題" : "類似問題") + "：" + esc(shortLabel(r[0])) + " 問" + r[1] +
@@ -169,11 +199,12 @@
       }).join("");
       return '<tr class="rep-qrow" data-exam="' + examId + '" data-no="' + it.q.no + '">' +
         '<td class="rep-qno">問' + it.q.no + "</td>" +
-        '<td class="rep-qcat">' + esc(it.q.category) +
-        (rel ? '<div class="rep-rels">' + rel + "</div>" : "") + "</td>" +
-        '<td class="num">' + ((s && s.a) ? "正解 " + s.c + " / " + s.a : "-") + "</td>" +
-        '<td class="rep-qrate ' + pClass + '">' + (p === null ? "-" : p + "％") + "</td>" +
-        '<td class="rep-qdots">' + dots + "</td></tr>";
+        '<td class="rep-qcat"><span class="rep-catname">' + esc(it.q.category) + "</span>" +
+        (rel ? '<div class="rep-rels">' + rel + "</div>" : "") +
+        '<div class="rep-qdots">' + dots + "</div></td>" +
+        '<td class="num">' + ((s && s.a) ? "正解 <b>" + s.c + "</b> / " + s.a : "-") + "</td>" +
+        '<td class="rep-qrate">' + (p === null ? '<span class="rate-badge none">-</span>'
+          : '<span class="rate-badge ' + pClass + '">' + p + "％</span>") + "</td></tr>";
     }).join("");
 
     $("#rep-exam").innerHTML =
@@ -189,7 +220,15 @@
       '<div class="rep-box"><div class="rep-box-head">他年度との重複</div>' +
       '<p class="rep-note">この回の ' + items.length + " 問のうち <b>" + dupSame + "</b> 問が他年度と同一、<b>" +
       dupSimilar + "</b> 問が類似です。右の一覧の「同」「類」バッジをタップすると、その年度の問題を開けます。</p></div>" +
-      '</div><div class="rep-col-right"><table class="rep-qtable"><tbody>' + qRows + "</tbody></table></div></div>";
+      '</div><div class="rep-col-right">' +
+      '<div class="rep-dots-legend"><span class="rep-dot o">○</span>正解' +
+      '<span class="rep-dot x">×</span>不正解' +
+      (items.filter(function (it) { return hasApprox(stats[it.key]); }).length
+        ? '<span class="rep-dots-legend-sub"><span class="rep-dot o approx">○</span>' +
+          '<span class="rep-dot x approx">×</span>薄い印は履歴の記録を始める前の解答（件数のみ判明・順序は不明）</span>'
+        : "") +
+      "</div>" +
+      '<table class="rep-qtable"><tbody>' + qRows + "</tbody></table></div></div>";
 
     $$("#rep-exam .rep-qrow").forEach(function (tr) {
       tr.addEventListener("click", function (ev) {
