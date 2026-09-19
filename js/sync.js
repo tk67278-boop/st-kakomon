@@ -198,6 +198,13 @@
       docRef().set({ stats: stats, updatedAt: Date.now() }, { merge: true });
       return merged;
     },
+    // 複数の記録をまとめて書き換える（タグの名前変更・削除で使用）。
+    // キーの削除は行わず、値の上書きだけを行う（不要になった記録は空の値にする）。
+    setPmRecords: function (changes) {
+      var pm = state.pm;
+      Object.keys(changes).forEach(function (k) { pm[k] = changes[k]; });
+      docRef().set({ pm: pm, updatedAt: Date.now() }, { merge: true });
+    },
     // 午後演習記録のインポート用マージ（積算ではなく t が新しい方を採用）
     mergePmIn: function (incoming) {
       var pm = state.pm;

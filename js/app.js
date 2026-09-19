@@ -106,12 +106,15 @@
     if (!wrap) return;
     var prev = selectedTags();
     var counts = tagCounts();
-    var names = tagNames();
+    // 実際に問題へ付いているタグだけを絞り込みの候補にする
+    var names = tagNames().filter(function (t) { return counts[t]; });
     wrap.innerHTML = "";
     if (!names.length) {
       var p = document.createElement("p");
       p.className = "stats-note";
-      p.textContent = "タグはまだありません。問題を解く画面でタグを付けると、ここで絞り込めるようになります。";
+      p.textContent = tagNames().length
+        ? "まだどの問題にもタグが付いていません。問題を解く画面でタグを選んで付けてください。"
+        : "タグはまだありません。「タグを管理」からタグを追加してください。";
       wrap.appendChild(p);
       return;
     }
@@ -138,7 +141,18 @@
   var TAG_MAX_LEN = 14;   // タグ名の最大文字数
   var TAG_MAX_PER_Q = 8;  // 1問に付けられるタグ数
 
+  var TAGDEFS_KEY = "tagdefs"; // 登録済みタグの一覧（問題に付いていないタグも保持する）
+
   function tagKey(key) { return "tag#" + key; }
+  function savePmBatch(changes) {
+    if (syncActive() && window.STSync.setPmRecords) {
+      window.STSync.setPmRecords(changes);
+    } else {
+      var records = loadPmRecords();
+      Object.keys(changes).forEach(function (k) { records[k] = changes[k]; });
+      savePmRecordsLocal(records);
+    }
+  }
   function getTags(key) {
     var r = loadPmRecords()[tagKey(key)];
     return (r && Array.isArray(r.v)) ? r.v.slice() : [];
@@ -175,14 +189,133 @@
     });
     return counts;
   }
+  // 登録済みタグの一覧。登録簿に無くても問題に付いているタグは拾う。
   function tagNames() {
-    var counts = tagCounts();
-    return Object.keys(counts).sort(function (a, b) {
-      return counts[b] - counts[a] || (a < b ? -1 : 1);
+    var r = loadPmRecords()[TAGDEFS_KEY];
+    var list = (r && Array.isArray(r.v)) ? r.v.slice() : [];
+    Object.keys(tagCounts()).sort().forEach(function (t) {
+      if (list.indexOf(t) < 0) list.push(t);
     });
+    return list;
+  }
+  function saveTagNames(list, extraChanges) {
+    var changes = extraChanges || {};
+    changes[TAGDEFS_KEY] = { s: "tagdefs", t: Date.now(), v: list };
+    savePmBatch(changes);
+  }
+  function addTagName(name) {
+    var list = tagNames();
+    if (list.indexOf(name) >= 0) return false;
+    list.push(name);
+    saveTagNames(list);
+    return true;
+  }
+  // タグ名の変更・削除は、そのタグが付いた全問題の記録も書き換える
+  function updateTagEverywhere(name, newName) {
+    var records = loadPmRecords();
+    var changes = {};
+    Object.keys(records).forEach(function (k) {
+      if (k.indexOf("tag#") !== 0) return;
+      var v = records[k] && records[k].v;
+      if (!Array.isArray(v) || v.indexOf(name) < 0) return;
+      var nv = [];
+      v.forEach(function (t) {
+        var t2 = (t === name) ? newName : t;
+        if (t2 && nv.indexOf(t2) < 0) nv.push(t2);
+      });
+      changes[k] = { s: "tag", t: Date.now(), v: nv };
+    });
+    var list = [];
+    tagNames().forEach(function (t) {
+      var t2 = (t === name) ? newName : t;
+      if (t2 && list.indexOf(t2) < 0) list.push(t2);
+    });
+    saveTagNames(list, changes);
   }
   function selectedTags() {
     return $$(".ck-tag").filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
+  }
+
+  /* ---------- タグの管理画面 ---------- */
+  function renderTagManager() {
+    var wrap = $("#tag-manage-list");
+    if (!wrap) return;
+    var counts = tagCounts();
+    var names = tagNames();
+    wrap.innerHTML = "";
+    if (!names.length) {
+      var p = document.createElement("p");
+      p.className = "stats-note";
+      p.textContent = "登録済みのタグはまだありません。";
+      wrap.appendChild(p);
+      return;
+    }
+    names.forEach(function (name) {
+      var row = document.createElement("div");
+      row.className = "tag-row";
+
+      var label = document.createElement("span");
+      label.className = "tag-row-name";
+      label.textContent = name;
+      row.appendChild(label);
+
+      var cnt = document.createElement("span");
+      cnt.className = "tag-row-count";
+      cnt.textContent = (counts[name] || 0) + "問に使用";
+      row.appendChild(cnt);
+
+      var ren = document.createElement("button");
+      ren.type = "button";
+      ren.className = "linkbtn";
+      ren.textContent = "名前を変更";
+      ren.addEventListener("click", function () {
+        var v = prompt("新しいタグ名を入力してください。", name);
+        if (v === null) return;
+        v = v.replace(/^\s+|\s+$/g, "").slice(0, TAG_MAX_LEN);
+        if (!v || v === name) return;
+        if (tagNames().indexOf(v) >= 0) { alert("同じ名前のタグが既にあります。"); return; }
+        updateTagEverywhere(name, v);
+        refreshTagViews();
+      });
+      row.appendChild(ren);
+
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "linkbtn danger";
+      del.textContent = "削除";
+      del.addEventListener("click", function () {
+        var n = counts[name] || 0;
+        if (!confirm("タグ「" + name + "」を削除します。" +
+          (n ? "付いている" + n + "問からも外れます。" : "") + "よろしいですか？")) return;
+        updateTagEverywhere(name, null);
+        refreshTagViews();
+      });
+      row.appendChild(del);
+
+      wrap.appendChild(row);
+    });
+  }
+  function refreshTagViews() {
+    renderTagManager();
+    renderTagFilter();
+    updatePoolInfo();
+  }
+  function addTagFromInput() {
+    var input = $("#tag-new-input");
+    var name = input.value.replace(/^\s+|\s+$/g, "").slice(0, TAG_MAX_LEN);
+    if (!name) return;
+    if (!addTagName(name)) { alert("同じ名前のタグが既にあります。"); return; }
+    input.value = "";
+    refreshTagViews();
+  }
+  function openTagManager() {
+    renderTagManager();
+    $("#tag-modal").hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function closeTagManager() {
+    $("#tag-modal").hidden = true;
+    document.body.style.overflow = "";
   }
 
   // 解答履歴のラベル（初挑戦／これまで〜）を表示するか
@@ -474,57 +607,37 @@
     });
   }
 
+  // 出題画面では登録済みのタグから選ぶだけにする（タグ自体の追加は「タグを管理」画面）
   function buildTagPanel(panel, item) {
     var key = item.key;
     var mine = getTags(key);
+    var names = tagNames();
     panel.innerHTML = "";
 
-    tagNames().forEach(function (name) {
+    if (!names.length) {
+      var note = document.createElement("span");
+      note.className = "q-tags-none";
+      note.textContent = "登録済みのタグがありません。設定画面の「タグを管理」から追加してください。";
+      panel.appendChild(note);
+      return;
+    }
+
+    names.forEach(function (name) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "q-tag" + (mine.indexOf(name) >= 0 ? " on" : "");
       b.textContent = name;
       b.addEventListener("click", function () {
+        if (mine.indexOf(name) < 0 && getTags(key).length >= TAG_MAX_PER_Q) {
+          alert("1問に付けられるタグは" + TAG_MAX_PER_Q + "個までです。");
+          return;
+        }
         toggleTag(key, name);
         renderQuestionTags(item);
         renderTagFilter();
       });
       panel.appendChild(b);
     });
-
-    var form = document.createElement("div");
-    form.className = "q-tag-new";
-    var input = document.createElement("input");
-    input.type = "text";
-    input.maxLength = TAG_MAX_LEN;
-    input.placeholder = "新しいタグ（" + TAG_MAX_LEN + "文字まで）";
-    var ok = document.createElement("button");
-    ok.type = "button";
-    ok.className = "primary";
-    ok.textContent = "追加";
-    function add() {
-      var name = input.value.replace(/^\s+|\s+$/g, "").slice(0, TAG_MAX_LEN);
-      if (!name) return;
-      var cur = getTags(key);
-      if (cur.indexOf(name) < 0) {
-        if (cur.length >= TAG_MAX_PER_Q) {
-          alert("1問に付けられるタグは" + TAG_MAX_PER_Q + "個までです。");
-          return;
-        }
-        cur.push(name);
-        setTags(key, cur);
-      }
-      input.value = "";
-      renderQuestionTags(item);
-      renderTagFilter();
-    }
-    ok.addEventListener("click", add);
-    input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") { e.preventDefault(); add(); }
-    });
-    form.appendChild(input);
-    form.appendChild(ok);
-    panel.appendChild(form);
   }
 
   function escapeHtml(s) {
@@ -869,6 +982,18 @@
     }
     $("#btn-exams-recent5").addEventListener("click", function () { selectRecent(5); });
     $("#btn-exams-recent10").addEventListener("click", function () { selectRecent(10); });
+    $("#btn-tags-manage").addEventListener("click", openTagManager);
+    $("#tag-close").addEventListener("click", closeTagManager);
+    $("#tag-modal").addEventListener("click", function (e) {
+      if (e.target === $("#tag-modal")) closeTagManager();
+    });
+    $("#tag-new-add").addEventListener("click", addTagFromInput);
+    $("#tag-new-input").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); addTagFromInput(); }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !$("#tag-modal").hidden) closeTagManager();
+    });
     $("#btn-tags-none").addEventListener("click", function () {
       $$(".ck-tag").forEach(function (c) { c.checked = false; });
       updatePoolInfo();

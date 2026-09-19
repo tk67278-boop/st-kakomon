@@ -56,6 +56,7 @@
         <h2>タグ</h2>
         <span class="spacer"></span>
         <span class="tag-hint">選ぶとそのタグが付いた問題だけを出題します</span>
+        <button class="linkbtn" id="btn-tags-manage">タグを管理</button>
         <button class="linkbtn" id="btn-tags-none">選択を解除</button>
       </div>
       <div id="tag-list" class="checks"></div>
@@ -275,6 +276,32 @@
   <div id="tb-reader" hidden></div>
 </div>
 </main>
+
+<!-- ================= タグの管理（モーダル） ================= -->
+<div id="tag-modal" class="rep-overlay" hidden>
+  <div class="rep-dialog tag-dialog" role="dialog" aria-modal="true" aria-label="タグの管理">
+    <div class="rep-head">
+      <strong class="rep-title">タグの管理</strong>
+      <span class="spacer"></span>
+      <button type="button" class="rep-close" id="tag-close" aria-label="閉じる">×</button>
+    </div>
+    <div class="rep-body">
+      <div class="card">
+        <h2>タグを追加</h2>
+        <div class="tag-new-form">
+          <input type="text" id="tag-new-input" maxlength="14" placeholder="タグ名（14文字まで）">
+          <button type="button" class="primary" id="tag-new-add">追加</button>
+        </div>
+        <p class="stats-note">ここで追加したタグを、問題を解く画面で選んで付けられます。</p>
+      </div>
+      <div class="card">
+        <h2>登録済みのタグ</h2>
+        <div id="tag-manage-list"></div>
+        <p class="stats-note">名前を変更すると、そのタグが付いた問題の表示もまとめて変わります。削除すると、付いていた問題からも外れます。</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ================= 学習レポート（モーダル） ================= -->
 <div id="report-modal" class="rep-overlay" hidden>
