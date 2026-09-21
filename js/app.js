@@ -147,6 +147,26 @@
   var TAGDEFS_KEY = "tagdefs"; // 登録済みタグの一覧（問題に付いていないタグも保持する）
 
   function tagKey(key) { return "tag#" + key; }
+
+  // 他年度の同一問題をひとまとまりとして扱う（タグは同じ問題なら年度をまたいで共有する）。
+  // "same" のつながりをたどった連結成分を返すので、どの年度から見ても同じ顔ぶれになる。
+  function tagGroup(key) {
+    var SIM = window.SIMILAR_QUESTIONS || {};
+    var group = [key], queue = [key], seen = {};
+    seen[key] = true;
+    while (queue.length) {
+      var cur = queue.shift();
+      (SIM[cur] || []).forEach(function (r) {
+        if (r[2] !== "same") return;
+        var k = r[0] + "#" + r[1];
+        if (seen[k]) return;
+        seen[k] = true;
+        group.push(k);
+        queue.push(k);
+      });
+    }
+    return group;
+  }
   function savePmBatch(changes) {
     if (syncActive() && window.STSync.setPmRecords) {
       window.STSync.setPmRecords(changes);
@@ -156,19 +176,25 @@
       savePmRecordsLocal(records);
     }
   }
-  function getTags(key) {
-    var r = loadPmRecords()[tagKey(key)];
-    return (r && Array.isArray(r.v)) ? r.v.slice() : [];
+  // 同一問題グループのいずれかに付いているタグをまとめて返す
+  function getTags(key, records) {
+    var rec = records || loadPmRecords();
+    var out = [];
+    tagGroup(key).forEach(function (k) {
+      var r = rec[tagKey(k)];
+      if (!r || !Array.isArray(r.v)) return;
+      r.v.forEach(function (t) { if (out.indexOf(t) < 0) out.push(t); });
+    });
+    return out;
   }
+  // タグの付け外しは同一問題グループ全体に反映する
   function setTags(key, arr) {
-    var rec = { s: "tag", t: Date.now(), v: arr };
-    if (syncActive() && window.STSync.setPmRecord) {
-      window.STSync.setPmRecord(tagKey(key), rec);
-    } else {
-      var records = loadPmRecords();
-      records[tagKey(key)] = rec;
-      savePmRecordsLocal(records);
-    }
+    var now = Date.now();
+    var changes = {};
+    tagGroup(key).forEach(function (k) {
+      changes[tagKey(k)] = { s: "tag", t: now, v: arr.slice() };
+    });
+    savePmBatch(changes);
   }
   function toggleTag(key, name) {
     var tags = getTags(key);
@@ -178,17 +204,22 @@
     setTags(key, tags);
     return tags;
   }
-  // 付けられているタグの一覧と件数（存在する問題に付いているものだけ数える）
-  function tagCounts() {
+  // 各問題に効いているタグ（他年度の同一問題から引き継いだものを含む）
+  function effectiveTags() {
     var records = loadPmRecords();
-    var known = {};
-    ALL.forEach(function (it) { known[it.key] = true; });
+    var map = {};
+    ALL.forEach(function (it) {
+      var t = getTags(it.key, records);
+      if (t.length) map[it.key] = t;
+    });
+    return map;
+  }
+  // タグごとの使用問題数
+  function tagCounts() {
+    var eff = effectiveTags();
     var counts = {};
-    Object.keys(records).forEach(function (k) {
-      if (k.indexOf("tag#") !== 0 || !known[k.slice(4)]) return;
-      var v = records[k] && records[k].v;
-      if (!Array.isArray(v)) return;
-      v.forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
+    Object.keys(eff).forEach(function (k) {
+      eff[k].forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
     });
     return counts;
   }
@@ -384,15 +415,12 @@
     var tags = selectedTags();
     var tagged = null;
     if (tags.length) {
-      // 選んだタグのいずれかが付いている問題だけに絞る
-      var records = loadPmRecords();
+      // 選んだタグのいずれかが付いている問題だけに絞る（他年度の同一問題も対象）
+      var eff = effectiveTags();
       tagged = {};
-      Object.keys(records).forEach(function (k) {
-        if (k.indexOf("tag#") !== 0) return;
-        var v = records[k] && records[k].v;
-        if (!Array.isArray(v)) return;
+      Object.keys(eff).forEach(function (k) {
         for (var i = 0; i < tags.length; i++) {
-          if (v.indexOf(tags[i]) >= 0) { tagged[k.slice(4)] = true; return; }
+          if (eff[k].indexOf(tags[i]) >= 0) { tagged[k] = true; return; }
         }
       });
     }
@@ -608,6 +636,15 @@
       });
       row.appendChild(b);
     });
+
+    // 他年度に同じ問題がある場合は、タグが共有されることを伝える
+    var others = tagGroup(key).length - 1;
+    if (others > 0) {
+      var note = document.createElement("span");
+      note.className = "q-tags-share";
+      note.textContent = "（他年度の同じ問題 " + others + " 問と共有）";
+      row.appendChild(note);
+    }
     wrap.appendChild(row);
   }
 
