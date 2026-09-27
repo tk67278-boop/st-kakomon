@@ -772,6 +772,51 @@
     var real = EXAMS.filter(function (e) { return !e.mock; }).slice().reverse();
     return mocks.concat(real);
   }
+  /* 本番想定模試: 再出題実績のある過去問＋新テーマ（模擬試験A〜）を本番の構成比で毎回ランダムに組む。
+     手持ち16回の分析では過去問からの再出題が平均27%（直近5回30%）なので、25問中7問を過去問とする。 */
+  var REALMIX_ID = "realmix";
+  var REALMIX_LABEL = "本番想定模試";
+  var REALMIX_PAST = 7, REALMIX_NEW = 18;
+
+  // 重み付きの非復元抽出
+  function pickWeighted(list, n, weightOf) {
+    var pool = list.slice(), out = [];
+    while (pool.length && out.length < n) {
+      var total = 0;
+      pool.forEach(function (x) { total += weightOf(x); });
+      var r = Math.random() * total, acc = 0, idx = pool.length - 1;
+      for (var i = 0; i < pool.length; i++) {
+        acc += weightOf(pool[i]);
+        if (r < acc) { idx = i; break; }
+      }
+      out.push(pool.splice(idx, 1)[0]);
+    }
+    return out;
+  }
+  function buildRealMix() {
+    var order = {};
+    EXAMS.forEach(function (e, i) { order[e.examId] = i; });
+    var byKey = {};
+    ALL.forEach(function (it) { byKey[it.key] = it; });
+    // 過去問: 他年度にも出た問題を同一問題グループにまとめ、最新年度版を候補にする。
+    // 出題回数が多いテーマほど選ばれやすくする（再出題されやすい問題を優先）。
+    var seen = {}, groups = [];
+    ALL.forEach(function (it) {
+      if (it.exam.mock || seen[it.key]) return;
+      var g = tagGroup(it.key);
+      if (g.length < 2) return;
+      g.forEach(function (k) { seen[k] = true; });
+      var members = g.map(function (k) { return byKey[k]; }).filter(function (x) { return x && !x.exam.mock; });
+      if (!members.length) return;
+      members.sort(function (a, b) { return order[b.exam.examId] - order[a.exam.examId]; });
+      groups.push({ item: members[0], size: members.length });
+    });
+    var past = pickWeighted(groups, REALMIX_PAST, function (g) { return g.size; })
+      .map(function (g) { return g.item; });
+    var fresh = shuffle(ALL.filter(function (it) { return it.exam.mock; })).slice(0, REALMIX_NEW);
+    return shuffle(past.concat(fresh));
+  }
+
   function fmtTime(sec) {
     var m = Math.floor(sec / 60), s = sec % 60;
     return m + ":" + (s < 10 ? "0" : "") + s;
@@ -786,35 +831,58 @@
     if (!sel) return;
     var prev = sel.value;
     sel.innerHTML = "";
+    var mix = document.createElement("option");
+    mix.value = REALMIX_ID;
+    mix.textContent = REALMIX_LABEL + "（過去問" + REALMIX_PAST + "問＋新テーマ" + REALMIX_NEW + "問・毎回ランダム）";
+    sel.appendChild(mix);
     mockExamsOrdered().forEach(function (e) {
       var o = document.createElement("option");
       o.value = e.examId;
       o.textContent = e.examLabel + "（" + e.questions.length + "問）";
       sel.appendChild(o);
     });
-    if (prev && examById(prev)) sel.value = prev;
+    if (prev && (prev === REALMIX_ID || examById(prev))) sel.value = prev;
     updateMockInfo();
   }
   function updateMockInfo() {
     var sel = $("#mock-set");
     if (!sel) return;
-    var exam = examById(sel.value);
-    if (!exam) return;
-    var n = exam.questions.length;
-    $("#mock-info").textContent = n + "問・制限時間" + Math.round(n * MOCK_SEC_PER_Q / 60) + "分（合格ライン60%＝" + Math.ceil(n * 0.6) + "問）";
-    var rec = loadMockRecord(exam.examId);
+    var n, recKey;
+    if (sel.value === REALMIX_ID) {
+      n = REALMIX_PAST + REALMIX_NEW;
+      recKey = REALMIX_ID;
+      $("#mock-info").textContent = n + "問・制限時間" + Math.round(n * MOCK_SEC_PER_Q / 60) +
+        "分（合格ライン60%＝" + Math.ceil(n * 0.6) + "問）。再出題実績のある過去問" + REALMIX_PAST +
+        "問と新テーマ" + REALMIX_NEW + "問を本番の構成比で組み、出典は採点後に表示します";
+    } else {
+      var exam = examById(sel.value);
+      if (!exam) return;
+      n = exam.questions.length;
+      recKey = exam.examId;
+      $("#mock-info").textContent = n + "問・制限時間" + Math.round(n * MOCK_SEC_PER_Q / 60) + "分（合格ライン60%＝" + Math.ceil(n * 0.6) + "問）";
+    }
+    var rec = loadMockRecord(recKey);
     $("#mock-last").textContent = rec
       ? "前回 " + rec.c + "/" + rec.n + "（" + pct(rec.c, rec.n) + "％・" + fmtDate(rec.t) + "）"
       : "未受験";
   }
 
-  function startMock(examId) {
-    var exam = examById(examId);
-    if (!exam) return;
-    var items = ALL.filter(function (it) { return it.exam === exam; });
+  function startMock(setId) {
+    var items, label;
+    if (setId === REALMIX_ID) {
+      items = buildRealMix();
+      label = REALMIX_LABEL;
+    } else {
+      var exam = examById(setId);
+      if (!exam) return;
+      items = ALL.filter(function (it) { return it.exam === exam; });
+      label = exam.examLabel;
+    }
+    if (!items.length) return;
     var shuf = $("#mock-shuffle").checked;
     mock = {
-      exam: exam,
+      setId: setId,
+      label: label,
       items: items,
       idx: 0,
       answers: items.map(function () { return -1; }),
@@ -846,7 +914,10 @@
     var n = mock.items.length;
     var it = mock.items[mock.idx], q = it.q;
     $("#m-progress").textContent = "問 " + (mock.idx + 1) + " / " + n;
-    $("#m-exam").textContent = mock.exam.examLabel + " 問" + q.no;
+    // 本番想定模試では出典を伏せ、通し番号だけを表示する（出典は採点後の振り返りで表示）
+    $("#m-exam").textContent = mock.setId === REALMIX_ID
+      ? mock.label + " 問" + (mock.idx + 1)
+      : mock.label + " 問" + q.no;
     $("#m-text").textContent = q.question;
     $("#m-extra").innerHTML = q.html || "";
     if (q.image) {
@@ -902,7 +973,7 @@
       return { item: it, chosen: chosen, correct: correct, order: mock.orders[i] };
     });
     var c = results.filter(function (r) { return r.correct; }).length;
-    saveMockRecord(mock.exam.examId, { s: "done", t: Date.now(), n: results.length, c: c, sec: elapsed });
+    saveMockRecord(mock.setId, { s: "done", t: Date.now(), n: results.length, c: c, sec: elapsed });
     renderMockResult(results, elapsed, timeUp);
     showScreen("mockresult");
     renderStatsSummary();
@@ -918,8 +989,13 @@
       '<span class="mock-pass ' + (passed ? "ok" : "ng") + '">' +
       (passed ? "合格ライン（60%）クリア" : "合格ラインまであと " + (passLine - c) + " 問") + "</span>";
     var unanswered = results.filter(function (r) { return r.chosen < 0; }).length;
-    $("#mr-meta").textContent = mock.exam.examLabel + "／所要時間 " + fmtTime(elapsed) +
-      (timeUp ? "（時間切れで自動採点）" : "") + "／未回答 " + unanswered + " 問";
+    var pastN = results.filter(function (r) { return !r.item.exam.mock; }).length;
+    var pastC = results.filter(function (r) { return !r.item.exam.mock && r.correct; }).length;
+    $("#mr-meta").textContent = mock.label + "／所要時間 " + fmtTime(elapsed) +
+      (timeUp ? "（時間切れで自動採点）" : "") + "／未回答 " + unanswered + " 問" +
+      (mock.setId === REALMIX_ID
+        ? "／過去問 " + pastC + "/" + pastN + "・新テーマ " + (c - pastC) + "/" + (n - pastN)
+        : "");
 
     var byCat = {};
     results.forEach(function (r) {
@@ -1156,7 +1232,7 @@
       $("#btn-mock-finish").addEventListener("click", function () {
         if (mock && !mock.finished && confirm("試験を終了して採点します。よろしいですか？")) finishMock(false);
       });
-      $("#btn-mock-again").addEventListener("click", function () { if (mock) startMock(mock.exam.examId); });
+      $("#btn-mock-again").addEventListener("click", function () { if (mock) startMock(mock.setId); });
       $("#btn-mock-back").addEventListener("click", function () {
         renderStatsSummary();
         updateMockInfo();
