@@ -791,11 +791,14 @@
     var real = EXAMS.filter(function (e) { return !e.mock; }).slice().reverse();
     return mocks.concat(real);
   }
-  /* 本番想定模試: 再出題実績のある過去問＋新テーマ（模擬試験A〜）を本番の構成比で毎回ランダムに組む。
-     手持ち16回の分析では過去問からの再出題が平均27%（直近5回30%）なので、25問中7問を過去問とする。 */
+  /* 本番想定模試: 再出題実績のある過去問＋新規作問を本番の構成比で毎回ランダムに組む。
+     手持ち16回の分析では過去問からの再出題が平均27%（直近5回30%）なので、25問中7問を過去問とする。
+     本番の新作問題は定番概念が大半で流行テーマは1〜3問程度のため、新規作問18問は
+     定番テーマ（classic: 模擬試験E・F）15問＋最新テーマ（模擬試験A〜D）3問とする。 */
   var REALMIX_ID = "realmix";
   var REALMIX_LABEL = "本番想定模試";
-  var REALMIX_PAST = 7, REALMIX_NEW = 18;
+  var REALMIX_PAST = 7, REALMIX_CLASSIC = 15, REALMIX_TREND = 3;
+  var REALMIX_NEW = REALMIX_CLASSIC + REALMIX_TREND;
 
   // 重み付きの非復元抽出
   function pickWeighted(list, n, weightOf) {
@@ -832,7 +835,10 @@
     });
     var past = pickWeighted(groups, REALMIX_PAST, function (g) { return g.size; })
       .map(function (g) { return g.item; });
-    var fresh = shuffle(ALL.filter(function (it) { return it.exam.mock; })).slice(0, REALMIX_NEW);
+    var classic = shuffle(ALL.filter(function (it) { return it.exam.mock && it.exam.classic; })).slice(0, REALMIX_CLASSIC);
+    var trend = shuffle(ALL.filter(function (it) { return it.exam.mock && !it.exam.classic; }))
+      .slice(0, REALMIX_NEW - classic.length);
+    var fresh = classic.concat(trend);
     return shuffle(past.concat(fresh));
   }
 
@@ -852,7 +858,7 @@
     sel.innerHTML = "";
     var mix = document.createElement("option");
     mix.value = REALMIX_ID;
-    mix.textContent = REALMIX_LABEL + "（過去問" + REALMIX_PAST + "問＋新テーマ" + REALMIX_NEW + "問・毎回ランダム）";
+    mix.textContent = REALMIX_LABEL + "（過去問" + REALMIX_PAST + "問＋定番テーマ" + REALMIX_CLASSIC + "問＋最新テーマ" + REALMIX_TREND + "問・毎回ランダム）";
     sel.appendChild(mix);
     mockExamsOrdered().forEach(function (e) {
       var o = document.createElement("option");
@@ -872,7 +878,7 @@
       recKey = REALMIX_ID;
       $("#mock-info").textContent = n + "問・制限時間" + Math.round(n * MOCK_SEC_PER_Q / 60) +
         "分（合格ライン60%＝" + Math.ceil(n * 0.6) + "問）。再出題実績のある過去問" + REALMIX_PAST +
-        "問と新テーマ" + REALMIX_NEW + "問を本番の構成比で組み、出典は採点後に表示します";
+        "問・定番テーマの新作" + REALMIX_CLASSIC + "問・最新テーマ" + REALMIX_TREND + "問を本番の傾向に合わせて組み、出典は採点後に表示します";
     } else {
       var exam = examById(sel.value);
       if (!exam) return;

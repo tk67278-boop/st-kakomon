@@ -7,6 +7,7 @@ window.QUIZ_DATA.push({
   examLabel: "模擬試験F（定番テーマ）",
   session: "午前II",
   mock: true,
+  classic: true, // 定番テーマ（本番想定模試で多めに出題）
   questions: [
     {
       no: 1,
