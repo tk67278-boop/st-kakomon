@@ -648,6 +648,24 @@
     wrap.appendChild(row);
   }
 
+  // 詳しい解説（js/data/*_detail.js の window.AM2_DETAIL）。無い問題は空文字
+  function detailHtml(item) {
+    var d = (window.AM2_DETAIL || {})[item.key];
+    if (!d) return "";
+    var ans = item.q.answer;
+    var order = [ans].concat([0, 1, 2, 3].filter(function (i) { return i !== ans; }));
+    var li = function (x, cls) {
+      return "<li" + (cls ? " class='" + cls + "'" : "") + "><b>" + escapeHtml(x.term) + "</b>：" + escapeHtml(x.desc) + "</li>";
+    };
+    var h = "<details class='fb-detail'><summary>詳しい解説</summary><div class='fbd-body'>" +
+      "<h4>選択肢の用語</h4><ul class='fbd-choices'>" +
+      order.map(function (i) { return d.choices[i] ? li(d.choices[i], i === ans ? "ok" : "") : ""; }).join("") + "</ul>";
+    if (d.background) h += "<h4>背景・ねらい</h4><p>" + escapeHtml(d.background) + "</p>";
+    if (d.related && d.related.length) h += "<h4>関連して問われやすい用語</h4><ul>" + d.related.map(function (x) { return li(x); }).join("") + "</ul>";
+    if (d.tip) h += "<h4>区別のコツ</h4><p>" + escapeHtml(d.tip) + "</p>";
+    return h + "</div></details>";
+  }
+
   function escapeHtml(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
@@ -681,6 +699,7 @@
     res.className = correct ? "good" : "bad";
     $("#fb-answer").textContent = "正解は「" + dispKanaOfCorrect + "」";
     $("#fb-explanation").textContent = q.explanation || "";
+    $("#fb-detail").innerHTML = detailHtml(item);
     $("#fb-src").textContent = sourceText(item);
 
     var nextBtn = $("#btn-next");
@@ -1039,6 +1058,7 @@
         (q.image ? "<div class='q-image-wrap'><img src='" + q.image + "' alt='問題図'></div>" : "") +
         "<ol>" + choicesHtml + "</ol>" +
         "<p class='mr-exp'>" + escapeHtml(q.explanation || "") + "</p>" +
+        detailHtml(r.item) +
         "<p class='fb-src'>" + escapeHtml(sourceText(r.item)) + "</p>" +
         "</div></details>";
       ol.appendChild(li);

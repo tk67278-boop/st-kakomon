@@ -203,6 +203,14 @@ table.qtable th.blank { background: transparent; border: none; }
 #fb-result.good { color: var(--ok); font-size: 18px; }
 #fb-result.bad { color: var(--ng); font-size: 18px; }
 #fb-explanation { margin: 8px 0 0; font-size: 14.5px; }
+.fb-detail { margin: 10px 0 0; font-size: 14px; }
+.fb-detail summary { cursor: pointer; color: var(--accent, inherit); font-weight: 700; }
+.fbd-body h4 { margin: 12px 0 4px; font-size: 13px; color: var(--muted); }
+.fbd-body p { margin: 0; }
+.fbd-body ul { margin: 0; padding-left: 1.2em; }
+.fbd-body li { margin: 3px 0; }
+.fbd-choices li.ok b { color: var(--ok); }
+.fbd-choices li.ok b::before { content: "正解 "; font-size: 11px; }
 .fb-src { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
 
 .q-actions { margin-top: 16px; display: flex; justify-content: flex-end; }
