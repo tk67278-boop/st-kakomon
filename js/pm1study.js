@@ -359,9 +359,9 @@
     state.ansLiveInit = true;
   }
   function classifyAnsCount(len, limit) {
-    if (!limit) return { cls: "muted", text: len + "字" };
-    if (len > limit) return { cls: "ng", text: len + "字（" + (len - limit) + "字超過）" };
-    return { cls: "ok", text: len + "字" };
+    if (!limit) return { cls: "muted", text: len + " 字" };
+    if (len > limit) return { cls: "ng", text: len + " / " + limit + " 字（" + (len - limit) + "字超過）" };
+    return { cls: "ok", text: len + " / " + limit + " 字" };
   }
   function updateAnsCounter(fp) {
     var counter = $("#pm1-count-" + fp.idx);
@@ -483,7 +483,7 @@
   }
 
   /* ---------- 演習画面の表示設定（端末ごとの好み。保存できなくても動作に影響しない） ---------- */
-  var PREF_HINT = "st_pm1_hintmode", PREF_RATIO = "st_pm1_ratio";
+  var PREF_HINT = "st_pm1_hintmode";
   function loadPref(key, def) {
     try { var v = localStorage.getItem(key); return v == null ? def : v; } catch (e) { return def; }
   }
@@ -623,8 +623,8 @@
     strong.forEach(function (el) { el.classList.add("pm1x-ref-hl"); });
     var target = strong[0] || secEls[0];
     if (target) {
-      if (state.ratio === "answer") setRatio("half");
-      pane.scrollTop = target.offsetTop - pane.offsetTop - 12;
+      if (state.cbt && state.cbt.getRatio() === "answer") state.cbt.setRatio("half");
+      pane.scrollTop += target.getBoundingClientRect().top - pane.getBoundingClientRect().top - 12;
     }
   }
   function refsText(fp) {
@@ -637,13 +637,6 @@
     return parts.join("，") + "を読む。" + (r.uls.length || r.figs.length ? "本文側の濃い色が直接の手掛かり，薄い色がその節の範囲。" : "本文側で薄く色を付けた範囲。");
   }
 
-  function setRatio(r) {
-    state.ratio = r;
-    savePref(PREF_RATIO, r);
-    var split = $("#pm1x-split");
-    if (split) split.dataset.ratio = r;
-    $all(root, ".pm1x-ratio-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.r === r); });
-  }
   // 表示中の段階（state.hintShown，開き直すたびに閉じた状態から）と，
   // 使用記録（state.doc.hints，一度開いた最大段階。閉じても残る）を分けて扱う。
   // 開いているヒントのボタンをもう一度押すと，その段階以降を閉じる。
@@ -703,52 +696,88 @@
     if (jump) jump.addEventListener("click", function () { showRefs(fp); });
   }
 
+  // 演習タブ: CBT形式の全画面で解く。タブ自体には再開用の案内だけを置く
   function renderExerciseTab(body) {
     ensureAnsLive();
-    if (!state.ratio) state.ratio = loadPref(PREF_RATIO, "half");
+    var answered = state.flat.filter(function (fp) { return trimStr(state.ansLive[fp.idx]); }).length;
+    var t = state.exTimer;
+    body.innerHTML =
+      '<div class="card">' +
+        '<div class="group-head"><h2>演習（CBT形式・45分）</h2></div>' +
+        '<p class="stats-note">本番のCBTと同じく，左に問題文，右に解答欄を並べた全画面で解きます。' +
+          '問題文へのマーカー，メモ，電卓，白黒反転，拡大・縮小が使えます。右上の「ヒントモード」をオンにすると，解答欄ごとに3段階のヒントを開けます。</p>' +
+        '<p class="stats-note">入力中の答案は30秒ごとに自動で下書き保存されます。「確認終了」で解答例との対比に進みます。</p>' +
+        '<div class="pm-panel-actions">' +
+          '<span class="pm2-save-status">記入済み ' + answered + ' / ' + state.flat.length + ' 欄' +
+            (t.started ? '・残り ' + (t.finished ? '0:00' : fmtClock(exTimerRemainingSec())) : '') + '</span>' +
+          '<button type="button" class="primary" id="pm1-cbt-open">' + (answered || t.started ? '演習を再開する' : '演習を開始する') + '</button>' +
+        '</div>' +
+      '</div>';
+    $("#pm1-cbt-open").addEventListener("click", openExerciseCbt);
+    if (!state.cbtShownOnce) { state.cbtShownOnce = true; openExerciseCbt(); }
+  }
+
+  function openExerciseCbt() {
+    if ($("#pm1-cbt")) return;
+    ensureAnsLive();
     var hintOn = loadPref(PREF_HINT, "0") === "1";
-    document.body.classList.add("pm1-wide");
-
-    var html = '<div class="card pm1x-bar">' +
-      '<div class="pm1x-bar-row">' +
-        '<span class="pm1x-bar-title">演習（45分）</span>' +
-        '<span id="pm1-ex-timer-display" class="pm-timer-display"></span>' +
-        '<button type="button" class="primary" id="pm1-ex-timer-start">開始</button>' +
-        '<button type="button" id="pm1-ex-timer-toggle">一時停止</button>' +
-        '<button type="button" id="pm1-ex-timer-reset">リセット</button>' +
-        '<span class="spacer"></span>' +
-        '<label class="pm1x-hint-toggle"><input type="checkbox" id="pm1x-hintmode"' + (hintOn ? ' checked' : '') + '> ヒントモード</label>' +
+    var q = state.q;
+    var html = '<div class="cbt" id="pm1-cbt" data-cbt-key="pm" data-cbt-split="55">' +
+      '<div class="cbt-top">' +
+        '<div class="cbt-title">' +
+          '<div class="cbt-exam">' + escapeHtml(state.exam.examLabel) + '　午後I 問' + q.no + '　' + escapeHtml(displayTitleFor(state.exam, q)) + '</div>' +
+          '<div class="cbt-progress">午後I 演習</div>' +
+        '</div>' +
+        '<div class="cbt-tools">' +
+          '<label class="cbt-invert cbt-hintsw" title="解答欄ごとに3段階のヒントを表示します"><span>ヒント</span>' +
+            '<input type="checkbox" id="pm1x-hintmode" role="switch"' + (hintOn ? ' checked' : '') + '><span class="cbt-switch" aria-hidden="true"></span></label>' +
+          '<label class="cbt-invert" title="白黒反転表示に切り替えます"><span>白黒反転</span>' +
+            '<input type="checkbox" role="switch"><span class="cbt-switch" aria-hidden="true"></span></label>' +
+          '<button type="button" class="cbt-btn cbt-blue" data-cbt-open="memo">メモ</button>' +
+          '<button type="button" class="cbt-btn cbt-gray" id="pm1-cbt-close" title="下書きを保存して演習画面を閉じます">中断</button>' +
+          '<button type="button" class="cbt-btn cbt-red" id="pm1-btn-compare" title="答案を保存して解答例との対比に進みます">確認終了</button>' +
+        '</div>' +
+        '<div class="cbt-time">残り時間 <b id="pm1-ex-timer-display"></b>' +
+          '<span class="cbt-timer-ctl">' +
+            '<button type="button" id="pm1-ex-timer-start" title="45分のタイマーを開始">開始</button>' +
+            '<button type="button" id="pm1-ex-timer-toggle">一時停止</button>' +
+            '<button type="button" id="pm1-ex-timer-reset" title="タイマーを45分に戻す">リセット</button>' +
+          '</span></div>' +
       '</div>' +
-      '<div class="pm1x-ratio" role="group" aria-label="問題文と解答欄の比率">' +
-        '<button type="button" class="pm1x-ratio-btn" data-r="problem">問題文を広く</button>' +
-        '<button type="button" class="pm1x-ratio-btn" data-r="half">半々</button>' +
-        '<button type="button" class="pm1x-ratio-btn" data-r="answer">解答を広く</button>' +
-      '</div>' +
-    '</div>';
-
-    html += '<div class="pm1x-split" id="pm1x-split">' +
-      '<div class="pm1x-pane pm1x-problem pm2-lead" id="pm1x-problem">' + renderExerciseBody(state.q) + '</div>' +
-      '<div class="pm1x-pane pm1x-answer' + (hintOn ? ' hint-on' : '') + '" id="pm1x-answer">';
+      '<div class="cbt-main" id="pm1x-split">' +
+        '<div class="cbt-left">' +
+          '<div class="cbt-zoom"><label>拡大・縮小</label><input type="range" min="80" max="200" step="10" value="100" aria-label="拡大・縮小"><b class="cbt-zoom-val">100%</b>' +
+            CBTmarker() + '</div>' +
+          '<div class="cbt-q cbt-markable pm2-lead" id="pm1x-problem">' + renderExerciseBody(q) + '</div>' +
+        '</div>' +
+        '<div class="cbt-splitter" role="separator" aria-orientation="vertical" title="ドラッグで左右の幅を変更"></div>' +
+        '<div class="cbt-right pm1x-answer' + (hintOn ? ' hint-on' : '') + '" id="pm1x-answer">';
     state.flat.forEach(function (fp) {
-      if (fp.isFirstInSetsumon) {
-        html += '<div class="pm2-setumon-inline">' + escapeHtml(fp.setsumon.text || "") + '</div>';
-      }
-      var limitSuffix = fp.part.limit ? '（' + escapeHtml(String(fp.part.limit)) + '字以内）' : '';
+      if (fp.isFirstInSetsumon) html += '<div class="pm2-setumon-inline">' + escapeHtml(fp.setsumon.text || "") + '</div>';
       html += '<div class="pm2-field">' +
-        '<label class="pm2-field-label" for="pm1-ans-' + fp.idx + '">' + escapeHtml(fp.part.label || "") + limitSuffix + '</label>' +
+        '<label class="pm2-field-label" for="pm1-ans-' + fp.idx + '">' + escapeHtml(fp.part.label || "") +
+          (fp.part.limit ? '（' + escapeHtml(String(fp.part.limit)) + '字以内）' : '') + '</label>' +
         hintBoxHtml(fp) +
         '<textarea class="pm1-ans-ta" id="pm1-ans-' + fp.idx + '" rows="3"></textarea>' +
         '<div class="pm2-count" id="pm1-count-' + fp.idx + '"></div>' +
       '</div>';
     });
-    html += '<div class="pm-panel-actions">' +
-      '<span class="pm2-save-status" id="pm1-draft-status"></span>' +
-      '<button type="button" id="pm1-btn-draft-save">下書きを保存</button>' +
-      '<button type="button" class="primary" id="pm1-btn-compare">解答例と対比する &rarr;</button>' +
-    '</div></div></div>';
-
-    body.innerHTML = html;
-    setRatio(state.ratio);
+    html += '</div></div>' +
+      '<div class="cbt-bottom">' +
+        '<button type="button" class="cbt-btn cbt-gray" data-cbt-open="calc">電卓</button>' +
+        '<span class="cbt-ratio" role="group" aria-label="問題文と解答欄の比率">' +
+          '<button type="button" class="cbt-ratio-btn" data-r="problem">問題文</button>' +
+          '<button type="button" class="cbt-ratio-btn" data-r="half">半々</button>' +
+          '<button type="button" class="cbt-ratio-btn" data-r="answer">解答</button>' +
+        '</span>' +
+        '<span class="spacer"></span>' +
+        '<span class="cbt-answered" id="pm1-draft-status"></span>' +
+        '<button type="button" class="cbt-btn cbt-teal" id="pm1-btn-draft-save">下書きを保存</button>' +
+      '</div>' +
+    '</div>';
+    root.insertAdjacentHTML("beforeend", html);
+    document.body.classList.add("cbt-mode");
+    state.cbt = window.CBT ? window.CBT.mount($("#pm1-cbt")) : null;
 
     state.flat.forEach(function (fp) {
       var ta = $("#pm1-ans-" + fp.idx);
@@ -760,34 +789,47 @@
       });
       bindHintBox(fp);
     });
-
-    $all(body, ".pm1x-ratio-btn").forEach(function (b) {
-      b.addEventListener("click", function () { setRatio(b.dataset.r); });
-    });
     $("#pm1x-hintmode").addEventListener("change", function (e) {
       savePref(PREF_HINT, e.target.checked ? "1" : "0");
       $("#pm1x-answer").classList.toggle("hint-on", e.target.checked);
       if (!e.target.checked) clearRefs();
     });
-
     $("#pm1-btn-draft-save").addEventListener("click", function () {
       saveDraft();
       flashText($("#pm1-draft-status"), "下書きを保存しました");
     });
     $("#pm1-btn-compare").addEventListener("click", function () {
+      if (!confirm("答案を保存して，解答例との対比に進みます。よろしいですか？")) return;
       saveDraft();
       saveVersionSnapshot();
+      closeExerciseCbt();
       switchTab("compare");
     });
-
+    $("#pm1-cbt-close").addEventListener("click", function () {
+      saveDraft();
+      closeExerciseCbt();
+      renderTabBody();
+    });
     $("#pm1-ex-timer-start").addEventListener("click", startExTimer);
     $("#pm1-ex-timer-toggle").addEventListener("click", toggleExTimer);
     $("#pm1-ex-timer-reset").addEventListener("click", resetExTimerClick);
+    if (!state.exTimer.started) startExTimer(); // CBTと同じく開いた時点で計時を始める（一時停止・リセット可）
     updateExTimerButtons();
     updateExTimerDisplay();
     startExTimerLoop();
-
     startAutosave();
+  }
+  function CBTmarker() { return window.CBT ? window.CBT.markerToolsHtml() : ""; }
+
+  function closeExerciseCbt() {
+    var el = $("#pm1-cbt");
+    if (!el) return;
+    stopAutosave();
+    stopExTimerLoop();
+    if (state.cbt) state.cbt.close();
+    state.cbt = null;
+    el.parentNode.removeChild(el);
+    document.body.classList.remove("cbt-mode");
   }
 
   /* =====================================================================
@@ -1005,9 +1047,10 @@
   function teardownTabResources(tab) {
     if (!state) return;
     if (tab === "exercise") {
+      if ($("#pm1-cbt")) saveDraft();
+      closeExerciseCbt();
       stopAutosave();
       stopExTimerLoop();
-      document.body.classList.remove("pm1-wide");
     }
   }
 

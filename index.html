@@ -149,7 +149,7 @@
           <input type="checkbox" id="cbt-invert" role="switch">
           <span class="cbt-switch" aria-hidden="true"></span>
         </label>
-        <button type="button" class="cbt-btn cbt-blue" id="cbt-btn-memo">メモ</button>
+        <button type="button" class="cbt-btn cbt-blue" id="cbt-btn-memo" data-cbt-open="memo">メモ</button>
         <button type="button" class="cbt-btn cbt-red" id="btn-mock-finish">確認終了</button>
       </div>
       <div class="cbt-time">残り時間 <b id="m-timer"></b></div>
@@ -160,7 +160,7 @@
         <div class="cbt-zoom">
           <label for="cbt-zoom">拡大・縮小</label>
           <input type="range" id="cbt-zoom" min="80" max="200" step="10" value="100">
-          <b id="cbt-zoom-val">100%</b>
+          <b class="cbt-zoom-val" id="cbt-zoom-val">100%</b>
         </div>
         <div class="cbt-q" id="cbt-q">
           <div class="q-meta"><span class="badge exam" id="m-exam"></span></div>
@@ -180,7 +180,7 @@
 
     <div class="cbt-bottom">
       <button type="button" class="cbt-btn cbt-blue" id="cbt-btn-status">解答状況</button>
-      <button type="button" class="cbt-btn cbt-gray" id="cbt-btn-calc">電卓</button>
+      <button type="button" class="cbt-btn cbt-gray" id="cbt-btn-calc" data-cbt-open="calc">電卓</button>
       <span class="cbt-answered" id="m-status"></span>
       <span class="spacer"></span>
       <button type="button" class="cbt-btn cbt-blue" id="cbt-btn-review">後で見直す</button>
@@ -202,41 +202,6 @@
       </div>
     </div>
 
-    <!-- 電卓 -->
-    <div class="cbt-float cbt-calc" id="cbt-calc" hidden>
-      <div class="cbt-float-head" data-drag="cbt-calc"><span>電卓</span><button type="button" class="cbt-x" data-close="cbt-calc" aria-label="閉じる">&times;</button></div>
-      <div class="calc-disp" id="calc-disp">0</div>
-      <div class="calc-keys" id="calc-keys">
-        <button type="button" data-k="AC" class="ck-fn">AC</button><button type="button" data-k="C" class="ck-fn">C</button><button type="button" data-k="%" class="ck-fn">%</button><button type="button" data-k="/" class="ck-op">÷</button>
-        <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button><button type="button" data-k="*" class="ck-op">×</button>
-        <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button><button type="button" data-k="-" class="ck-op">−</button>
-        <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button><button type="button" data-k="+" class="ck-op">＋</button>
-        <button type="button" data-k="0">0</button><button type="button" data-k="00">00</button><button type="button" data-k=".">.</button><button type="button" data-k="=" class="ck-eq">＝</button>
-        <button type="button" data-k="sqrt" class="ck-fn">√</button><button type="button" data-k="neg" class="ck-fn">±</button><button type="button" data-k="bs" class="ck-fn ck-wide">⌫</button>
-      </div>
-    </div>
-
-    <!-- メモ -->
-    <div class="cbt-float cbt-memo" id="cbt-memo" hidden>
-      <div class="cbt-float-head" data-drag="cbt-memo"><span>メモ</span><button type="button" class="cbt-x" data-close="cbt-memo" aria-label="閉じる">&times;</button></div>
-      <div class="memo-tools">
-        <label class="memo-trans"><input type="checkbox" id="memo-trans"> 半透明</label>
-        <span class="memo-markers" role="group" aria-label="マーカー">
-          <button type="button" class="mk mk-red" data-mk="#fca5a5" title="赤マーカー（選択した文字に引く）"></button>
-          <button type="button" class="mk mk-blue" data-mk="#93c5fd" title="青マーカー"></button>
-          <button type="button" class="mk mk-yellow" data-mk="#fde047" title="黄マーカー"></button>
-          <button type="button" class="mk mk-white" data-mk="" title="マーカーを消す"></button>
-        </span>
-      </div>
-      <div class="memo-search">
-        <input type="search" id="memo-q" placeholder="メモ内を検索" aria-label="メモ内を検索">
-        <span id="memo-hit">0/0</span>
-        <button type="button" id="memo-prev" aria-label="前を検索">&uarr;</button>
-        <button type="button" id="memo-next" aria-label="次を検索">&darr;</button>
-      </div>
-      <div class="memo-body" id="memo-body" contenteditable="true" spellcheck="false" aria-label="メモ"></div>
-      <div class="memo-foot"><span id="memo-count">0</span> 字（試験終了まで保持）</div>
-    </div>
   </section>
 
   <!-- ================= 模擬試験 結果画面 ================= -->

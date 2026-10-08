@@ -409,12 +409,12 @@
      ===================================================================== */
   function classifyCount(len, limit) {
     if (limit.min > 0 && len < limit.min) {
-      return { cls: "muted", text: len + "字（あと" + (limit.min - len) + "字）" };
+      return { cls: "muted", text: len + " / " + limit.max + " 字（下限まであと" + (limit.min - len) + "字）" };
     }
     if (len > limit.max) {
-      return { cls: "ng", text: len + "字（" + (len - limit.max) + "字超過）" };
+      return { cls: "ng", text: len + " / " + limit.max + " 字（" + (len - limit.max) + "字超過）" };
     }
-    return { cls: "ok", text: len + "字（適合）" };
+    return { cls: "ok", text: len + " / " + limit.max + " 字（適合）" };
   }
   function updateCounter(k) {
     var counter = $("#pm2-count-" + k);
@@ -549,43 +549,97 @@
     setTimeout(function () { if (el) el.textContent = original; }, restoreMs || 1500);
   }
 
+  // 執筆タブ: CBT形式の全画面で論述する。タブ自体には再開用の案内と保存した版の一覧を置く
   function renderWriteTab(body) {
     if (!state.essayLiveInit) {
       var d = state.doc.essay.draft;
       state.essayLive = { a: (d && d.a) || "", i: (d && d.i) || "", u: (d && d.u) || "" };
       state.essayLiveInit = true;
     }
-
+    var total = KEY_ORDER.reduce(function (n, k) { return n + charLen(state.essayLive[k]); }, 0);
+    var wt = state.writeTimer;
     body.innerHTML =
-      '<div class="card pm2-timer-card">' +
-        '<div class="group-head"><h2>執筆タイマー（120分）</h2><span class="spacer"></span>' +
-          '<span id="pm2-write-timer-display" class="pm-timer-display"></span></div>' +
-        '<div class="pm2-timer-actions">' +
-          '<button type="button" class="primary" id="pm2-write-timer-start">開始</button>' +
-          '<button type="button" id="pm2-write-timer-toggle">一時停止</button>' +
-          '<button type="button" id="pm2-write-timer-reset">リセット</button>' +
-        '</div>' +
-      '</div>' +
-      leadDetailsHtml() +
       '<div class="card">' +
-        KEY_ORDER.map(function (k) {
-          return '<div class="pm2-field pm2-essay-field">' +
-            '<label class="pm2-field-label">' + KANA_LABEL[k] + '（' + escapeHtml(LIMITS[k].label) + '）</label>' +
-            setumonInlineHtml(k) +
-            '<textarea class="pm2-essay-ta" id="pm2-essay-' + k + '"></textarea>' +
-            '<div class="pm2-count" id="pm2-count-' + k + '"></div>' +
-          '</div>';
-        }).join("") +
+        '<div class="group-head"><h2>執筆（CBT形式・120分）</h2></div>' +
+        '<p class="stats-note">本番のCBTと同じく，左に問題文，右に設問ア・イ・ウの入力欄を並べた全画面で論述します。' +
+          '問題文へのマーカー，メモ，電卓，白黒反転，拡大・縮小が使えます。</p>' +
+        '<p class="stats-note">入力中の論文は30秒ごとに自動で下書き保存されます。「確認終了」で脱稿として保存し，振り返りに進みます。</p>' +
         '<div class="pm-panel-actions">' +
-          '<span class="pm2-save-status" id="pm2-draft-status"></span>' +
-          '<button type="button" id="pm2-btn-draft-save">下書きを保存</button>' +
-          '<button type="button" class="primary" id="pm2-btn-final-save">脱稿として保存</button>' +
+          '<span class="pm2-save-status">現在 計' + total + '字' +
+            (wt.started ? '・残り ' + (wt.finished ? '0:00' : fmtClock(wtRemainingSec())) : '') + '</span>' +
+          '<button type="button" class="primary" id="pm2-cbt-open">' + (total || wt.started ? '執筆を再開する' : '執筆を開始する') + '</button>' +
         '</div>' +
       '</div>' +
       '<div class="card">' +
         '<div class="group-head"><h2>保存した版（最新5件）</h2></div>' +
+        '<p class="stats-note">「開く」で過去の版を入力欄に読み込み，続きから書き直せます。</p>' +
         '<div id="pm2-essay-versions"></div>' +
       '</div>';
+    $("#pm2-cbt-open").addEventListener("click", openWriteCbt);
+    renderEssayVersions();
+    if (!state.cbtShownOnce) { state.cbtShownOnce = true; openWriteCbt(); }
+  }
+
+  function openWriteCbt() {
+    if ($("#pm2-cbt")) return;
+    var q = state.q, qq = q.q || {};
+    var html = '<div class="cbt" id="pm2-cbt" data-cbt-key="pm" data-cbt-split="55">' +
+      '<div class="cbt-top">' +
+        '<div class="cbt-title">' +
+          '<div class="cbt-exam">' + escapeHtml(state.exam.examLabel) + '　午後II 問' + q.no + '　' + escapeHtml(displayTitleFor(state.exam, q)) + '</div>' +
+          '<div class="cbt-progress">午後II 論述</div>' +
+        '</div>' +
+        '<div class="cbt-tools">' +
+          '<label class="cbt-invert" title="白黒反転表示に切り替えます"><span>白黒反転</span>' +
+            '<input type="checkbox" role="switch"><span class="cbt-switch" aria-hidden="true"></span></label>' +
+          '<button type="button" class="cbt-btn cbt-blue" data-cbt-open="memo">メモ</button>' +
+          '<button type="button" class="cbt-btn cbt-gray" id="pm2-cbt-close" title="下書きを保存して執筆画面を閉じます">中断</button>' +
+          '<button type="button" class="cbt-btn cbt-red" id="pm2-btn-final-save" title="脱稿として保存し，振り返りに進みます">確認終了</button>' +
+        '</div>' +
+        '<div class="cbt-time">残り時間 <b id="pm2-write-timer-display"></b>' +
+          '<span class="cbt-timer-ctl">' +
+            '<button type="button" id="pm2-write-timer-start" title="120分のタイマーを開始">開始</button>' +
+            '<button type="button" id="pm2-write-timer-toggle">一時停止</button>' +
+            '<button type="button" id="pm2-write-timer-reset" title="タイマーを120分に戻す">リセット</button>' +
+          '</span></div>' +
+      '</div>' +
+      '<div class="cbt-main">' +
+        '<div class="cbt-left">' +
+          '<div class="cbt-zoom"><label>拡大・縮小</label><input type="range" min="80" max="200" step="10" value="100" aria-label="拡大・縮小"><b class="cbt-zoom-val">100%</b>' +
+            (window.CBT ? window.CBT.markerToolsHtml() : "") + '</div>' +
+          '<div class="cbt-q cbt-markable">' +
+            '<div class="pm2-lead">' + renderParagraphs(q.lead) + '</div>' +
+            KEY_ORDER.map(function (k) {
+              return '<div class="pm2cbt-setumon"><b>' + KANA_LABEL[k] + '</b>（' + escapeHtml(LIMITS[k].label) + '）<div>' + escapeHtml(qq[k] || "（未収録）") + '</div></div>';
+            }).join("") +
+          '</div>' +
+        '</div>' +
+        '<div class="cbt-splitter" role="separator" aria-orientation="vertical" title="ドラッグで左右の幅を変更"></div>' +
+        '<div class="cbt-right">' +
+          KEY_ORDER.map(function (k) {
+            return '<div class="pm2-field pm2cbt-field">' +
+              '<label class="pm2-field-label" for="pm2-essay-' + k + '">' + KANA_LABEL[k] + '（' + escapeHtml(LIMITS[k].label) + '）</label>' +
+              '<textarea class="pm2-essay-ta pm2cbt-ta pm2cbt-ta-' + k + '" id="pm2-essay-' + k + '"></textarea>' +
+              '<div class="pm2-count" id="pm2-count-' + k + '"></div>' +
+            '</div>';
+          }).join("") +
+        '</div>' +
+      '</div>' +
+      '<div class="cbt-bottom">' +
+        '<button type="button" class="cbt-btn cbt-gray" data-cbt-open="calc">電卓</button>' +
+        '<span class="cbt-ratio" role="group" aria-label="問題文と入力欄の比率">' +
+          '<button type="button" class="cbt-ratio-btn" data-r="problem">問題文</button>' +
+          '<button type="button" class="cbt-ratio-btn" data-r="half">半々</button>' +
+          '<button type="button" class="cbt-ratio-btn" data-r="answer">入力欄</button>' +
+        '</span>' +
+        '<span class="spacer"></span>' +
+        '<span class="cbt-answered" id="pm2-draft-status"></span>' +
+        '<button type="button" class="cbt-btn cbt-teal" id="pm2-btn-draft-save">下書きを保存</button>' +
+      '</div>' +
+    '</div>';
+    root.insertAdjacentHTML("beforeend", html);
+    document.body.classList.add("cbt-mode");
+    state.cbt = window.CBT ? window.CBT.mount($("#pm2-cbt")) : null;
 
     KEY_ORDER.forEach(function (k) {
       var ta = $("#pm2-essay-" + k);
@@ -596,26 +650,40 @@
         updateCounter(k);
       });
     });
-
     $("#pm2-btn-draft-save").addEventListener("click", function () {
       saveDraft();
       flashText($("#pm2-draft-status"), "下書きを保存しました");
     });
     $("#pm2-btn-final-save").addEventListener("click", function () {
+      if (!confirm("脱稿として保存し，振り返りに進みます。よろしいですか？")) return;
       saveFinalVersion();
-      flashText($("#pm2-draft-status"), "脱稿として保存しました");
+      closeWriteCbt();
+      switchTab("review");
     });
-
-    renderEssayVersions();
-
+    $("#pm2-cbt-close").addEventListener("click", function () {
+      saveDraft();
+      closeWriteCbt();
+      renderTabBody();
+    });
     $("#pm2-write-timer-start").addEventListener("click", startWriteTimer);
     $("#pm2-write-timer-toggle").addEventListener("click", toggleWriteTimer);
     $("#pm2-write-timer-reset").addEventListener("click", resetWriteTimerClick);
+    if (!state.writeTimer.started) startWriteTimer(); // CBTと同じく開いた時点で計時を始める（一時停止・リセット可）
     updateWriteTimerButtons();
     updateWriteTimerDisplay();
     startWriteTimerDisplayLoop();
-
     startAutosave();
+  }
+
+  function closeWriteCbt() {
+    var el = $("#pm2-cbt");
+    if (!el) return;
+    stopAutosave();
+    stopWriteTimerDisplayLoop();
+    if (state.cbt) state.cbt.close();
+    state.cbt = null;
+    el.parentNode.removeChild(el);
+    document.body.classList.remove("cbt-mode");
   }
 
   function renderEssayVersions() {
@@ -777,6 +845,8 @@
   function teardownTabResources(tab) {
     if (!state) return;
     if (tab === "write") {
+      if ($("#pm2-cbt")) saveDraft();
+      closeWriteCbt();
       stopAutosave();
       stopWriteTimerDisplayLoop();
     } else if (tab === "drill" && state.drillEngine) {

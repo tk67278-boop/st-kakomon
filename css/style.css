@@ -1044,3 +1044,47 @@ body.cbt-mode { overflow: hidden; }
   .cbt-calc { right: 8px; top: 70px; }
   .cbt-memo { left: 8px; right: 8px; top: 70px; width: auto; height: 50vh; }
 }
+
+/* ---------- CBT画面の共通追加（午後I・IIの演習画面，問題文マーカー，上下比率） ---------- */
+.cbt-timer-ctl { display: inline-flex; gap: 4px; margin-left: 8px; vertical-align: middle; }
+.cbt-timer-ctl button { font-size: 11.5px; padding: 2px 8px; border-radius: 4px; }
+.cbt-hintsw input:checked + .cbt-switch { background: #f59e0b; }
+.cbt-pmarks { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; }
+.cbt-pmarks .mk { width: 20px; height: 20px; }
+.cbt-pm-clear { font-size: 11.5px; padding: 1px 8px; border-radius: 4px; }
+mark.pmk { color: inherit; border-radius: 2px; padding: 0; }
+mark.pmk-y { background: #fde047; } mark.pmk-r { background: #fca5a5; } mark.pmk-b { background: #93c5fd; }
+.cbt.invert mark.pmk { color: #000; }
+.cbt-ratio { display: none; gap: 4px; }
+.cbt-ratio-btn { font-size: 12px; padding: 4px 8px; }
+.cbt-ratio-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cbt .cbt-right .pm2-setumon-inline { font-size: 13.5px; }
+.cbt .pm1-ans-ta, .cbt .pm2-essay-ta { background: var(--cbt-pane); color: var(--cbt-text); }
+.pm2cbt-setumon { margin: 18px 0 0; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--chip); border-radius: 0 8px 8px 0; white-space: pre-wrap; }
+.pm2cbt-setumon b { font-size: 1.05em; }
+.pm2cbt-field { margin-bottom: 18px; }
+.pm2cbt-ta { width: 100%; min-height: 220px; font: inherit; font-size: 15px; line-height: 1.8; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--cbt-line); resize: vertical; }
+.pm2cbt-ta-i { min-height: 360px; }
+.pm2cbt-ta-u { min-height: 300px; }
+@media (max-width: 760px) {
+  .cbt-ratio { display: inline-flex; }
+  .cbt-main[data-ratio] { grid-template-columns: minmax(0, 1fr); }
+  .cbt-main[data-ratio="problem"] { grid-template-rows: 62fr 38fr; }
+  .cbt-main[data-ratio="half"] { grid-template-rows: 1fr 1fr; }
+  .cbt-main[data-ratio="answer"] { grid-template-rows: 28fr 72fr; }
+  .cbt-main[data-ratio] .cbt-right { overflow-y: auto; }
+  .cbt-timer-ctl { margin-left: 4px; }
+  .cbt-pmarks { margin-left: 0; }
+  .cbt-zoom { flex-wrap: wrap; gap: 6px 10px; }
+  #pm1-cbt .cbt-bottom, #pm2-cbt .cbt-bottom { display: flex; flex-wrap: wrap; }
+  .pm2cbt-ta, .pm2cbt-ta-i, .pm2cbt-ta-u { min-height: 160px; }
+}
+@media (max-width: 760px) {
+  #pm1-cbt .cbt-progress, #pm2-cbt .cbt-progress { font-size: 14px; white-space: nowrap; }
+  #pm1-cbt .cbt-timer-ctl, #pm2-cbt .cbt-timer-ctl { display: none; }
+  #pm1-cbt .cbt-tools, #pm2-cbt .cbt-tools { flex-wrap: nowrap; gap: 6px; }
+  #pm1-cbt .cbt-tools .cbt-btn, #pm2-cbt .cbt-tools .cbt-btn { padding: 5px 8px; font-size: 12.5px; }
+  #pm1-cbt .cbt-invert, #pm2-cbt .cbt-invert { font-size: 11px; gap: 3px; }
+  #pm1-cbt .cbt-invert:not(.cbt-hintsw) > span:first-child, #pm2-cbt .cbt-invert > span:first-child { font-size: 0; }
+  #pm1-cbt .cbt-invert:not(.cbt-hintsw) > span:first-child::before, #pm2-cbt .cbt-invert > span:first-child::before { content: "反転"; font-size: 11px; }
+}
