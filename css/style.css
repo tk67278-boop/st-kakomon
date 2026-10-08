@@ -857,6 +857,7 @@ body.pm1-wide main.wrap { max-width: 1440px; }
 .pm1x-hint-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
 .pm1x-hint-btn { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; }
 .pm1x-hint-btn.used { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.pm1x-hint-btn.open { background: var(--accent); border-color: var(--accent); color: #fff; }
 .pm1x-hint {
   font-size: 13.5px; line-height: 1.7; background: var(--chip); border-left: 3px solid #f59e0b;
   border-radius: 0 8px 8px 0; padding: 6px 10px; margin-bottom: 6px;

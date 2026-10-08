@@ -644,19 +644,30 @@
     if (split) split.dataset.ratio = r;
     $all(root, ".pm1x-ratio-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.r === r); });
   }
+  // 表示中の段階（state.hintShown，開き直すたびに閉じた状態から）と，
+  // 使用記録（state.doc.hints，一度開いた最大段階。閉じても残る）を分けて扱う。
+  // 開いているヒントのボタンをもう一度押すと，その段階以降を閉じる。
   function hintBoxHtml(fp) {
-    var lv = (state.doc.hints || {})[fp.idx] || 0;
+    var used = (state.doc.hints || {})[fp.idx] || 0;
+    var shown = (state.hintShown || {})[fp.idx] || 0;
+    var reach = Math.max(used, shown);
+    var labels = ["ヒント1 読む場所", "ヒント2 答え方", "ヒント3 着眼点"];
     var html = '<div class="pm1x-hints" id="pm1x-hints-' + fp.idx + '">' +
       '<div class="pm1x-hint-btns">' +
-        '<button type="button" class="pm1x-hint-btn' + (lv >= 1 ? ' used' : '') + '" data-lv="1">ヒント1 読む場所</button>' +
-        '<button type="button" class="pm1x-hint-btn' + (lv >= 2 ? ' used' : '') + '" data-lv="2"' + (lv < 1 ? ' disabled' : '') + '>ヒント2 答え方</button>' +
-        '<button type="button" class="pm1x-hint-btn' + (lv >= 3 ? ' used' : '') + '" data-lv="3"' + (lv < 2 ? ' disabled' : '') + '>ヒント3 着眼点</button>' +
+      labels.map(function (label, i) {
+        var lv = i + 1;
+        var open = lv <= shown;
+        return '<button type="button" class="pm1x-hint-btn' + (lv <= used ? ' used' : '') + (open ? ' open' : '') +
+          '" data-lv="' + lv + '" aria-pressed="' + (open ? 'true' : 'false') + '"' +
+          (lv > reach + 1 ? ' disabled' : '') +
+          ' title="' + (open ? 'もう一度押すと閉じます' : '開く') + '">' + label + (open ? ' ✕' : '') + '</button>';
+      }).join("") +
       '</div>';
-    if (lv >= 1) html += '<div class="pm1x-hint"><b>読む場所：</b>' + escapeHtml(refsText(fp)) +
+    if (shown >= 1) html += '<div class="pm1x-hint"><b>読む場所：</b>' + escapeHtml(refsText(fp)) +
       ' <button type="button" class="linkbtn pm1x-jump">本文の該当箇所へ</button></div>';
-    if (lv >= 2) html += '<div class="pm1x-hint"><b>答え方：</b><ul>' +
+    if (shown >= 2) html += '<div class="pm1x-hint"><b>答え方：</b><ul>' +
       answerShapeHint(fp).map(function (t) { return '<li>' + escapeHtml(t) + '</li>'; }).join("") + '</ul></div>';
-    if (lv >= 3) {
+    if (shown >= 3) {
       var f = focusHint(fp);
       html += '<div class="pm1x-hint"><b>着眼点：</b>' + (f ? escapeHtml(f) : 'この回の着眼点ヒントはまだありません（令和3〜7年度のみ収録）。') + '</div>';
     }
@@ -668,15 +679,24 @@
     $all(box, ".pm1x-hint-btn").forEach(function (b) {
       b.addEventListener("click", function () {
         var lv = Number(b.dataset.lv);
-        if (!state.doc.hints) state.doc.hints = {};
-        if ((state.doc.hints[fp.idx] || 0) < lv) {
-          state.doc.hints[fp.idx] = lv;
-          state.doc.t = Date.now();
-          saveDoc();
+        if (!state.hintShown) state.hintShown = {};
+        var shown = state.hintShown[fp.idx] || 0;
+        if (lv <= shown) {
+          // 開いている段階を押した → その段階以降を閉じる
+          state.hintShown[fp.idx] = lv - 1;
+          if (lv === 1) clearRefs();
+        } else {
+          state.hintShown[fp.idx] = lv;
+          if (!state.doc.hints) state.doc.hints = {};
+          if ((state.doc.hints[fp.idx] || 0) < lv) {
+            state.doc.hints[fp.idx] = lv;
+            state.doc.t = Date.now();
+            saveDoc();
+          }
         }
         box.outerHTML = hintBoxHtml(fp);
         bindHintBox(fp);
-        if (lv === 1) showRefs(fp);
+        if (shown < 1 && state.hintShown[fp.idx] >= 1) showRefs(fp); // 閉じた状態から開いたら本文に色付け
       });
     });
     var jump = box.querySelector(".pm1x-jump");
