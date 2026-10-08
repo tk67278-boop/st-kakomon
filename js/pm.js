@@ -265,7 +265,7 @@
       "</div>" +
       "</div>" +
       '<div class="pm-row-actions">' +
-      '<span class="pm-status ' + status + '">' + STATUS_LABEL[status] + (rec && rec.g ? " " + escapeHtml(rec.g) : "") + "</span>" +
+      '<span class="pm-status ' + status + '">' + STATUS_LABEL[status] + (rec && rec.g ? " " + escapeHtml(rec.g) : "") + (rec && rec.h ? "・ヒント" : "") + "</span>" +
       '<span class="pm-row-btns">' +
       (studyData ? '<button type="button" class="linkbtn pm-btn-study">学習</button>' : "") +
       '<button type="button" class="linkbtn pm-btn-record">記録</button>' +

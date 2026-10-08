@@ -102,6 +102,7 @@
       overall: "",
       memo: "",
       ai: "",
+      hints: {},   // {idx: 開いたヒントの最大段階(1〜3)}
       t: 0
     };
   }
@@ -116,6 +117,7 @@
     if (typeof data.overall === "string") d.overall = data.overall;
     if (typeof data.memo === "string") d.memo = data.memo;
     if (typeof data.ai === "string") d.ai = data.ai;
+    if (data.hints && typeof data.hints === "object") d.hints = data.hints;
     if (data.t) d.t = data.t;
     return d;
   }
@@ -480,29 +482,242 @@
     saveDoc();
   }
 
+  /* ---------- 演習画面の表示設定（端末ごとの好み。保存できなくても動作に影響しない） ---------- */
+  var PREF_HINT = "st_pm1_hintmode", PREF_RATIO = "st_pm1_ratio";
+  function loadPref(key, def) {
+    try { var v = localStorage.getItem(key); return v == null ? def : v; } catch (e) { return def; }
+  }
+  function savePref(key, v) { try { localStorage.setItem(key, v); } catch (e) { /* ignore */ } }
+
+  /* ---------- ヒント1: 設問文から本文の参照先（〔節〕・下線・図表）を読み取る ---------- */
+  var CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳";
+  // 解答欄に対応する設問文の行（"(2) …" と続く補足行）。小問番号がなければ設問文全体。
+  function partQuestionText(fp) {
+    var text = String(fp.setsumon.text || "");
+    var m = /\((\d+)\)/.exec(String(fp.part.label || ""));
+    if (m) {
+      var lines = text.split("\n");
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].indexOf("(" + m[1] + ")") === 0) {
+          var out = [lines[i]];
+          for (var j = i + 1; j < lines.length && !/^\(\d+\)/.test(lines[j]); j++) out.push(lines[j]);
+          return out.join("\n");
+        }
+      }
+    }
+    return text;
+  }
+  function partRefs(fp) {
+    var qtext = partQuestionText(fp);
+    var sec = /〔([^〕]+)〕/.exec(String(fp.setsumon.text || ""));
+    // 下線①・方針①・指摘①など，設問文中で参照される丸数字（行頭の箇条番号は除く）
+    var uls = [], m;
+    qtext.split("\n").forEach(function (ln) {
+      ln.slice(1).split("").forEach(function (c) { if (CIRCLED.indexOf(c) >= 0 && uls.indexOf(c) < 0) uls.push(c); });
+    });
+    var underline = /下線[①-⑳]/.test(qtext);
+    var figs = [];
+    var fre = /([表図]\s*\d+)/g;
+    while ((m = fre.exec(qtext))) { var f = m[1].replace(/\s/g, ""); if (figs.indexOf(f) < 0) figs.push(f); }
+    return { sec: sec ? sec[1] : "", uls: uls, figs: figs, underline: underline };
+  }
+
+  /* ---------- ヒント2: 問い方から答え方の型を示す ---------- */
+  function answerShapeHint(fp) {
+    var t = partQuestionText(fp);
+    var tips = [];
+    if (/字句/.test(t)) tips.push("空欄に入れる字句を問われている。空欄の前後の文や表の項目名につながる短い語句で答える。");
+    else if (/理由/.test(t)) tips.push("理由を問われている。文末を「〜から」「〜ため」で結び，本文中の事実（状況・制約・強みなど）を根拠として書く。");
+    else if (/目的|狙い|ねらい/.test(t)) tips.push("目的を問われている。文末を「〜ため」「〜すること」で結び，その施策で何を実現したいのかを書く。");
+    else if (/効果/.test(t)) tips.push("効果を問われている。「〜できる」「〜が向上する」の形で，施策によって得られる良い変化を書く。");
+    else if (/背景/.test(t)) tips.push("背景を問われている。施策が必要になった状況や課題を「〜という状況」「〜こと」の形で書く。");
+    else if (/課題|問題点|リスク|懸念|留意/.test(t)) tips.push("課題・懸念を問われている。「〜こと」の形で，対処すべき事柄を具体的に書く。");
+    else {
+      var m = /どのような([^，。、\s]{1,12}?)(?:を|が|か|に|で|と)/.exec(t);
+      // 「市場ニーズを40字以内で答えよ」のように，答える対象の名詞が字数指定の直前にある形
+      var n = /([^\s，。、「」]{1,12})を(?:[\d０-９]+字以内で)?(?:答え|挙げ|述べ)/.exec(t);
+      // 文末に使う名詞は，句の末尾の漢字・カタカナの並び（例: 子育て世帯の現状→現状，市場ニーズ→市場ニーズ）
+      var tail = function (w) { var r = /([一-龠々ァ-ヶーA-Za-z]+)$/.exec(w.replace(/^.*の/, "")); return r ? r[1] : ""; };
+      var mt = m ? tail(m[1]) : "", nt = n ? tail(n[1]) : "";
+      if (m && mt) tips.push("「どのような" + m[1] + "」を問われている。文末を「〜" + mt + "」で終える形にすると，問いとずれにくい。");
+      else if (n && nt) tips.push("答える対象は「" + nt + "」。文末を「〜" + nt + "」で終える形にすると，問いとずれにくい。");
+      else tips.push("設問文が何を答えさせているか（理由・目的・内容など）を確かめ，それに合う文末で結ぶ。");
+    }
+    if (/二つ|2つ|三つ|3つ/.test(t)) tips.push("複数挙げる設問。互いに別の観点になるようにし，同じ内容の言い換えにしない。");
+    var ch = /([^，。\s]{1,15})に着目して/.exec(t);
+    if (ch) tips.push("「" + ch[1] + "に着目して」は解答に必ず含める要素。");
+    var lim = fp.part.limit;
+    if (lim) {
+      var el = lim <= 20 ? "1つ（核心だけを簡潔に）" : lim <= 35 ? "1〜2つ" : lim <= 50 ? "2つ程度" : "2〜3つ";
+      tips.push(lim + "字なら，盛り込む要素は" + el + "が目安。");
+    }
+    tips.push("自分の言葉より本文中の語句を使って書くと，題意からずれにくい。");
+    return tips;
+  }
+
+  /* ---------- ヒント3: 着眼点（js/data/pm1_hints.js。未収録の回は案内のみ） ---------- */
+  function focusHint(fp) {
+    var h = window.PM1_HINTS || {};
+    return h[state.examId + "#" + state.no + "#" + (fp.part.label || "")] || "";
+  }
+
+  /* ---------- 演習用の本文（段落ごとに〔節〕・下線番号・図表を属性で持たせる） ---------- */
+  function renderExerciseBody(q) {
+    var lines = String(q.body || "").split("\n");
+    var html = "", buf = [], sec = "";
+    function flush() {
+      if (!buf.length) return;
+      var t = trimStr(buf.join("\n"));
+      buf = [];
+      if (!t) return;
+      var head = /^〔([^〕]+)〕$/.exec(t);
+      if (head) sec = head[1];
+      // 行頭の①（箇条番号）ではなく，文中に置かれた丸数字を下線番号とみなす
+      var uls = [], lis = [];
+      t.split("\n").forEach(function (ln) {
+        if (CIRCLED.indexOf(ln.charAt(0)) >= 0 && lis.indexOf(ln.charAt(0)) < 0) lis.push(ln.charAt(0));
+        ln.slice(1).split("").forEach(function (c) { if (CIRCLED.indexOf(c) >= 0 && uls.indexOf(c) < 0) uls.push(c); });
+      });
+      html += '<p class="pm1x-p' + (head ? ' pm1x-head' : '') + '" data-sec="' + escapeAttr(sec) + '" data-ul="' + uls.join("") + '" data-li="' + lis.join("") + '">' +
+        escapeHtml(t).replace(/\n/g, "<br>") + '</p>';
+    }
+    lines.forEach(function (line) {
+      var m = MARKER_RE.exec(trimStr(line));
+      if (m) {
+        flush();
+        var id = trimStr(m[1]);
+        html += '<div class="pm1x-fig" data-sec="' + escapeAttr(sec) + '" data-fig="' + escapeAttr(id.replace(/\s/g, "")) + '">' +
+          renderFigureBlock(figureById(q, id)) + '</div>';
+      } else if (trimStr(line) === "") flush();
+      else buf.push(line);
+    });
+    flush();
+    return html;
+  }
+  function clearRefs() {
+    var pane = $("#pm1x-problem");
+    if (!pane) return;
+    $all(pane, ".pm1x-sec-hl,.pm1x-ref-hl").forEach(function (el) { el.classList.remove("pm1x-sec-hl", "pm1x-ref-hl"); });
+  }
+  // 本文側の参照先に色を付け，最初の強い参照先（なければ節の先頭）までスクロールする
+  function showRefs(fp) {
+    var pane = $("#pm1x-problem");
+    if (!pane) return;
+    var refs = partRefs(fp);
+    clearRefs();
+    var secEls = refs.sec ? $all(pane, "[data-sec]").filter(function (el) { return el.dataset.sec === refs.sec; }) : [];
+    secEls.forEach(function (el) { el.classList.add("pm1x-sec-hl"); });
+    var strong = [];
+    // 文中の丸数字（下線など）を優先し，なければ同じ節の箇条番号（①　…）を探す
+    var paras = $all(pane, ".pm1x-p");
+    refs.uls.forEach(function (c) {
+      var hit = paras.filter(function (el) { return (el.dataset.ul || "").indexOf(c) >= 0; });
+      if (!hit.length) hit = paras.filter(function (el) {
+        return (el.dataset.li || "").indexOf(c) >= 0 && (!refs.sec || el.dataset.sec === refs.sec);
+      });
+      hit.forEach(function (el) { if (strong.indexOf(el) < 0) strong.push(el); });
+    });
+    refs.figs.forEach(function (f) {
+      $all(pane, ".pm1x-fig").forEach(function (el) { if (el.dataset.fig === f) strong.push(el); });
+    });
+    strong.forEach(function (el) { el.classList.add("pm1x-ref-hl"); });
+    var target = strong[0] || secEls[0];
+    if (target) {
+      if (state.ratio === "answer") setRatio("half");
+      pane.scrollTop = target.offsetTop - pane.offsetTop - 12;
+    }
+  }
+  function refsText(fp) {
+    var r = partRefs(fp);
+    var parts = [];
+    if (r.sec) parts.push("〔" + r.sec + "〕の節");
+    if (r.uls.length) parts.push((r.underline ? "下線" : "") + r.uls.join("") + "の箇所");
+    if (r.figs.length) parts.push(r.figs.join("・"));
+    if (!parts.length) return "設問文に節の指定がない。設問文の語句を手掛かりに，本文全体から関連する記述を探す。";
+    return parts.join("，") + "を読む。" + (r.uls.length || r.figs.length ? "本文側の濃い色が直接の手掛かり，薄い色がその節の範囲。" : "本文側で薄く色を付けた範囲。");
+  }
+
+  function setRatio(r) {
+    state.ratio = r;
+    savePref(PREF_RATIO, r);
+    var split = $("#pm1x-split");
+    if (split) split.dataset.ratio = r;
+    $all(root, ".pm1x-ratio-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.r === r); });
+  }
+  function hintBoxHtml(fp) {
+    var lv = (state.doc.hints || {})[fp.idx] || 0;
+    var html = '<div class="pm1x-hints" id="pm1x-hints-' + fp.idx + '">' +
+      '<div class="pm1x-hint-btns">' +
+        '<button type="button" class="pm1x-hint-btn' + (lv >= 1 ? ' used' : '') + '" data-lv="1">ヒント1 読む場所</button>' +
+        '<button type="button" class="pm1x-hint-btn' + (lv >= 2 ? ' used' : '') + '" data-lv="2"' + (lv < 1 ? ' disabled' : '') + '>ヒント2 答え方</button>' +
+        '<button type="button" class="pm1x-hint-btn' + (lv >= 3 ? ' used' : '') + '" data-lv="3"' + (lv < 2 ? ' disabled' : '') + '>ヒント3 着眼点</button>' +
+      '</div>';
+    if (lv >= 1) html += '<div class="pm1x-hint"><b>読む場所：</b>' + escapeHtml(refsText(fp)) +
+      ' <button type="button" class="linkbtn pm1x-jump">本文の該当箇所へ</button></div>';
+    if (lv >= 2) html += '<div class="pm1x-hint"><b>答え方：</b><ul>' +
+      answerShapeHint(fp).map(function (t) { return '<li>' + escapeHtml(t) + '</li>'; }).join("") + '</ul></div>';
+    if (lv >= 3) {
+      var f = focusHint(fp);
+      html += '<div class="pm1x-hint"><b>着眼点：</b>' + (f ? escapeHtml(f) : 'この回の着眼点ヒントはまだありません（令和3〜7年度のみ収録）。') + '</div>';
+    }
+    return html + '</div>';
+  }
+  function bindHintBox(fp) {
+    var box = $("#pm1x-hints-" + fp.idx);
+    if (!box) return;
+    $all(box, ".pm1x-hint-btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var lv = Number(b.dataset.lv);
+        if (!state.doc.hints) state.doc.hints = {};
+        if ((state.doc.hints[fp.idx] || 0) < lv) {
+          state.doc.hints[fp.idx] = lv;
+          state.doc.t = Date.now();
+          saveDoc();
+        }
+        box.outerHTML = hintBoxHtml(fp);
+        bindHintBox(fp);
+        if (lv === 1) showRefs(fp);
+      });
+    });
+    var jump = box.querySelector(".pm1x-jump");
+    if (jump) jump.addEventListener("click", function () { showRefs(fp); });
+  }
+
   function renderExerciseTab(body) {
     ensureAnsLive();
+    if (!state.ratio) state.ratio = loadPref(PREF_RATIO, "half");
+    var hintOn = loadPref(PREF_HINT, "0") === "1";
+    document.body.classList.add("pm1-wide");
 
-    var html = '<div class="card pm2-timer-card">' +
-      '<div class="group-head"><h2>演習タイマー（45分）</h2><span class="spacer"></span>' +
-        '<span id="pm1-ex-timer-display" class="pm-timer-display"></span></div>' +
-      '<div class="pm2-timer-actions">' +
+    var html = '<div class="card pm1x-bar">' +
+      '<div class="pm1x-bar-row">' +
+        '<span class="pm1x-bar-title">演習（45分）</span>' +
+        '<span id="pm1-ex-timer-display" class="pm-timer-display"></span>' +
         '<button type="button" class="primary" id="pm1-ex-timer-start">開始</button>' +
         '<button type="button" id="pm1-ex-timer-toggle">一時停止</button>' +
         '<button type="button" id="pm1-ex-timer-reset">リセット</button>' +
+        '<span class="spacer"></span>' +
+        '<label class="pm1x-hint-toggle"><input type="checkbox" id="pm1x-hintmode"' + (hintOn ? ' checked' : '') + '> ヒントモード</label>' +
+      '</div>' +
+      '<div class="pm1x-ratio" role="group" aria-label="問題文と解答欄の比率">' +
+        '<button type="button" class="pm1x-ratio-btn" data-r="problem">問題文を広く</button>' +
+        '<button type="button" class="pm1x-ratio-btn" data-r="half">半々</button>' +
+        '<button type="button" class="pm1x-ratio-btn" data-r="answer">解答を広く</button>' +
       '</div>' +
     '</div>';
 
-    html += '<div class="card">';
+    html += '<div class="pm1x-split" id="pm1x-split">' +
+      '<div class="pm1x-pane pm1x-problem pm2-lead" id="pm1x-problem">' + renderExerciseBody(state.q) + '</div>' +
+      '<div class="pm1x-pane pm1x-answer' + (hintOn ? ' hint-on' : '') + '" id="pm1x-answer">';
     state.flat.forEach(function (fp) {
       if (fp.isFirstInSetsumon) {
-        html += '<div class="pm2-setumon-inline">' + escapeHtml(fp.setsumon.label || "") +
-          '　' + escapeHtml(fp.setsumon.text || "") + '</div>';
+        html += '<div class="pm2-setumon-inline">' + escapeHtml(fp.setsumon.text || "") + '</div>';
       }
       var limitSuffix = fp.part.limit ? '（' + escapeHtml(String(fp.part.limit)) + '字以内）' : '';
       html += '<div class="pm2-field">' +
-        '<label class="pm2-field-label">' + escapeHtml(fp.part.label || "") + limitSuffix + '</label>' +
-        '<textarea class="pm1-ans-ta" id="pm1-ans-' + fp.idx + '" rows="4"></textarea>' +
+        '<label class="pm2-field-label" for="pm1-ans-' + fp.idx + '">' + escapeHtml(fp.part.label || "") + limitSuffix + '</label>' +
+        hintBoxHtml(fp) +
+        '<textarea class="pm1-ans-ta" id="pm1-ans-' + fp.idx + '" rows="3"></textarea>' +
         '<div class="pm2-count" id="pm1-count-' + fp.idx + '"></div>' +
       '</div>';
     });
@@ -510,9 +725,10 @@
       '<span class="pm2-save-status" id="pm1-draft-status"></span>' +
       '<button type="button" id="pm1-btn-draft-save">下書きを保存</button>' +
       '<button type="button" class="primary" id="pm1-btn-compare">解答例と対比する &rarr;</button>' +
-    '</div></div>';
+    '</div></div></div>';
 
     body.innerHTML = html;
+    setRatio(state.ratio);
 
     state.flat.forEach(function (fp) {
       var ta = $("#pm1-ans-" + fp.idx);
@@ -522,6 +738,16 @@
         state.ansLive[fp.idx] = ta.value;
         updateAnsCounter(fp);
       });
+      bindHintBox(fp);
+    });
+
+    $all(body, ".pm1x-ratio-btn").forEach(function (b) {
+      b.addEventListener("click", function () { setRatio(b.dataset.r); });
+    });
+    $("#pm1x-hintmode").addEventListener("change", function (e) {
+      savePref(PREF_HINT, e.target.checked ? "1" : "0");
+      $("#pm1x-answer").classList.toggle("hint-on", e.target.checked);
+      if (!e.target.checked) clearRefs();
     });
 
     $("#pm1-btn-draft-save").addEventListener("click", function () {
@@ -623,6 +849,7 @@
     var q = state.q;
     var answers = getCurrentAnswers();
     var grades = state.doc.grades || {};
+    var hintsUsed = state.doc.hints || {};
 
     var html = "";
     state.flat.forEach(function (fp) {
@@ -635,7 +862,8 @@
       var ansText = trimStr(answers[fp.idx]);
       var g = grades[fp.idx] || "";
       html += '<div class="card">' +
-        '<div class="group-head"><h3>' + escapeHtml(fp.part.label || "") + '</h3></div>' +
+        '<div class="group-head"><h3>' + escapeHtml(fp.part.label || "") + '</h3>' +
+          (hintsUsed[fp.idx] ? '<span class="pm1x-hint-badge">ヒント' + hintsUsed[fp.idx] + 'まで使用</span>' : '') + '</div>' +
         '<div class="pm1-compare-box pm1-compare-mine">' +
           '<div class="pm1-compare-label">あなたの答案</div>' +
           '<div class="pm1-compare-text">' + (ansText ? escapeHtml(ansText) : '<span class="pm1-empty-inline">（未入力）</span>') + '</div>' +
@@ -726,6 +954,8 @@
         note: trimStr(state.doc.memo).slice(0, 50),
         t: Date.now()
       };
+      var hintN = Object.keys(state.doc.hints || {}).filter(function (k) { return state.doc.hints[k] > 0; }).length;
+      if (hintN) rec.h = hintN; // ヒントを使った解答欄の数（一覧に「ヒント使用」と表示）
       saveExerciseRecord(recKey, rec);
       flashText($("#pm1-record-status"), "演習記録に保存しました");
     });
@@ -757,6 +987,7 @@
     if (tab === "exercise") {
       stopAutosave();
       stopExTimerLoop();
+      document.body.classList.remove("pm1-wide");
     }
   }
 
