@@ -911,6 +911,7 @@
       items: items,
       idx: 0,
       answers: items.map(function () { return -1; }),
+      review: items.map(function () { return false; }), // 「後で見直す」の印
       orders: items.map(function () { var o = [0, 1, 2, 3]; return shuf ? shuffle(o) : o; }),
       startAt: Date.now(),
       limitSec: items.length * MOCK_SEC_PER_Q,
@@ -918,6 +919,8 @@
     };
     if (mockTimer) clearInterval(mockTimer);
     mockTimer = setInterval(tickMock, 1000);
+    if (window.CBT) window.CBT.reset();
+    document.body.classList.add("cbt-mode");
     showScreen("mock");
     renderMockQuestion();
     tickMock();
@@ -927,18 +930,19 @@
     var remain = mock.limitSec - Math.floor((Date.now() - mock.startAt) / 1000);
     var t = $("#m-timer");
     if (remain <= 0) {
-      t.textContent = "残り 0:00";
+      t.textContent = "0:00";
       finishMock(true);
       return;
     }
-    t.textContent = "残り " + fmtTime(remain);
+    t.textContent = fmtTime(remain);
     if (remain <= 300) t.classList.add("warn"); else t.classList.remove("warn");
   }
 
   function renderMockQuestion() {
     var n = mock.items.length;
     var it = mock.items[mock.idx], q = it.q;
-    $("#m-progress").textContent = "問 " + (mock.idx + 1) + " / " + n;
+    $("#m-exam-title").textContent = mock.label;
+    $("#m-progress").textContent = n + "問中" + (mock.idx + 1) + "問目";
     // 本番想定模試では出典を伏せ、通し番号だけを表示する（出典は採点後の振り返りで表示）
     $("#m-exam").textContent = mock.setId === REALMIX_ID
       ? mock.label + " 問" + (mock.idx + 1)
@@ -953,21 +957,36 @@
       $("#m-image-wrap").hidden = true;
     }
 
+    // CBTと同じく、選択肢の文は問題文側に並べ、右側は記号のボタンだけにする
+    var textOl = $("#m-choice-text");
+    textOl.innerHTML = "";
     var ol = $("#m-choices");
     ol.innerHTML = "";
     mock.orders[mock.idx].forEach(function (origIdx, dispIdx) {
+      var tli = document.createElement("li");
+      tli.innerHTML = '<span class="kana">' + KANA[dispIdx] + '</span><span>' + escapeHtml(q.choices[origIdx]) + '</span>';
+      textOl.appendChild(tli);
       var li = document.createElement("li");
       var btn = document.createElement("button");
       btn.type = "button";
-      if (mock.answers[mock.idx] === origIdx) btn.className = "selected";
-      btn.innerHTML = '<span class="kana">' + KANA[dispIdx] + '</span><span>' + escapeHtml(q.choices[origIdx]) + '</span>';
+      btn.textContent = KANA[dispIdx];
+      var on = mock.answers[mock.idx] === origIdx;
+      if (on) btn.className = "selected";
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
       btn.addEventListener("click", function () {
-        mock.answers[mock.idx] = origIdx;
+        // 選択中の記号をもう一度押すと未回答に戻す（CBTの操作と同じ）
+        mock.answers[mock.idx] = mock.answers[mock.idx] === origIdx ? -1 : origIdx;
         renderMockQuestion();
       });
       li.appendChild(btn);
       ol.appendChild(li);
     });
+
+    $("#m-qno").textContent = "問" + (mock.idx + 1);
+    $("#m-flag").hidden = !mock.review[mock.idx];
+    var rv = $("#cbt-btn-review");
+    rv.textContent = mock.review[mock.idx] ? "見直しを解除" : "後で見直す";
+    rv.classList.toggle("on", mock.review[mock.idx]);
 
     var grid = $("#m-grid");
     grid.innerHTML = "";
@@ -977,19 +996,28 @@
       b.type = "button";
       b.textContent = i + 1;
       if (mock.answers[i] >= 0) { b.className = "done"; answered += 1; }
+      if (mock.review[i]) b.classList.add("review");
       if (i === mock.idx) b.classList.add("cur");
-      b.addEventListener("click", function () { mock.idx = i; renderMockQuestion(); });
+      b.addEventListener("click", function () {
+        mock.idx = i;
+        $("#cbt-status").hidden = true;
+        renderMockQuestion();
+      });
       grid.appendChild(b);
     });
-    $("#m-status").textContent = "回答済み " + answered + " / " + n;
+    $("#m-status").textContent = "解答済み " + answered + " / " + n;
     $("#btn-mock-prev").disabled = mock.idx === 0;
-    $("#btn-mock-next").textContent = mock.idx + 1 >= n ? "終了して採点" : "次へ →";
+    $("#btn-mock-next").disabled = mock.idx + 1 >= n;
+    $("#cbt-q").scrollTop = 0;
   }
 
   function finishMock(timeUp) {
     if (!mock || mock.finished) return;
     mock.finished = true;
     if (mockTimer) { clearInterval(mockTimer); mockTimer = null; }
+    document.body.classList.remove("cbt-mode");
+    $("#cbt-status").hidden = true;
+    if (window.CBT) window.CBT.close();
     var elapsed = Math.min(mock.limitSec, Math.floor((Date.now() - mock.startAt) / 1000));
     var results = mock.items.map(function (it, i) {
       var chosen = mock.answers[i];
@@ -1241,23 +1269,32 @@
         if (!mock || mock.idx === 0) return;
         mock.idx -= 1;
         renderMockQuestion();
-        window.scrollTo(0, 0);
       });
       $("#btn-mock-next").addEventListener("click", function () {
-        if (!mock || mock.finished) return;
-        if (mock.idx + 1 >= mock.items.length) {
-          var un = mock.answers.filter(function (a) { return a < 0; }).length;
-          if (un > 0 && !confirm("未回答が " + un + " 問あります。終了して採点しますか？")) return;
-          finishMock(false);
-        } else {
-          mock.idx += 1;
-          renderMockQuestion();
-          window.scrollTo(0, 0);
-        }
+        if (!mock || mock.finished || mock.idx + 1 >= mock.items.length) return;
+        mock.idx += 1;
+        renderMockQuestion();
       });
       $("#btn-mock-finish").addEventListener("click", function () {
-        if (mock && !mock.finished && confirm("試験を終了して採点します。よろしいですか？")) finishMock(false);
+        if (!mock || mock.finished) return;
+        var un = mock.answers.filter(function (a) { return a < 0; }).length;
+        var rv = mock.review.filter(function (r) { return r; }).length;
+        var msg = "試験を終了して採点します。よろしいですか？";
+        if (un || rv) msg = (un ? "未解答が " + un + " 問" : "") + (un && rv ? "、" : "") +
+          (rv ? "「後で見直す」が " + rv + " 問" : "") + "あります。\n" + msg;
+        if (confirm(msg)) finishMock(false);
       });
+      // 後で見直す・解答状況一覧（模試画面がCBT版のときのみ）
+      if ($("#cbt-btn-review")) {
+        $("#cbt-btn-review").addEventListener("click", function () {
+          if (!mock || mock.finished) return;
+          mock.review[mock.idx] = !mock.review[mock.idx];
+          renderMockQuestion();
+        });
+        $("#cbt-btn-status").addEventListener("click", function () { $("#cbt-status").hidden = !$("#cbt-status").hidden; });
+        $("#cbt-status-close").addEventListener("click", function () { $("#cbt-status").hidden = true; });
+        $("#cbt-status").addEventListener("click", function (e) { if (e.target === e.currentTarget) e.currentTarget.hidden = true; });
+      }
       $("#btn-mock-again").addEventListener("click", function () { if (mock) startMock(mock.setId); });
       $("#btn-mock-back").addEventListener("click", function () {
         renderStatsSummary();
@@ -1275,6 +1312,7 @@
           var mb = $$("#m-choices button")[parseInt(e.key, 10) - 1];
           if (mb) mb.click();
         } else if (e.key === "ArrowRight" || e.key === "Enter") {
+          if (e.target && e.target.tagName === "BUTTON" && e.key === "Enter") return; // フォーカス中のボタン操作を優先
           e.preventDefault();
           $("#btn-mock-next").click();
         } else if (e.key === "ArrowLeft") {

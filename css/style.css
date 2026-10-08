@@ -878,3 +878,169 @@ body.pm1-wide main.wrap { max-width: 1440px; }
   .pm1x-split[data-ratio="answer"] { grid-template-rows: 30fr 70fr; }
   .pm1x-pane { padding: 10px 12px; }
 }
+
+/* ---------- 模擬試験: CBT風の画面（IPAのCBT方式の操作感に近づけた全画面表示） ---------- */
+body.cbt-mode { overflow: hidden; }
+.cbt {
+  --cbt-bar: #eef0f3; --cbt-pane: var(--card); --cbt-text: var(--text); --cbt-line: var(--line);
+  --cbt-teal: #14b8a6; --cbt-blue: #2f80ed; --cbt-red: #f43f5e; --cbt-gray: #64748b;
+  --cbt-sel: #1d4ed8; --cbt-zoom: 1; --cbt-left: 70%;
+  position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column;
+  background: var(--cbt-pane); color: var(--cbt-text);
+}
+.cbt[hidden] { display: none; }
+@media (prefers-color-scheme: dark) { .cbt { --cbt-bar: #1f2937; } }
+/* 白黒反転（黒地に白文字） */
+.cbt.invert {
+  --cbt-bar: #000; --cbt-pane: #000; --cbt-text: #fff; --cbt-line: #555;
+  --card: #000; --text: #fff; --muted: #ccc; --line: #555; --chip: #111; --accent-soft: #222;
+  --cbt-sel: #fff;
+}
+.cbt.invert .cbt-choices button.selected { color: #000; }
+
+.cbt-top {
+  display: flex; align-items: center; gap: 12px; padding: 8px 14px;
+  background: var(--cbt-bar); border-bottom: 1px solid var(--cbt-line); flex-wrap: wrap;
+}
+.cbt-title { flex: 1; min-width: 0; }
+.cbt-exam { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cbt-progress { font-size: 18px; font-weight: 700; }
+.cbt-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cbt-time { font-size: 15px; white-space: nowrap; }
+.cbt-time b { font-size: 20px; color: var(--cbt-red); font-variant-numeric: tabular-nums; margin-left: 4px; }
+.cbt-time b.warn { animation: cbtBlink 1s step-end infinite; }
+@keyframes cbtBlink { 50% { opacity: .35; } }
+.cbt-invert { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.cbt-invert input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.cbt-switch { width: 34px; height: 18px; border-radius: 999px; background: #cbd5e1; position: relative; transition: background .15s; }
+.cbt-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left .15s; }
+.cbt-invert input:checked + .cbt-switch { background: var(--cbt-teal); }
+.cbt-invert input:checked + .cbt-switch::after { left: 18px; }
+.cbt-invert input:focus-visible + .cbt-switch { outline: 2px solid var(--cbt-blue); outline-offset: 2px; }
+
+.cbt-btn {
+  border: 0; border-radius: 6px; padding: 8px 16px; font-weight: 700; font-size: 14.5px;
+  color: #fff; cursor: pointer; white-space: nowrap;
+}
+.cbt-btn:disabled { opacity: .45; cursor: default; }
+.cbt-teal { background: var(--cbt-teal); }
+.cbt-blue { background: var(--cbt-blue); }
+.cbt-red { background: var(--cbt-red); }
+.cbt-gray { background: var(--cbt-gray); }
+.cbt-btn.on { box-shadow: inset 0 0 0 3px #fde047; }
+
+.cbt-main {
+  flex: 1; min-height: 0; display: grid;
+  grid-template-columns: minmax(0, var(--cbt-left)) 8px minmax(0, 1fr);
+}
+.cbt-left { display: flex; flex-direction: column; min-height: 0; }
+.cbt-zoom { display: flex; align-items: center; gap: 10px; padding: 6px 16px; font-size: 12.5px; border-bottom: 1px solid var(--cbt-line); }
+.cbt-zoom input { flex: 1; max-width: 420px; }
+.cbt-q { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 22px 30px; font-size: calc(16px * var(--cbt-zoom)); }
+.cbt-q .q-text { font-size: 1em; }
+.cbt-choice-text { list-style: none; margin: 18px 0 0; padding: 0; }
+.cbt-choice-text li { display: flex; gap: 12px; padding: 6px 0; line-height: 1.75; }
+.cbt-choice-text .kana { font-weight: 700; flex: none; }
+.cbt-splitter { cursor: col-resize; background: var(--cbt-bar); border-left: 1px solid var(--cbt-line); border-right: 1px solid var(--cbt-line); touch-action: none; }
+.cbt-splitter:hover { background: var(--accent-soft); }
+.cbt-right { overflow-y: auto; padding: 14px 16px; }
+.cbt-qhead { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; margin-bottom: 12px; }
+.cbt-flag { font-size: 12px; color: #fff; background: var(--cbt-red); border-radius: 4px; padding: 1px 8px; }
+.cbt-choices { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cbt-choices button {
+  width: 100%; padding: 9px 0; font-size: 18px; font-weight: 700; border-radius: 6px;
+  border: 1px solid var(--cbt-line); background: var(--chip); color: var(--cbt-text); cursor: pointer;
+}
+.cbt-choices button:hover { border-color: var(--cbt-sel); }
+.cbt-choices button.selected { background: var(--cbt-sel); border-color: var(--cbt-sel); color: #fff; }
+.cbt-note { font-size: 12px; color: var(--muted); margin: 14px 0 0; }
+
+.cbt-bottom {
+  display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+  background: var(--cbt-bar); border-top: 1px solid var(--cbt-line); flex-wrap: wrap;
+}
+.cbt-answered { font-size: 13px; color: var(--muted); }
+
+/* 解答状況一覧 */
+.cbt-status { position: absolute; inset: 0; background: rgba(0, 0, 0, .35); display: flex; align-items: center; justify-content: center; z-index: 5; padding: 16px; }
+.cbt-status[hidden] { display: none; }
+.cbt-status-box { background: var(--cbt-pane); color: var(--cbt-text); border-radius: 10px; padding: 18px; max-width: 640px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.cbt-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; }
+.cbt-grid button {
+  height: 38px; border: 1px solid #94a3b8; border-radius: 4px; background: var(--cbt-pane); color: var(--cbt-text);
+  font-weight: 700; position: relative; cursor: pointer; padding: 0;
+}
+.cbt-grid button.done { background: #b7e4a3; color: #14301e; border-color: #6aa84f; }
+.cbt-grid button.review::after { content: ""; position: absolute; top: 0; right: 0; border-top: 10px solid var(--cbt-red); border-left: 10px solid transparent; }
+.cbt-grid button.cur { box-shadow: 0 0 0 3px #facc15; }
+.cbt-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0; font-size: 13px; }
+.cbt-legend i { display: inline-block; width: 16px; height: 14px; border: 1px solid #94a3b8; border-radius: 2px; vertical-align: -2px; margin-right: 5px; position: relative; background: var(--cbt-pane); }
+.cbt-legend .lg-done { background: #b7e4a3; border-color: #6aa84f; }
+.cbt-legend .lg-review::after { content: ""; position: absolute; top: 0; right: 0; border-top: 7px solid var(--cbt-red); border-left: 7px solid transparent; }
+.cbt-legend .lg-cur { box-shadow: 0 0 0 2px #facc15; }
+
+/* 電卓・メモ（ドラッグで移動できる浮動パネル） */
+.cbt-float {
+  position: absolute; z-index: 6; background: var(--cbt-pane); color: var(--cbt-text);
+  border: 1px solid var(--cbt-line); border-radius: 10px; box-shadow: 0 10px 34px rgba(0,0,0,.28);
+  display: flex; flex-direction: column;
+}
+.cbt-float[hidden] { display: none; }
+.cbt-float-head {
+  display: flex; align-items: center; justify-content: space-between; padding: 6px 10px;
+  background: var(--cbt-blue); color: #fff; font-weight: 700; font-size: 13px;
+  border-radius: 9px 9px 0 0; cursor: move; touch-action: none; user-select: none;
+}
+.cbt-x { background: none; border: 0; color: #fff; font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.cbt-calc { right: 24px; top: 90px; width: 236px; }
+.calc-disp { margin: 10px; padding: 8px 10px; text-align: right; font-size: 24px; font-variant-numeric: tabular-nums; background: var(--chip); border-radius: 6px; overflow: hidden; white-space: nowrap; }
+.calc-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 10px 10px; }
+.calc-keys button { height: 40px; font-size: 17px; font-weight: 700; border-radius: 6px; border: 1px solid var(--cbt-line); background: var(--cbt-pane); color: var(--cbt-text); cursor: pointer; padding: 0; }
+.calc-keys .ck-op { background: var(--accent-soft); }
+.calc-keys .ck-fn { font-size: 14px; color: var(--muted); }
+.calc-keys .ck-eq { background: var(--cbt-teal); color: #fff; border-color: var(--cbt-teal); }
+.calc-keys .ck-wide { grid-column: span 2; }
+.cbt-memo { right: 24px; top: 120px; width: 380px; height: 420px; resize: both; overflow: hidden; min-width: 260px; min-height: 240px; }
+.cbt-memo.trans { opacity: .55; }
+.cbt-memo.trans:hover, .cbt-memo.trans:focus-within { opacity: .8; }
+.memo-tools, .memo-search { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 13px; }
+.memo-search { padding-top: 0; }
+.memo-search input { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid var(--cbt-line); border-radius: 4px; background: var(--cbt-pane); color: var(--cbt-text); }
+.memo-search button { padding: 2px 8px; font-size: 13px; }
+.memo-markers { display: inline-flex; gap: 6px; margin-left: auto; }
+.mk { width: 22px; height: 22px; border-radius: 4px; border: 1px solid #94a3b8; cursor: pointer; padding: 0; }
+.mk-red { background: #fca5a5; } .mk-blue { background: #93c5fd; } .mk-yellow { background: #fde047; } .mk-white { background: #fff; }
+.memo-body {
+  flex: 1; min-height: 0; overflow-y: auto; margin: 0 10px; padding: 8px 10px; font-size: 14.5px; line-height: 1.8;
+  border: 1px solid var(--cbt-line); border-radius: 6px; outline: none; white-space: pre-wrap; word-break: break-word;
+}
+.memo-body:focus { border-color: var(--cbt-blue); }
+.memo-foot { font-size: 11.5px; color: var(--muted); text-align: right; padding: 4px 12px 8px; }
+
+/* スマホ: 上に問題文、下に記号ボタン（横一列）。幅のドラッグは使わない */
+@media (max-width: 760px) {
+  .cbt-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding: 6px 10px; gap: 4px 10px; }
+  .cbt-tools { grid-column: 1 / -1; grid-row: 2; gap: 8px; }
+  .cbt-tools .cbt-btn { padding: 5px 12px; }
+  .cbt-time { align-self: center; font-size: 13px; }
+  .cbt-time b { font-size: 18px; }
+  .cbt-exam { font-size: 11.5px; }
+  .cbt-zoom { padding: 4px 12px; }
+  .cbt-bottom { display: grid; grid-template-columns: auto auto 1fr auto auto auto; }
+  .cbt-bottom .cbt-btn { padding: 7px 9px; font-size: 13px; }
+  .cbt-long { display: none; }
+  .cbt-progress { font-size: 15px; }
+  .cbt-btn { padding: 7px 11px; font-size: 13.5px; }
+  .cbt-main { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .cbt-splitter { display: none; }
+  .cbt-q { padding: 12px 14px 20px; }
+  .cbt-right { border-top: 1px solid var(--cbt-line); padding: 8px 10px; overflow: visible; }
+  .cbt-qhead { font-size: 14px; margin-bottom: 6px; }
+  .cbt-choices { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .cbt-note { display: none; }
+  .cbt-bottom { padding: 6px 8px; gap: 6px; }
+  .cbt-answered { display: none; }
+  .cbt-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .cbt-calc { right: 8px; top: 70px; }
+  .cbt-memo { left: 8px; right: 8px; top: 70px; width: auto; height: 50vh; }
+}
