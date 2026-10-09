@@ -192,6 +192,26 @@
       if (b) press(b.dataset.k);
     });
 
+    /* ---------- 選択範囲の記憶（タッチ端末でマーカーのボタンを押すと選択が外れる対策） ---------- */
+    var lastRange = null;
+    document.addEventListener("selectionchange", function () {
+      if (root.hidden || !root.isConnected) return;
+      var sel = window.getSelection();
+      if (sel.rangeCount && !sel.isCollapsed && root.contains(sel.anchorNode)) lastRange = sel.getRangeAt(0).cloneRange();
+    });
+    // 現在の選択（なければ直前の選択）を，指定した要素の中にあれば返す
+    function pickRange(container) {
+      var sel = window.getSelection();
+      var r = sel.rangeCount && !sel.isCollapsed ? sel.getRangeAt(0) : lastRange;
+      if (!r || r.collapsed || !container || !container.contains(r.commonAncestorContainer)) return null;
+      if (sel.rangeCount === 0 || sel.getRangeAt(0) !== r) { sel.removeAllRanges(); sel.addRange(r); }
+      return r;
+    }
+    function preventBlur(b) {
+      b.addEventListener("mousedown", function (e) { e.preventDefault(); });
+      b.addEventListener("pointerdown", function (e) { if (e.pointerType !== "mouse") e.preventDefault(); });
+    }
+
     /* ---------- メモ（半透明・マーカー・検索） ---------- */
     var memo = memoPanel.querySelector(".memo-body"), memoQ = memoPanel.querySelector(".memo-q"), memoHit = memoPanel.querySelector(".memo-hit");
     var hits = [], hitIdx = -1;
@@ -199,10 +219,10 @@
     function updateCount() { memoPanel.querySelector(".memo-count").textContent = memo.innerText.replace(/\n/g, "").length; }
     memo.addEventListener("input", function () { updateCount(); hits = []; memoHit.textContent = "0/0"; });
     each(memoPanel, ".mk", function (b) {
-      b.addEventListener("mousedown", function (e) { e.preventDefault(); }); // メモ内の選択を外さない
+      preventBlur(b); // メモ内の選択を外さない
       b.addEventListener("click", function () {
+        if (!pickRange(memo)) return;
         var sel = window.getSelection();
-        if (!sel.rangeCount || sel.isCollapsed || !memo.contains(sel.anchorNode)) return;
         try { document.execCommand("styleWithCSS", false, true); } catch (e) { /* ignore */ }
         document.execCommand("hiliteColor", false, b.dataset.mk || "transparent");
         sel.collapseToEnd();
@@ -251,15 +271,14 @@
       p.normalize();
     }
     each(root, ".cbt-pmarks button", function (b) {
-      b.addEventListener("mousedown", function (e) { e.preventDefault(); }); // 問題文の選択を外さない
+      preventBlur(b); // 問題文の選択を外さない
       b.addEventListener("click", function () {
         if (!markable) return;
         var kind = b.dataset.pm;
         if (kind === "clear") { each(markable, "mark.pmk", unwrap); return; }
+        var range = pickRange(markable);
+        if (!range) return;
         var sel = window.getSelection();
-        if (!sel.rangeCount || sel.isCollapsed) return;
-        var range = sel.getRangeAt(0);
-        if (!markable.contains(range.commonAncestorContainer)) return;
         // 選択範囲に掛かる既存のマーカーを外してから塗り直す（消しゴムは外すだけ）
         each(markable, "mark.pmk", function (m) { if (range.intersectsNode(m)) unwrap(m); });
         if (kind !== "x") {
@@ -279,6 +298,7 @@
           });
         }
         sel.removeAllRanges();
+        lastRange = null;
       });
     });
 

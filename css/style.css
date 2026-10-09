@@ -1088,3 +1088,13 @@ mark.pmk-y { background: #fde047; } mark.pmk-r { background: #fca5a5; } mark.pmk
   #pm1-cbt .cbt-invert:not(.cbt-hintsw) > span:first-child, #pm2-cbt .cbt-invert > span:first-child { font-size: 0; }
   #pm1-cbt .cbt-invert:not(.cbt-hintsw) > span:first-child::before, #pm2-cbt .cbt-invert > span:first-child::before { content: "反転"; font-size: 11px; }
 }
+
+/* タブレット: 拡大・縮小の見出しを折り返さない。タッチで押しやすいボタンの大きさ */
+.cbt-zoom label { white-space: nowrap; }
+@media (pointer: coarse) {
+  .cbt-pmarks .mk, .memo-markers .mk { width: 28px; height: 28px; }
+  .cbt-timer-ctl button { padding: 5px 10px; font-size: 12.5px; }
+}
+@media (pointer: coarse) and (min-width: 761px) {
+  .cbt-main { grid-template-columns: minmax(0, var(--cbt-left)) 14px minmax(0, 1fr); }
+}
