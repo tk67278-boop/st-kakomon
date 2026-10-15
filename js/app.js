@@ -500,10 +500,10 @@
     var stats = loadStats();
 
     if (settings.order === "least") {
-      // 解答回数が少ない順（未挑戦は0回）。同じ回数の中はランダム。「苦手を優先」より優先する
+      // 解答回数が少ない順（未挑戦は0回）。他年度の同一問題（similar.jsのsame）の回数も合算する。
+      // 同じ回数の中はランダム。「苦手を優先」より優先する
       items.forEach(function (it) {
-        var s = stats[it.key];
-        it._cnt = (s && s.a) || 0;
+        it._cnt = tagGroup(it.key).reduce(function (n, k) { var s = stats[k]; return n + ((s && s.a) || 0); }, 0);
         it._rnd = Math.random();
       });
       items.sort(function (a, b) { return a._cnt - b._cnt || a._rnd - b._rnd; });
