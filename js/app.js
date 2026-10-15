@@ -499,7 +499,15 @@
     var items = filteredItems();
     var stats = loadStats();
 
-    if (settings.weakFirst) {
+    if (settings.order === "least") {
+      // 解答回数が少ない順（未挑戦は0回）。同じ回数の中はランダム。「苦手を優先」より優先する
+      items.forEach(function (it) {
+        var s = stats[it.key];
+        it._cnt = (s && s.a) || 0;
+        it._rnd = Math.random();
+      });
+      items.sort(function (a, b) { return a._cnt - b._cnt || a._rnd - b._rnd; });
+    } else if (settings.weakFirst) {
       // 未挑戦(-1) → 正答率が低い順。同率はランダム。
       items.forEach(function (it) {
         var s = stats[it.key];
