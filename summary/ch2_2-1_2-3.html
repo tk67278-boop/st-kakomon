@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>システム企画（超上流）まとめ</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd;
+    --c1: #0e9f6e; --c1-soft: #e3f6ee;   /* 構想 */
+    --c2: #2563eb; --c2-soft: #e5edfd;   /* 計画 */
+    --c3: #c2410c; --c3-soft: #fdeee4;   /* 要件定義 */
+    --c4: #6b7280; --c4-soft: #eef0f3;   /* 開発以降・その他 */
+    --warn: #b91c1c; --warn-soft: #fdecec; --ok: #15803d; --ok-soft: #e7f6ec;
+    --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50;
+      --c1: #34c38f; --c1-soft: #12352a; --c2: #5b93ff; --c2-soft: #1c2f50;
+      --c3: #f08a4b; --c3-soft: #3d2416; --c4: #9aa4b2; --c4-soft: #262f3b;
+      --warn: #f87171; --warn-soft: #3a1a1c; --ok: #4ade80; --ok-soft: #14301e;
+      --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50;
+    --c1: #34c38f; --c1-soft: #12352a; --c2: #5b93ff; --c2-soft: #1c2f50;
+    --c3: #f08a4b; --c3-soft: #3d2416; --c4: #9aa4b2; --c4-soft: #262f3b;
+    --warn: #f87171; --warn-soft: #3a1a1c; --ok: #4ade80; --ok-soft: #14301e;
+    --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 16px; line-height: 1.8;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 60px; }
+  header.hero { padding: 36px 0 18px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 28px; line-height: 1.4; margin: 6px 0 10px; }
+  h2 { font-size: 22px; margin: 0 0 6px; line-height: 1.45; }
+  h3 { font-size: 17px; margin: 22px 0 8px; }
+  p { margin: 0 0 12px; }
+  .lead { color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 22px 18px; margin: 18px 0; box-shadow: var(--shadow); }
+  .sec-no { display: inline-block; font-size: 13px; font-weight: 800; color: #fff; border-radius: 6px; padding: 1px 9px; margin-right: 8px; vertical-align: 3px; }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 24px; line-height: 1.2; }
+  .stat span { font-size: 13px; color: var(--muted); }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  nav.toc a { font-size: 14px; text-decoration: none; color: var(--accent); background: var(--accent-soft); padding: 4px 12px; border-radius: 999px; }
+
+  /* ライフサイクル帯 */
+  .flow { display: grid; grid-template-columns: 2fr 1fr 1.4fr 0.8fr 0.8fr; gap: 6px; margin: 16px 0 6px; }
+  .flow .box { border-radius: 10px; padding: 10px 8px; text-align: center; font-weight: 700; font-size: 14px; line-height: 1.5; border: 2px solid transparent; }
+  .flow .box small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); }
+  .b1 { background: var(--c1-soft); border-color: var(--c1) !important; }
+  .b2 { background: var(--c2-soft); border-color: var(--c2) !important; }
+  .b3 { background: var(--c3-soft); border-color: var(--c3) !important; }
+  .b4 { background: var(--c4-soft); border-color: var(--c4) !important; }
+  .kikaku { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0; border: 0; }
+  .brace { display: grid; grid-template-columns: 3fr 2.2fr; gap: 6px; font-size: 13px; font-weight: 700; text-align: center; }
+  .brace div { border-top: 3px solid var(--text); padding-top: 4px; }
+  .brace .dev { border-top-color: var(--c4); color: var(--muted); }
+
+  .points { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+  .points li { background: var(--accent-soft); border-radius: 10px; padding: 9px 14px 9px 40px; position: relative; font-weight: 600; }
+  .points li::before { content: "✓"; position: absolute; left: 14px; top: 9px; color: var(--accent); font-weight: 900; }
+  .trap { background: var(--warn-soft); border-left: 4px solid var(--warn); border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 14px 0 6px; font-size: 15px; }
+  .trap b { color: var(--warn); }
+  .tip { background: var(--ok-soft); border-left: 4px solid var(--ok); border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 14px 0 6px; font-size: 15px; }
+  .tip b { color: var(--ok); }
+
+  /* 要件定義4活動 */
+  .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; counter-reset: st; }
+  .step { background: var(--c3-soft); border: 1px solid var(--c3); border-radius: 10px; padding: 10px 12px; position: relative; }
+  .step::before { counter-increment: st; content: counter(st); position: absolute; top: -10px; left: 10px; background: var(--c3); color: #fff; font-size: 12px; font-weight: 800; border-radius: 999px; width: 22px; height: 22px; display: grid; place-items: center; }
+  .step h4 { margin: 6px 0 4px; font-size: 15px; }
+  .step p { font-size: 13.5px; margin: 0; line-height: 1.65; }
+  .step .key { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--c3); }
+
+  /* 比較表 */
+  .tbl-wrap { overflow-x: auto; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 560px; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
+  thead th { background: var(--c4-soft); font-size: 13.5px; }
+  th.h1c { background: var(--c1-soft); color: var(--c1); }
+  th.h2c { background: var(--c2-soft); color: var(--c2); }
+  th.h3c { background: var(--c3-soft); color: var(--c3); }
+  tbody th { background: var(--c4-soft); white-space: nowrap; font-size: 13.5px; }
+
+  /* ビジネスモデルキャンバス */
+  .bmc { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-auto-rows: minmax(44px, auto); gap: 4px; margin: 10px 0; font-size: 13px; }
+  .bmc div { background: var(--c1-soft); border: 1px solid var(--c1); border-radius: 8px; padding: 6px 8px; line-height: 1.45; }
+  .bmc b { display: block; font-size: 13.5px; }
+  .bmc .vp { background: var(--c1); color: #fff; }
+  .kp { grid-column: 1 / 3; grid-row: 1 / 3; } .ka { grid-column: 3 / 5; grid-row: 1; } .kr { grid-column: 3 / 5; grid-row: 2; }
+  .vp { grid-column: 5 / 7; grid-row: 1 / 3; } .cr { grid-column: 7 / 9; grid-row: 1; } .ch { grid-column: 7 / 9; grid-row: 2; }
+  .cs { grid-column: 9 / 11; grid-row: 1 / 3; } .co { grid-column: 1 / 6; grid-row: 3; } .rs { grid-column: 6 / 11; grid-row: 3; }
+
+  /* BABOK */
+  .babok { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .babok div { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+  .babok b { display: block; font-size: 15px; }
+  .babok .src { font-size: 12.5px; color: var(--muted); }
+
+  /* 計画の流れ */
+  .chain { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin: 12px 0; }
+  .chain div { flex: 1 1 120px; background: var(--c2-soft); border: 1px solid var(--c2); border-radius: 10px; padding: 8px 10px; font-size: 13.5px; font-weight: 600; line-height: 1.5; position: relative; }
+  .chain div small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+  .chain .star { background: var(--c2); color: #fff; }
+  .chain .star small { color: #e5edfd; }
+
+  /* 仕分けクイズ */
+  .sort-q { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0; }
+  .sort-q .task { font-weight: 600; font-size: 15px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .opts button { font: inherit; font-size: 13.5px; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .opts button:hover { border-color: var(--accent); }
+  .opts button.right { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .opts button.wrong { background: var(--warn); border-color: var(--warn); color: #fff; }
+  .opts button:disabled { cursor: default; }
+  .fb { font-size: 13.5px; margin-top: 6px; color: var(--muted); }
+  .score { position: sticky; top: 8px; z-index: 2; float: right; background: var(--accent); color: #fff; border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 700; }
+  .btn-reset { font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; margin-top: 6px; }
+
+  /* 過去問 */
+  details.pq { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 10px 0; background: var(--card); }
+  details.pq summary { cursor: pointer; font-weight: 600; list-style: none; }
+  details.pq summary::-webkit-details-marker { display: none; }
+  details.pq summary::before { content: "▸"; color: var(--accent); margin-right: 8px; }
+  details.pq[open] summary::before { content: "▾"; }
+  .pq-src { font-size: 12.5px; color: var(--muted); display: block; font-weight: 500; }
+  .pq ol { list-style: none; padding: 0; margin: 10px 0; }
+  .pq li { padding: 4px 0 4px 1.8em; text-indent: -1.8em; font-size: 14.5px; }
+  .pq li.ans { color: var(--ok); font-weight: 700; }
+  .pq .exp { font-size: 14px; background: var(--c4-soft); border-radius: 8px; padding: 8px 12px; }
+
+  .memo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .memo div { border-radius: 12px; padding: 14px; font-size: 14.5px; }
+  .memo b { display: block; font-size: 17px; margin-bottom: 4px; }
+  footer { font-size: 12.5px; color: var(--muted); margin-top: 30px; }
+  .theme-btn { position: fixed; right: 14px; bottom: 14px; font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
+
+  @media (max-width: 680px) {
+    h1 { font-size: 23px; }
+    .card { padding: 16px 14px 12px; }
+    .stats { grid-template-columns: 1fr 1fr 1fr; }
+    .stat b { font-size: 19px; }
+    .flow { grid-template-columns: 1fr; }
+    .kikaku { grid-template-columns: 1fr 1fr; }
+    .brace { display: none; }
+    .steps { grid-template-columns: 1fr 1fr; row-gap: 16px; }
+    .bmc { grid-template-columns: 1fr 1fr; }
+    .bmc div { grid-column: auto !important; grid-row: auto !important; }
+    .bmc .vp { grid-column: 1 / 3 !important; }
+    .babok { grid-template-columns: 1fr; }
+    .memo { grid-template-columns: 1fr; }
+  }
+  @media print { .theme-btn, .score { display: none; } .card { box-shadow: none; break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">ITストラテジスト 教科書 第2章 システム企画</div>
+  <h1>超上流（2-1〜2-3）を1枚でつかむ<br>共通フレーム・システム化構想・システム化計画</h1>
+  <p class="lead">「どの作業が、どのプロセスのものか」を見分けられれば得点できる分野です。過去の午前IIでは、選択肢に別のプロセスの作業を混ぜて、どれがそのプロセスの作業かを選ばせる形が繰り返し出ています。</p>
+  <div class="stats">
+    <div class="stat"><b>11問</b><span>過去16回の午前IIで、この範囲から出た問題数</span></div>
+    <div class="stat"><b>3つ</b><span>押さえるプロセス<br>構想・計画・要件定義</span></div>
+    <div class="stat"><b>18問</b><span>このページの仕分けクイズ</span></div>
+  </div>
+  <nav class="toc">
+    <a href="#map">全体像</a><a href="#s21">2-1 共通フレーム</a><a href="#s22">2-2 構想</a><a href="#s23">2-3 計画</a><a href="#compare">3プロセス比較</a><a href="#quiz">仕分けクイズ</a><a href="#past">過去問</a><a href="#memo">覚え方</a>
+  </nav>
+</header>
+
+<!-- 全体像 -->
+<section class="card" id="map">
+  <h2>全体像：「超上流」はどこか</h2>
+  <p>共通フレームは、システムの一生（ライフサイクル）を工程に分け、各工程でやるべき作業と用語を標準化した指針です。発注者（ユーザー企業）と開発者（ベンダー）が<b>同じ物差しで作業範囲を確認できる</b>ようにするのが目的です。</p>
+  <div class="flow" role="img" aria-label="ライフサイクルの流れ：企画プロセス（システム化構想の立案、システム化計画の立案）、要件定義プロセス、開発プロセス、運用プロセス、保守プロセス">
+    <div class="kikaku">
+      <div class="box b1">システム化構想の立案<small>何を目指すか</small></div>
+      <div class="box b2">システム化計画の立案<small>いつ・どう実現するか</small></div>
+    </div>
+    <div class="box b3">要件定義<small>何を作るかを確定</small></div>
+    <div class="box b4">開発<small>方式設計・設計・テスト</small></div>
+    <div class="box b4">運用</div>
+    <div class="box b4">保守</div>
+  </div>
+  <div class="brace"><div>企画プロセス ＋ 要件定義プロセス ＝ 超上流</div><div class="dev">それ以降（開発・運用・保守）</div></div>
+  <div class="tip"><b>なぜ「超上流」が大事か：</b>ここで誤ると、内部設計やテストまで見つからずに残り、設計のやり直しなど大きな手戻りになります。だから企画と要件定義は、他の工程と分けて「超上流」と呼ばれ、精度が重視されます。</div>
+</section>
+
+<!-- 2-1 -->
+<section class="card" id="s21">
+  <h2><span class="sec-no" style="background:var(--c3)">2-1</span>共通フレームと超上流</h2>
+  <ul class="points">
+    <li>企画プロセス ＝ システム化構想の立案 ＋ システム化計画の立案</li>
+    <li>要件定義は「利害関係者の識別 → 要件の識別 → 要件の評価 → 要件の合意」の順</li>
+    <li>企画・要件定義は開発より上流なので「超上流」と呼ぶ</li>
+  </ul>
+  <h3>共通フレームの版</h3>
+  <p>共通フレーム98 → 2007 → 2013 と改訂され、作業は「プロセス → アクティビティ → タスク」の階層で細かく定義されています。試験では2007版と2013版の両方が出ますが、<b>版の違いより「その作業はどのプロセスか」</b>が問われます。</p>
+  <h3>要件定義プロセスの4つの活動（順番も出る）</h3>
+  <div class="steps">
+    <div class="step"><h4>利害関係者の識別</h4><p>ライフサイクルの全期間で、どの工程にどの関係者が関わるかを明確にする</p><span class="key">キーワード：全期間・参画</span></div>
+    <div class="step"><h4>要件の識別</h4><p>関係者から要件を漏れなく引き出し、制約条件や運用シナリオを明らかにする</p><span class="key">キーワード：引き出す・運用シナリオ</span></div>
+    <div class="step"><h4>要件の評価</h4><p>引き出した要件の矛盾や曖昧さをなくし、一貫した要件の集合に整理する</p><span class="key">キーワード：矛盾・曖昧・一貫性</span></div>
+    <div class="step"><h4>要件の合意</h4><p>残った問題点の解決方法を関係者に説明し、合意を得る</p><span class="key">キーワード：説明・合意</span></div>
+  </div>
+  <div class="trap"><b>ひっかけ注意：</b>「要件の識別」と「要件の評価」の説明を入れ替えた選択肢がよく出ます（平成30年度 問5）。<b>識別＝引き出す</b>、<b>評価＝整える（矛盾をなくす）</b>と動詞で区別します。</div>
+</section>
+
+<!-- 2-2 -->
+<section class="card" id="s22">
+  <h2><span class="sec-no" style="background:var(--c1)">2-2</span>システム化構想の立案 ― 何を目指すか</h2>
+  <ul class="points">
+    <li>事業環境・業務環境を分析し、経営課題を明確にする</li>
+    <li>部分最適ではなく全体最適の視点で構想する</li>
+    <li>BABOKやビジネスモデルキャンバスで構想を分析する</li>
+  </ul>
+  <h3>この段階でやること</h3>
+  <p>経営課題を「情報システムの構想」に翻訳する最初の工程で、ITストラテジストの専門性が一番問われる場面です。</p>
+  <ol>
+    <li><b>事業環境・業務環境を分析する</b>：市場・競争相手・取引先・法規制・社会情勢を見て、経営上のニーズや課題と、事業目標・業務目標との関係を明確にする（平成29年度 問1の正解そのもの）</li>
+    <li><b>対象業務の範囲を明確にする</b>：情報システム戦略やエンタープライズアーキテクチャ（EA）との整合性を確認する</li>
+    <li><b>構想として定義する</b>：システム化の基本方針、対象業務、投資規模の見込み、期待される効果をまとめる。経営層の投資判断の材料になる</li>
+  </ol>
+  <div class="tip"><b>進め方：</b>経営層が方針を示して現場に展開するトップダウンが基本です。部門ごとにバラバラに最適化すると、重複投資やシステム間の連携不足を招くため、<b>全社を見渡す全体最適</b>の視点が欠かせません。</div>
+
+  <h3>ビジネスモデルキャンバス（9つのブロック）</h3>
+  <p>事業の仕組みを1枚に描くフレームワークです。令和3年度 問5では、SWOT、バリューチェーン、BSCの説明と入れ替えた選択肢が出ました。</p>
+  <div class="bmc" role="img" aria-label="ビジネスモデルキャンバスの9ブロック">
+    <div class="kp"><b>パートナ</b>協力してくれる相手</div>
+    <div class="ka"><b>主要活動</b>価値を生む活動</div>
+    <div class="kr"><b>リソース</b>必要な資源</div>
+    <div class="vp"><b>価値提案</b>顧客に提供する価値（中心）</div>
+    <div class="cr"><b>顧客との関係</b>どう付き合うか</div>
+    <div class="ch"><b>チャネル</b>どう届けるか</div>
+    <div class="cs"><b>顧客セグメント</b>誰に</div>
+    <div class="co"><b>コスト構造</b>何にお金がかかるか</div>
+    <div class="rs"><b>収益の流れ</b>どうお金を得るか</div>
+  </div>
+  <div class="trap"><b>見分け方：</b>「9つ」「価値提案」「顧客セグメント」ならビジネスモデルキャンバスです。「主活動5つ＋支援活動4つ」はバリューチェーン、「強み・弱み・機会・脅威」はSWOT、「財務・顧客・内部プロセス・学習と成長」はBSCです。</div>
+
+  <h3>BABOKの4種類の要求</h3>
+  <p>BABOKはビジネスアナリシスの知識体系です（「計画とモニタリング」「引き出し」「要求アナリシス」「基礎コンピテンシ」など7つの知識エリアからなる。平成23年度 問5）。要求を4種類に分けて整理します。</p>
+  <div class="babok">
+    <div style="border-color:var(--c1)"><b style="color:var(--c1)">ビジネス要求</b>経営戦略や情報化戦略から求められる要求<span class="src">エンタープライズアナリシスで定義。構想段階の出発点</span></div>
+    <div><b>ステークホルダ要求</b>利用部門や運用部門などから個別に出るニーズ<span class="src">要求アナリシスで定義</span></div>
+    <div><b>ソリューション要求</b>組織・業務・システムが実現すべき機能要求と非機能要求<span class="src">要求アナリシスで定義（平成25年度 問4の正解）</span></div>
+    <div><b>移行要求</b>新システムへのデータ変換や要員教育などの要求<span class="src">ソリューションのアセスメントと妥当性確認で定義</span></div>
+  </div>
+  <div class="trap"><b>似た知識体系との区別：</b>SWEBOK＝ソフトウェア工学（10の知識エリア）、SQuBOK＝ソフトウェア品質、PMBOK＝プロジェクトマネジメントです。</div>
+</section>
+
+<!-- 2-3 -->
+<section class="card" id="s23">
+  <h2><span class="sec-no" style="background:var(--c2)">2-3</span>システム化計画の立案 ― いつ・どう実現するか</h2>
+  <ul class="points">
+    <li>現状分析から業務モデルを作成し、システム課題を定義する</li>
+    <li>全体開発スケジュールと費用対効果を、計画段階で概算する</li>
+    <li>シナリオ分析でリスクを検討し、デスマーチを防ぐ</li>
+  </ul>
+  <h3>作業の流れ</h3>
+  <div class="chain">
+    <div>現状の調査・分析<small>対象業務の内容と流れ</small></div>
+    <div class="star">対象業務の<br>システム課題を定義<small>計画段階の成果物（頻出）</small></div>
+    <div class="star">業務モデルの作成<small>As-Is と To-Be（頻出）</small></div>
+    <div>スケジュール・体制<small>全体開発スケジュール、開発組織・責任部署、教育訓練</small></div>
+    <div>費用対効果の予測<small>この段階は概算</small></div>
+    <div>リスク分析<small>シナリオ分析</small></div>
+    <div>計画を承認<small>システム化計画及びプロジェクト計画</small></div>
+  </div>
+  <h3>業務モデルが大事な理由</h3>
+  <p>業務モデルは、現状（As-Is）とシステム化後のあるべき姿（To-Be）を整理したものです。<b>これを基に後続の作業でシステム化する機能を整理し、情報と処理の流れを明確にします。</b>次の要件定義で機能要件を決めるときの入力にもなります。</p>
+  <div class="trap"><b>婉曲な問い方に注意：</b>「システム化計画の立案で実施する作業で、その結果を基に後続の作業でシステム化機能を整理し、情報と処理の流れを明確にするもの」→ 答えは<b>業務モデルの作成</b>です（平成24年度 問4、平成27年度 問4で2回出題）。</div>
+  <h3>費用対効果とリスク</h3>
+  <p>この時点では要件が固まっていないので、費用対効果は過去の類似事例や概算見積りでの<b>試算</b>にとどめ、要件定義や調達の段階で精度を上げます。技術・要員・スケジュールの不確実性に備えて、複数の状況を想定する<b>シナリオ分析</b>で対応策を考えておきます。備えのない無理な計画は、納期・予算・要員が過酷になる<b>デスマーチ</b>を招きます。</p>
+</section>
+
+<!-- 比較表 -->
+<section class="card" id="compare">
+  <h2>3つのプロセスの比較（ここが本番の勝負どころ）</h2>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th></th><th class="h1c">システム化構想の立案</th><th class="h2c">システム化計画の立案</th><th class="h3c">要件定義</th></tr></thead>
+    <tbody>
+      <tr><th>問い</th><td>何を目指すか</td><td>いつ・どう実現するか</td><td>何を作るかを確定する</td></tr>
+      <tr><th>主な作業</th><td>事業環境・業務環境の分析、経営課題の明確化、基本方針・対象業務の整理</td><td>現状分析、業務モデル作成、全体開発スケジュール、開発組織の編成方針、教育訓練、費用対効果の予測</td><td>利害関係者の識別、要件の識別・評価・合意</td></tr>
+      <tr><th>成果</th><td>システム化構想（目的・対象範囲・概算投資額）</td><td><b>対象業務のシステム課題</b>、システム化計画及びプロジェクト計画</td><td><b>業務要件</b>、<b>機能要件・非機能要件</b></td></tr>
+      <tr><th>道具</th><td>BABOK（ビジネス要求）、ビジネスモデルキャンバス</td><td>業務モデル（As-Is／To-Be）、シナリオ分析</td><td>利害関係者との合意</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="trap"><b>定番の4択（平成22年度 問4）：</b>「システム化計画の立案で定義するもの」の選択肢に、「業務上実現すべき要件」「機能要件及び非機能要件」「利害関係者のニーズの識別と制約事項」「対象業務のシステム課題」が並びます。<b>〜要件と付くものは要件定義</b>、計画で定義するのは<b>システム課題</b>です。</div>
+  <div class="tip"><b>開発プロセス側の作業：</b>「システム方式の確立（方式設計）」や、人間の能力の限界を考えて「利用者とシステムの相互作用を識別する」作業は、開発プロセス側の作業です。構想や計画の選択肢に混ぜられます。</div>
+</section>
+
+<!-- 仕分けクイズ -->
+<section class="card" id="quiz">
+  <span class="score" id="score">0 / 18</span>
+  <h2>仕分けクイズ：この作業はどのプロセス？</h2>
+  <p class="lead">ボタンを押すと正誤と理由が出ます。迷ったら上の比較表に戻ってください。</p>
+  <div id="sort-list"></div>
+  <button type="button" class="btn-reset" id="sort-reset">もう一度（順番を入れ替え）</button>
+</section>
+
+<!-- 過去問 -->
+<section class="card" id="past">
+  <h2>過去問で確認（午前II・11問）</h2>
+  <p class="lead">クリックすると選択肢と解説が開きます。正解は緑色で表示されます。まず自分で答えを決めてから開いてください。</p>
+  <div id="past-list"></div>
+</section>
+
+<!-- 覚え方 -->
+<section class="card" id="memo">
+  <h2>直前の覚え方（これだけは）</h2>
+  <div class="memo">
+    <div style="background:var(--c1-soft)"><b style="color:var(--c1)">構想＝環境を分析</b>市場・競合・法規制を見て、経営課題と目標の関係を明確にする。BABOKのビジネス要求とビジネスモデルキャンバス</div>
+    <div style="background:var(--c2-soft)"><b style="color:var(--c2)">計画＝課題と業務モデル</b>システム課題を定義し、業務モデルを作る。スケジュール、組織、教育、費用対効果の概算</div>
+    <div style="background:var(--c3-soft)"><b style="color:var(--c3)">要件定義＝〜要件</b>業務要件、機能要件・非機能要件。識別（引き出す）→評価（整える）→合意</div>
+  </div>
+</section>
+
+<footer>出典：アプリ内教科書 第2章（2-1〜2-3）と、IPA ITストラテジスト試験 午前IIの過去問（平成21年度〜令和6年度）をもとに作成した学習用資料です。</footer>
+</div>
+
+<button type="button" class="theme-btn" id="theme-btn">表示切替</button>
+
+<script>
+(function () {
+  "use strict";
+  // 表示テーマの切替（自動→ライト→ダーク）。保存できない環境でも動作する
+  var root = document.documentElement, btn = document.getElementById("theme-btn");
+  var modes = ["auto", "light", "dark"], labels = { auto: "表示：自動", light: "表示：ライト", dark: "表示：ダーク" };
+  function apply(m) { if (m === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", m); btn.textContent = labels[m]; }
+  var cur = "auto";
+  try { cur = localStorage.getItem("kikaku_theme") || "auto"; } catch (e) {}
+  apply(cur);
+  btn.addEventListener("click", function () {
+    cur = modes[(modes.indexOf(cur) + 1) % modes.length];
+    apply(cur);
+    try { localStorage.setItem("kikaku_theme", cur); } catch (e) {}
+  });
+
+  // 仕分けクイズ
+  var OPTS = ["構想", "計画", "要件定義", "それ以外"];
+  var ITEMS = [
+    ["市場・競争相手・取引先・法規制などの事業環境を分析し、事業目標との関係を明確にする", 0, "構想の代表的なタスク（平成29年度 問1の正解）。"],
+    ["システム化の基本方針、対象業務、投資規模の見込み、期待効果を整理する", 0, "経営層が投資判断する材料として、構想段階でまとめる。"],
+    ["BABOKのビジネス要求（経営戦略・情報化戦略からの要求）を明確にする", 0, "ビジネス要求の明確化は構想の出発点。"],
+    ["情報システム戦略やEAとの整合性を確認しながら、対象業務の範囲を明確にする", 0, "構想段階で全社の方向性とつなぐ作業。"],
+    ["現行業務の内容・流れを調査し、課題を分析・抽出する", 1, "計画の最初の作業（平成21年度 問6では計画の作業として登場）。"],
+    ["対象業務のシステム課題を定義する", 1, "計画段階の成果物の定番（平成22年度 問4の正解）。"],
+    ["現状とあるべき姿の業務モデルを作成する", 1, "その結果を基にシステム化機能を整理する（平成24年度・27年度 問4）。"],
+    ["システム稼働時期を設定し、全体開発スケジュールを作成する", 1, "計画で行う（平成21年度 問6）。"],
+    ["システム開発を担当する組織の編成方針と責任部署を決める", 1, "計画で行う（平成21年度 問6）。"],
+    ["費用対効果を、過去の類似事例や概算見積りで予測する", 1, "計画段階では概算。要件定義・調達で精度を上げる。"],
+    ["システム化計画及びプロジェクト計画を作成し、承認を受ける", 1, "企画プロセスのアクティビティ（平成21年度 問7の正解）。"],
+    ["ライフサイクルの全期間で、どの工程にどの関係者が参画するかを明確にする", 2, "要件定義の「利害関係者の識別」。"],
+    ["利害関係者から要件を漏れなく引き出し、制約条件や運用シナリオを明らかにする", 2, "要件定義の「要件の識別」（平成30年度 問5の正解）。"],
+    ["抽出した要件の矛盾や曖昧さをなくし、一貫した要件の集合に整理する", 2, "要件定義の「要件の評価」。識別との入れ替えに注意。"],
+    ["業務上実現すべき要件（業務要件）を定義する", 2, "「〜要件」は要件定義。計画より後（平成21年度 問6の正解）。"],
+    ["システムの機能要件及び非機能要件を定義する", 2, "要件定義の成果物。計画の成果物と混同させる定番の選択肢。"],
+    ["システム方式を確立する（方式設計）", 3, "開発プロセスの作業。"],
+    ["RFP（提案依頼書）を発行し、ベンダから提案書を受領する", 3, "調達（取得）の活動。企画プロセスではない（平成21年度 問7）。"]
+  ];
+  var list = document.getElementById("sort-list"), scoreEl = document.getElementById("score");
+  var answered = 0, correct = 0;
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function render() {
+    answered = 0; correct = 0; scoreEl.textContent = "0 / " + ITEMS.length;
+    list.innerHTML = "";
+    shuffle(ITEMS.slice()).forEach(function (it, n) {
+      var box = document.createElement("div"); box.className = "sort-q";
+      box.innerHTML = '<div class="task">' + (n + 1) + ". " + it[0] + '</div><div class="opts"></div><div class="fb" aria-live="polite"></div>';
+      var opts = box.querySelector(".opts"), fb = box.querySelector(".fb");
+      OPTS.forEach(function (label, i) {
+        var b = document.createElement("button"); b.type = "button"; b.textContent = label;
+        b.addEventListener("click", function () {
+          var btns = opts.querySelectorAll("button");
+          btns.forEach(function (x) { x.disabled = true; });
+          btns[it[1]].classList.add("right");
+          if (i !== it[1]) b.classList.add("wrong"); else correct++;
+          answered++;
+          fb.textContent = (i === it[1] ? "正解。" : "不正解。正しくは「" + OPTS[it[1]] + "」。") + it[2];
+          scoreEl.textContent = correct + " / " + ITEMS.length + (answered === ITEMS.length ? "（完了）" : "");
+        });
+        opts.appendChild(b);
+      });
+      list.appendChild(box);
+    });
+  }
+  document.getElementById("sort-reset").addEventListener("click", render);
+  render();
+
+  // 過去問（IPA ITストラテジスト試験 午前II）
+  var PAST = [
+    ["平成21年度 秋期 問6", "共通フレーム2007によれば，システム化計画の立案よりも後のプロセスで実施するものはどれか。",
+      ["現行システムの内容，流れの調査及び課題の分析，抽出", "システム開発を担当する開発組織の編成方針と責任部署の決定", "システム稼働時期の設定と全体開発スケジュールの作成", "システム化の対象となる業務要件の定義作業"], 3,
+      "業務要件の定義は要件定義プロセスの作業で，システム化計画の立案より後に行う。他の三つはいずれもシステム化計画の立案の作業。"],
+    ["平成21年度 秋期 問7", "共通フレーム2007によれば，企画プロセスのアクティビティはどれか。",
+      ["RFP（提案依頼書）を発行して，ベンダから提案書を受領する。", "開発プロセスの実行計画を作成する。", "システム化計画及びプロジェクト計画を作成し，承認を受ける。", "投資効果及び業務効果の評価を行う。"], 2,
+      "企画プロセスは構想と計画の立案からなり，システム化計画及びプロジェクト計画の作成・承認を含む。RFPは調達，実行計画の作成は開発，投資効果の評価は運用・評価段階。"],
+    ["平成22年度 秋期 問4", "共通フレーム2007によれば，企画プロセスのシステム化計画の立案において定義するものはどれか。",
+      ["業務上実現すべき要件", "システムの機能要件及び非機能要件", "対象業務のシステム課題", "利害関係者のニーズの識別と制約事項"], 2,
+      "システム化計画の立案では対象業務のシステム課題を定義する。業務要件や機能・非機能要件の定義は要件定義プロセス。"],
+    ["平成23年度 秋期 問5", "BABOKの説明はどれか。",
+      ["ソフトウェア品質の基本概念，ソフトウェア品質マネジメント，ソフトウェア品質技術の三つのカテゴリからなる知識体系", "ソフトウェア要求，ソフトウェア設計，ソフトウェア構築，ソフトウェアテスティング，ソフトウェア保守など10の知識エリアからなる知識体系", "ビジネスアナリシスの計画とモニタリング，引き出し，要求アナリシス，基礎コンピテンシなど七つの知識エリアからなる知識体系", "プロジェクトマネジメントに関して，スコープ，時間，コスト，品質，人的資源，コミュニケーション，リスク管理など九つの知識エリアからなる知識体系"], 2,
+      "BABOKはビジネスアナリシスの知識体系。アはSQuBOK，イはSWEBOK，エはPMBOKの説明。"],
+    ["平成24年度 秋期 問4", "システム化計画の立案において実施する作業であり，その作業の結果を基に，後続の作業でシステム化機能を整理し，情報と処理の流れを明確にするものはどれか。",
+      ["機能要件の定義", "業務運用手順の文書化", "業務モデルの作成", "システム方式の設計"], 2,
+      "業務モデルを作成し，その結果を基にシステム化機能を整理する。機能要件の定義は要件定義，システム方式の設計は開発，業務運用手順の文書化は運用準備の作業。"],
+    ["平成25年度 秋期 問4", "BABOKでは，要求をビジネス要求，ステークホルダ要求，ソリューション要求及び移行要求の4種類に分類している。ソリューション要求の説明はどれか。",
+      ["経営戦略や情報化戦略などから求められる要求であり，エンタープライズアナリシスの活動で定義している。", "新システムへのデータ変換や要員教育などに関する要求であり，ソリューションのアセスメントと妥当性確認の活動で定義している。", "組織・業務・システムが実現すべき機能要求と非機能要求であり，要求アナリシスの活動で定義している。", "利用部門や運用部門などから個別に発せられるニーズであり，要求アナリシスの活動で定義している。"], 2,
+      "ソリューション要求は機能要求と非機能要求。アはビジネス要求，イは移行要求，エはステークホルダ要求。"],
+    ["平成27年度 秋期 問4", "共通フレームによれば，システム化計画の立案において，システム化機能を整理し，情報と処理の流れを明確にするために実施する作業はどれか。",
+      ["機能要件の定義", "業務運用手順の文書化", "業務モデルの作成", "システム方式の確立"], 2,
+      "平成24年度 問4とほぼ同じ問題。業務モデルの作成が正解。"],
+    ["平成29年度 秋期 問1", "共通フレーム2013によれば，システム化構想の立案プロセスで実施するタスクはどれか。",
+      ["市場，競争相手，取引先，法規制，社会情勢などの事業環境，業務環境を分析し，事業目標，業務目標との関係を明確にする。", "システムのライフサイクルの全期間を通して，利害関係者を識別する。", "人間の能力及びスキルの限界を考慮して，利用者とシステムとの間の相互作用を識別する。", "利害関係者の要件が正確に表現されていることを，利害関係者とともに確立する。"], 0,
+      "構想では事業環境・業務環境を分析する。イとエは要件定義，ウは方式設計などで行う人間工学関連のタスク。"],
+    ["平成30年度 秋期 問5", "共通フレーム2013によれば，要件定義プロセスの活動内容には，利害関係者の識別，要件の識別，要件の評価，要件の合意などがある。このうちの要件の識別において実施する作業はどれか。",
+      ["システムのライフサイクルの全期間を通して，どの工程でどの関係者が参画するのかを明確にする。", "抽出された要件を確認して，矛盾点や曖昧な点をなくし，一貫性がある要件の集合として整理する。", "矛盾した要件，実現不可能な要件などの問題点に対する解決方法を利害関係者に説明し，合意を得る。", "利害関係者から要件を漏れなく引き出し，制約条件や運用シナリオなどを明らかにする。"], 3,
+      "要件の識別＝引き出す。アは利害関係者の識別，イは要件の評価，ウは要件の合意。"],
+    ["令和3年度 春期 問5", "システム化構想の段階で，ビジネスモデルを整理したり，分析したりするときに有効なフレームワークの一つであるビジネスモデルキャンバスの説明として，適切なものはどれか。",
+      ["企業がどのように，価値を創造し，顧客に届け，収益を生み出しているかを，顧客セグメント，価値提案，チャネル，顧客との関係，収益の流れ，リソース，主要活動，パートナ，コスト構造の九つのブロックを用いて図示し，分析する。", "企業が付加価値を生み出すための業務の流れを，購買物流，製造，出荷物流，販売・マーケティング，サービスという五つの主活動と，調達，技術開発など四つの支援活動に分類して分析する。", "企業の強み・弱み，外部環境の機会・脅威を分析し，内部要因と外部要因をそれぞれ軸にした表を作成することによって，事業機会や事業課題を発見する。", "企業目標の達成を目指し，財務，顧客，内部ビジネスプロセス，学習と成長の四つの視点から戦略マップを作成して，四つの視点においてバランスのとれた事業計画を策定し進捗管理をしていく。"], 0,
+      "9つのブロックがビジネスモデルキャンバス。イはバリューチェーン，ウはSWOT，エはBSC。"],
+    ["令和6年度 春期 問5", "“情報システム・モデル取引・契約書＜第二版＞”によれば，ウォーターフォールモデルによるシステム開発において，ユーザー（取得者）とベンダー（供給者）間で請負型の契約を基本とするフェーズはどれか。",
+      ["システム化計画フェーズから受入・導入支援フェーズまで", "要件定義フェーズから受入・導入支援フェーズまで", "要件定義フェーズからシステム結合フェーズまで", "システム内部設計フェーズからシステム結合フェーズまで"], 3,
+      "仕様が確定する内部設計〜システム結合は請負型。ユーザーの主体的な関与が必要な超上流（計画・要件定義）や受入は準委任型が基本。"]
+  ];
+  var KANA = ["ア", "イ", "ウ", "エ"];
+  var past = document.getElementById("past-list");
+  PAST.forEach(function (p) {
+    var d = document.createElement("details"); d.className = "pq";
+    var s = document.createElement("summary");
+    s.innerHTML = '<span class="pq-src">' + p[0] + "</span>";
+    s.appendChild(document.createTextNode(p[1]));
+    d.appendChild(s);
+    var ol = document.createElement("ol");
+    p[2].forEach(function (c, i) {
+      var li = document.createElement("li");
+      li.textContent = KANA[i] + "　" + c + (i === p[3] ? "　← 正解" : "");
+      if (i === p[3]) li.className = "ans";
+      ol.appendChild(li);
+    });
+    d.appendChild(ol);
+    var e = document.createElement("div"); e.className = "exp"; e.textContent = p[4];
+    d.appendChild(e);
+    past.appendChild(d);
+  });
+})();
+</script>
+</body>
+</html>

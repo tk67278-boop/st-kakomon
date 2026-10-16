@@ -113,6 +113,18 @@
   }
 
   /* ---------- 目次ビュー ---------- */
+  // まとめ資料（js/data/tb_summaries.js）へのリンク。新しいタブで開く
+  function summaryLinksHtml(list, cls) {
+    return list.map(function (m) {
+      return '<a class="' + cls + '" href="' + escapeAttr(m.file) + '" target="_blank" rel="noopener">' +
+        '<span class="tb-sum-badge">まとめ資料</span>' +
+        '<span class="tb-sum-title">' + escapeHtml(m.title) + '（' + escapeHtml(m.sections[0]) +
+          (m.sections.length > 1 ? '〜' + escapeHtml(m.sections[m.sections.length - 1]) : '') + '）</span>' +
+        '<span class="tb-sum-go">開く &rarr;</span></a>';
+    }).join("");
+  }
+  function summariesFor(pred) { return (window.TB_SUMMARIES || []).filter(pred); }
+
   function renderToc() {
     var el = $("#tb-toc");
     if (!el) return;
@@ -142,7 +154,10 @@
             '<span class="tb-row-check' + (done ? ' done' : '') + '">' + (done ? '✓' : '') + '</span>' +
             '</li>';
         });
-        html += '</ul></div>';
+        html += '</ul>';
+        var sums = summariesFor(function (m) { return m.chapter === ch.id; });
+        if (sums.length) html += '<div class="tb-sum-list">' + summaryLinksHtml(sums, "tb-sum-link") + '</div>';
+        html += '</div>';
       });
     }
 
@@ -192,6 +207,8 @@
     html += '<div class="tb-reader-head"><button type="button" class="linkbtn" id="tb-btn-back">&larr; 目次へ戻る</button></div>';
     html += '<div class="tb-reader-chapter">第' + ch.order + '章 ' + escapeHtml(ch.title) + '</div>';
     html += '<h2 class="tb-reader-title">' + escapeHtml(sec.title) + '</h2>';
+    var secSums = summariesFor(function (m) { return m.sections.indexOf(sec.id) >= 0; });
+    if (secSums.length) html += '<div class="tb-sum-list">' + summaryLinksHtml(secSums, "tb-sum-link") + '</div>';
     html += '<div class="tb-body">' + renderBody(sec.body, sec.figures) + '</div>';
 
     if (sec.points && sec.points.length) {

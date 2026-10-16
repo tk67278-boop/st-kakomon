@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>要件定義と調達まとめ</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd;
+    --c1: #0e9f6e; --c1-soft: #e3f6ee;   /* 構想 */
+    --c2: #2563eb; --c2-soft: #e5edfd;   /* 計画 */
+    --c3: #c2410c; --c3-soft: #fdeee4;   /* 要件定義 */
+    --c4: #6b7280; --c4-soft: #eef0f3;   /* 開発以降・その他 */
+    --warn: #b91c1c; --warn-soft: #fdecec; --ok: #15803d; --ok-soft: #e7f6ec;
+    --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50;
+      --c1: #34c38f; --c1-soft: #12352a; --c2: #5b93ff; --c2-soft: #1c2f50;
+      --c3: #f08a4b; --c3-soft: #3d2416; --c4: #9aa4b2; --c4-soft: #262f3b;
+      --warn: #f87171; --warn-soft: #3a1a1c; --ok: #4ade80; --ok-soft: #14301e;
+      --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50;
+    --c1: #34c38f; --c1-soft: #12352a; --c2: #5b93ff; --c2-soft: #1c2f50;
+    --c3: #f08a4b; --c3-soft: #3d2416; --c4: #9aa4b2; --c4-soft: #262f3b;
+    --warn: #f87171; --warn-soft: #3a1a1c; --ok: #4ade80; --ok-soft: #14301e;
+    --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 16px; line-height: 1.8;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 60px; }
+  header.hero { padding: 36px 0 18px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 28px; line-height: 1.4; margin: 6px 0 10px; }
+  h2 { font-size: 22px; margin: 0 0 6px; line-height: 1.45; }
+  h3 { font-size: 17px; margin: 22px 0 8px; }
+  p { margin: 0 0 12px; }
+  .lead { color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 22px 18px; margin: 18px 0; box-shadow: var(--shadow); }
+  .sec-no { display: inline-block; font-size: 13px; font-weight: 800; color: #fff; border-radius: 6px; padding: 1px 9px; margin-right: 8px; vertical-align: 3px; }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 24px; line-height: 1.2; }
+  .stat span { font-size: 13px; color: var(--muted); }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  nav.toc a { font-size: 14px; text-decoration: none; color: var(--accent); background: var(--accent-soft); padding: 4px 12px; border-radius: 999px; }
+
+  /* ライフサイクル帯 */
+  .flow { display: grid; grid-template-columns: 2fr 1fr 1.4fr 0.8fr 0.8fr; gap: 6px; margin: 16px 0 6px; }
+  .flow .box { border-radius: 10px; padding: 10px 8px; text-align: center; font-weight: 700; font-size: 14px; line-height: 1.5; border: 2px solid transparent; }
+  .flow .box small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); }
+  .b1 { background: var(--c1-soft); border-color: var(--c1) !important; }
+  .b2 { background: var(--c2-soft); border-color: var(--c2) !important; }
+  .b3 { background: var(--c3-soft); border-color: var(--c3) !important; }
+  .b4 { background: var(--c4-soft); border-color: var(--c4) !important; }
+  .kikaku { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0; border: 0; }
+  .brace { display: grid; grid-template-columns: 3fr 2.2fr; gap: 6px; font-size: 13px; font-weight: 700; text-align: center; }
+  .brace div { border-top: 3px solid var(--text); padding-top: 4px; }
+  .brace .dev { border-top-color: var(--c4); color: var(--muted); }
+
+  .points { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+  .points li { background: var(--accent-soft); border-radius: 10px; padding: 9px 14px 9px 40px; position: relative; font-weight: 600; }
+  .points li::before { content: "✓"; position: absolute; left: 14px; top: 9px; color: var(--accent); font-weight: 900; }
+  .trap { background: var(--warn-soft); border-left: 4px solid var(--warn); border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 14px 0 6px; font-size: 15px; }
+  .trap b { color: var(--warn); }
+  .tip { background: var(--ok-soft); border-left: 4px solid var(--ok); border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 14px 0 6px; font-size: 15px; }
+  .tip b { color: var(--ok); }
+
+  /* 要件定義4活動 */
+  .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; counter-reset: st; }
+  .step { background: var(--c3-soft); border: 1px solid var(--c3); border-radius: 10px; padding: 10px 12px; position: relative; }
+  .step::before { counter-increment: st; content: counter(st); position: absolute; top: -10px; left: 10px; background: var(--c3); color: #fff; font-size: 12px; font-weight: 800; border-radius: 999px; width: 22px; height: 22px; display: grid; place-items: center; }
+  .step h4 { margin: 6px 0 4px; font-size: 15px; }
+  .step p { font-size: 13.5px; margin: 0; line-height: 1.65; }
+  .step .key { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--c3); }
+
+  /* 比較表 */
+  .tbl-wrap { overflow-x: auto; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 560px; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
+  thead th { background: var(--c4-soft); font-size: 13.5px; }
+  th.h1c { background: var(--c1-soft); color: var(--c1); }
+  th.h2c { background: var(--c2-soft); color: var(--c2); }
+  th.h3c { background: var(--c3-soft); color: var(--c3); }
+  tbody th { background: var(--c4-soft); white-space: nowrap; font-size: 13.5px; }
+
+  /* ビジネスモデルキャンバス */
+  .bmc { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-auto-rows: minmax(44px, auto); gap: 4px; margin: 10px 0; font-size: 13px; }
+  .bmc div { background: var(--c1-soft); border: 1px solid var(--c1); border-radius: 8px; padding: 6px 8px; line-height: 1.45; }
+  .bmc b { display: block; font-size: 13.5px; }
+  .bmc .vp { background: var(--c1); color: #fff; }
+  .kp { grid-column: 1 / 3; grid-row: 1 / 3; } .ka { grid-column: 3 / 5; grid-row: 1; } .kr { grid-column: 3 / 5; grid-row: 2; }
+  .vp { grid-column: 5 / 7; grid-row: 1 / 3; } .cr { grid-column: 7 / 9; grid-row: 1; } .ch { grid-column: 7 / 9; grid-row: 2; }
+  .cs { grid-column: 9 / 11; grid-row: 1 / 3; } .co { grid-column: 1 / 6; grid-row: 3; } .rs { grid-column: 6 / 11; grid-row: 3; }
+
+  /* BABOK */
+  .babok { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .babok div { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+  .babok b { display: block; font-size: 15px; }
+  .babok .src { font-size: 12.5px; color: var(--muted); }
+
+  /* 計画の流れ */
+  .chain { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin: 12px 0; }
+  .chain div { flex: 1 1 120px; background: var(--c2-soft); border: 1px solid var(--c2); border-radius: 10px; padding: 8px 10px; font-size: 13.5px; font-weight: 600; line-height: 1.5; position: relative; }
+  .chain div small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+  .chain .star { background: var(--c2); color: #fff; }
+  .chain .star small { color: #e5edfd; }
+
+  /* 仕分けクイズ */
+  .sort-q { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0; }
+  .sort-q .task { font-weight: 600; font-size: 15px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .opts button { font: inherit; font-size: 13.5px; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .opts button:hover { border-color: var(--accent); }
+  .opts button.right { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .opts button.wrong { background: var(--warn); border-color: var(--warn); color: #fff; }
+  .opts button:disabled { cursor: default; }
+  .fb { font-size: 13.5px; margin-top: 6px; color: var(--muted); }
+  .score { position: sticky; top: 8px; z-index: 2; float: right; background: var(--accent); color: #fff; border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 700; }
+  .btn-reset { font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; margin-top: 6px; }
+
+  /* 過去問 */
+  details.pq { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 10px 0; background: var(--card); }
+  details.pq summary { cursor: pointer; font-weight: 600; list-style: none; }
+  details.pq summary::-webkit-details-marker { display: none; }
+  details.pq summary::before { content: "▸"; color: var(--accent); margin-right: 8px; }
+  details.pq[open] summary::before { content: "▾"; }
+  .pq-src { font-size: 12.5px; color: var(--muted); display: block; font-weight: 500; }
+  .pq ol { list-style: none; padding: 0; margin: 10px 0; }
+  .pq li { padding: 4px 0 4px 1.8em; text-indent: -1.8em; font-size: 14.5px; }
+  .pq li.ans { color: var(--ok); font-weight: 700; }
+  .pq .exp { font-size: 14px; background: var(--c4-soft); border-radius: 8px; padding: 8px 12px; }
+
+  .memo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .memo div { border-radius: 12px; padding: 14px; font-size: 14.5px; }
+  .memo b { display: block; font-size: 17px; margin-bottom: 4px; }
+  footer { font-size: 12.5px; color: var(--muted); margin-top: 30px; }
+  .theme-btn { position: fixed; right: 14px; bottom: 14px; font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
+
+  @media (max-width: 680px) {
+    h1 { font-size: 23px; }
+    .card { padding: 16px 14px 12px; }
+    .stats { grid-template-columns: 1fr 1fr 1fr; }
+    .stat b { font-size: 19px; }
+    .flow { grid-template-columns: 1fr; }
+    .kikaku { grid-template-columns: 1fr 1fr; }
+    .brace { display: none; }
+    .steps { grid-template-columns: 1fr 1fr; row-gap: 16px; }
+    .bmc { grid-template-columns: 1fr 1fr; }
+    .bmc div { grid-column: auto !important; grid-row: auto !important; }
+    .bmc .vp { grid-column: 1 / 3 !important; }
+    .babok { grid-template-columns: 1fr; }
+    .memo { grid-template-columns: 1fr; }
+  }
+  @media print { .theme-btn, .score { display: none; } .card { box-shadow: none; break-inside: avoid; } }
+
+  /* 2-4〜2-5 用の追加部品 */
+  .layers { display: grid; gap: 6px; margin: 10px 0; }
+  .layer { border-radius: 10px; padding: 10px 14px; border-left: 6px solid; }
+  .layer b { font-size: 16px; margin-right: 10px; }
+  .layer span { font-size: 14.5px; }
+  .layer em { display: block; font-style: normal; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .l1 { background: var(--c1-soft); border-color: var(--c1); }
+  .l2 { background: var(--c2-soft); border-color: var(--c2); margin-left: 18px; }
+  .l3 { background: var(--c3-soft); border-color: var(--c3); margin-left: 36px; }
+  table.num td, table.num th { text-align: center; }
+  table.num { min-width: 520px; }
+  .reveal { font: inherit; font-size: 12.5px; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); cursor: pointer; }
+  .revealed { font-size: 13px; text-align: left; display: inline-block; }
+  .contract { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 12px 0; }
+  .ct { border-radius: 8px; padding: 8px 4px; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.4; border: 1px solid; }
+  .ct small { display: block; font-size: 11.5px; font-weight: 600; margin-top: 2px; }
+  .jun { background: var(--c1-soft); border-color: var(--c1); } .jun small { color: var(--c1); }
+  .uke { background: var(--c2-soft); border-color: var(--c2); } .uke small { color: var(--c2); }
+  .mix { background: var(--c4-soft); border-color: var(--c4); } .mix small { color: var(--muted); }
+  #quiz h3 { margin-top: 18px; }
+  @media (max-width: 680px) {
+    .contract { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .l2 { margin-left: 10px; } .l3 { margin-left: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">ITストラテジスト 教科書 第2章 システム企画</div>
+  <h1>要件定義と調達・投資効果評価（2-4〜2-5）<br>「〜要件」の見分けと、NPV・IRR・回収期間</h1>
+  <p class="lead">2-4は「その要件は業務要件・機能要件・非機能要件のどれか」を見分ける問題、2-5は投資評価の計算と、RFI・RFP・RFQなど用語の区別が中心です。特に2-5は、過去問で<b>ほぼ同じ問題が何度も再出題</b>されています。</p>
+  <div class="stats">
+    <div class="stat"><b>20問</b><span>過去16回の午前IIで、この範囲から出た問題数（再出題を含む）</span></div>
+    <div class="stat"><b>5組</b><span>まったく同じ問題が別の年度にも出た組</span></div>
+    <div class="stat"><b>20問</b><span>このページの仕分けクイズ</span></div>
+  </div>
+  <nav class="toc">
+    <a href="#s24">2-4 要件定義</a><a href="#nfr">非機能要件</a><a href="#s25">2-5 調達</a><a href="#invest">投資評価の4指標</a><a href="#calc">計算練習</a><a href="#tco">TCO</a><a href="#contract">契約形態</a><a href="#quiz">仕分けクイズ</a><a href="#past">過去問</a><a href="#memo">覚え方</a>
+  </nav>
+</header>
+
+<!-- 2-4 -->
+<section class="card" id="s24">
+  <h2><span class="sec-no" style="background:var(--c3)">2-4</span>要件定義 ― 何を作るかを確定する</h2>
+  <ul class="points">
+    <li>要件は「業務要件 → 機能要件 → 非機能要件」の順に整理する</li>
+    <li>非機能要件は、可用性・性能・使用性などの品質や制約</li>
+    <li>要件定義は「利害関係者の識別 → 要件の識別 → 評価 → 合意」の4活動で合意を作る</li>
+  </ul>
+  <p>システム化計画を踏まえて、実現すべきことを利害関係者と一緒に確定する工程です。ここで決めたことが設計・開発の土台になり、要件定義書は以降の契約や作業範囲の基準にもなります。ここが曖昧だと、開発の後半で仕様変更や追加要求が次々に出てきます。</p>
+
+  <h3>要件の3層（上が下の前提になる）</h3>
+  <div class="layers">
+    <div class="layer l1"><b>業務要件</b><span>新しい業務の在り方や運用、業務手順、入出力情報、組織、責任、権限、業務上の制約</span><em>機能要件を決めるための前提（平成21年度 問8・平成23年度 問6）</em></div>
+    <div class="layer l2"><b>機能要件</b><span>業務を支えるシステムで、利用者が行う作業、システム機能の実現範囲、機能間の情報の流れ</span><em>「システムが何をするか」</em></div>
+    <div class="layer l3"><b>非機能要件</b><span>システム基盤に関わる可用性、性能、拡張性、運用性、保守性、移行性など</span><em>「どのくらいの品質・制約で動くか」（令和5年度 問5）</em></div>
+  </div>
+  <div class="trap"><b>定番のひっかけ（令和5年度 問5）：</b>「利用者要件のうち非機能要件項目はどれか」で、業務要件（業務手順・組織・権限）、機能要件（利用者の作業・機能の範囲・情報の流れ）、構想の項目（経営上のニーズ・業務上の課題）が並びます。<b>「システム基盤」「可用性・性能」と書いてあれば非機能要件</b>です。</div>
+  <div class="trap"><b>工程の取り違え（平成21年度 問8）：</b>「業務上の問題点を分析し、システムで実現すべき<b>課題を定義する</b>」のは構想・計画の作業です。要件定義は「ニーズを整理し、業務上実現すべき<b>要件を明らかにする</b>」作業です。課題か要件かで見分けます。</div>
+
+  <h3>要件を引き出す道具</h3>
+  <div class="babok">
+    <div><b>構造化インタビュー</b>調査項目と質問の順序を、事前にすべて決めておくインタビュー</div>
+    <div><b>フィット&amp;ギャップ分析</b>パッケージを導入するとき、自社の業務要件と標準機能がどれだけ合うか（ずれるか）を見極める</div>
+    <div><b>BABOKのソリューション要求</b>機能要求と非機能要求に当たる。要求アナリシスで定義する（平成25年度 問4）</div>
+    <div><b>要件定義の4活動</b>識別＝引き出す、評価＝矛盾をなくして整える、合意＝解決方法を説明して納得を得る（2-1で整理）</div>
+  </div>
+</section>
+
+<!-- 非機能要件 -->
+<section class="card" id="nfr">
+  <h2>非機能要件の具体例 ― 「何の品質か」を当てる</h2>
+  <p>平成25年度 問5では、4つの具体例から「使用性」に当たるものを選ばせました。数字の入った文から、何の品質を決めているかを読み取ります。</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>具体例</th><th class="h3c">品質特性</th><th>見分けるキーワード</th></tr></thead>
+    <tbody>
+      <tr><td>4時間以内のトレーニングで、新しい画面を操作できる</td><td><b>使用性</b></td><td>覚えやすさ・操作しやすさ</td></tr>
+      <tr><td>業務のピーク時でも、夜間バッチ処理を8時間以内に終える</td><td><b>効率性（性能）</b></td><td>処理時間・応答時間・処理量</td></tr>
+      <tr><td>現行システムから新システムへ72時間以内に移行できる</td><td><b>移行性</b></td><td>移行・データ変換</td></tr>
+      <tr><td>大規模災害時でも、144時間以内にシステムを復旧できる</td><td><b>可用性（信頼性）</b></td><td>止まらない・復旧時間</td></tr>
+      <tr><td>利用者が倍増しても、サーバの追加で対応できる</td><td><b>拡張性</b></td><td>将来の増加への対応</td></tr>
+      <tr><td>障害の原因を短時間で特定し、修正できる</td><td><b>保守性</b></td><td>直しやすさ</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="tip"><b>関連知識：</b>IPAの「非機能要求グレード」は、非機能要求を可用性、性能・拡張性、運用・保守性、移行性、セキュリティ、システム環境・エコロジーの<b>6つの大項目</b>に整理し、レベルを選んで発注者と受注者が合意するための資料です。</div>
+</section>
+
+<!-- 2-5 調達 -->
+<section class="card" id="s25">
+  <h2><span class="sec-no" style="background:var(--c2)">2-5</span>調達と投資効果評価 ― 誰に頼み、元が取れるか</h2>
+  <ul class="points">
+    <li>RFI → RFP → RFQ の順に、ベンダから情報を集める</li>
+    <li>NPV・IRR・回収期間法・ROIで投資効果を評価する</li>
+    <li>TCOは導入費だけでなく、運用・保守費も含めた総コスト</li>
+  </ul>
+  <h3>調達の流れ</h3>
+  <div class="chain">
+    <div class="star">RFI<br>情報提供依頼書<small>技術動向・パッケージ情報・開発方法論の提供を頼む（要件が固まる前）</small></div>
+    <div class="star">RFP<br>提案依頼書<small>要件と調達条件を示し、具体的な提案を頼む</small></div>
+    <div class="star">RFQ<br>見積依頼書<small>仕様がある程度固まった段階で、価格の見積りを頼む</small></div>
+    <div>提案の評価・選定<small>機能の充足度・実績・価格を総合評価</small></div>
+    <div>契約<small>工程ごとに請負・準委任を使い分け</small></div>
+  </div>
+  <div class="trap"><b>ひっかけ注意（平成26年度 問5）：</b>「IT技術動向、ソフトウェアパッケージ情報、開発方法論などの情報提供をベンダに要請するもの」→ 答えは<b>RFI</b>です。選択肢にはRFP・RFQのほか、IFB（入札招請書）も並びます。I＝Information（情報）、P＝Proposal（提案）、Q＝Quotation（見積り）と英語で覚えると取り違えません。</div>
+  <div class="tip"><b>RFPに書くこと：</b>現状の業務やシステムの概要、システム化の目的、要件、契約条件、提案書の提出形式などです。評価では価格の安さだけでなく、<b>経営課題の解決やシステム化構想の目的にどれだけ役立つか</b>を見ます。</div>
+</section>
+
+<!-- 投資評価 -->
+<section class="card" id="invest">
+  <h2>投資評価の4指標 ― 説明文から当てる</h2>
+  <p>平成24年度 問23と令和元年度 問22では、4つの説明文からIRR法を選ばせました。4つの違いを1行で言えるようにします。</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>指標</th><th>何を求めるか</th><th>採用の判断</th><th>時間価値</th></tr></thead>
+    <tbody>
+      <tr><th>NPV<br>正味現在価値</th><td>将来のキャッシュフローの<b>現在価値の合計 − 初期投資額</b></td><td>プラスなら投資価値あり。大きいほど良い</td><td>考慮する</td></tr>
+      <tr><th>IRR<br>内部収益率</th><td>キャッシュアウトの現在価値＝キャッシュインの現在価値、つまり<b>NPVがゼロになる割引率</b></td><td>資本コストなどの基準率より大きければ有利</td><td>考慮する</td></tr>
+      <tr><th>回収期間法<br>PBP</th><td>投資額を年々のキャッシュフローで<b>回収するまでの期間</b></td><td>短いほど良い</td><td>考慮しない</td></tr>
+      <tr><th>ROI<br>投資利益率</th><td><b>平均的な利益 ÷ 投資額</b>（利回り）</td><td>高いほど良い</td><td>考慮しない</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="tip"><b>NPVの式：</b>n年後のキャッシュフローを <b>(1＋割引率)ⁿ</b> で割って現在価値にし、合計から初期投資額を引きます。割引率2.5%なら1年後は1.025、2年後は1.025²…で割ります。この考え方をDCF（割引キャッシュフロー）といいます。</div>
+  <div class="trap"><b>式を選ばせる問題（平成22年度 問6、平成27年度 問5で同じ問題）：</b>「0.025で割る式」や「指数が逆順（1年後のお金を1.025⁵で割る）の式」がひっかけです。<b>1＋割引率</b>で割ること、<b>近い年ほど小さい指数</b>であることを確認します。</div>
+  <div class="trap"><b>指標の名前を問う問題（令和3年度 問2）：</b>「キャッシュフローの現在価値を計算して投資効果を評価する指標」→ <b>NPV</b>です。BSC（4つの視点の業績評価）、EVA（税引後営業利益 − 資本コスト）、ROI（利益の比率）は現在価値を計算しません。</div>
+</section>
+
+<!-- 計算練習 -->
+<section class="card" id="calc">
+  <h2>計算練習（過去問の数値で）</h2>
+  <h3>練習1：NPVで比べる（平成23年度 問4・平成29年度 問8で同じ問題）</h3>
+  <p>期間3年、割引率5%。投資額はどれも220万円で、回収額の合計もどれも240万円です。どれが一番得でしょうか。</p>
+  <div class="tbl-wrap">
+  <table class="num">
+    <thead><tr><th>シナリオ</th><th>投資額</th><th>1年目</th><th>2年目</th><th>3年目</th><th>NPV</th></tr></thead>
+    <tbody>
+      <tr><th>A</th><td>220</td><td>40</td><td>80</td><td>120</td><td><button type="button" class="reveal" data-a="40/1.05 ＋ 80/1.05² ＋ 120/1.05³ − 220 ≒ 38.1 ＋ 72.6 ＋ 103.7 − 220 ≒ <b>−5.7</b>">計算を見る</button></td></tr>
+      <tr><th>B</th><td>220</td><td>120</td><td>80</td><td>40</td><td><button type="button" class="reveal" data-a="120/1.05 ＋ 80/1.05² ＋ 40/1.05³ − 220 ≒ 114.3 ＋ 72.6 ＋ 34.6 − 220 ≒ <b>＋1.4</b>（唯一のプラス）">計算を見る</button></td></tr>
+      <tr><th>C</th><td>220</td><td>80</td><td>80</td><td>80</td><td><button type="button" class="reveal" data-a="80/1.05 ＋ 80/1.05² ＋ 80/1.05³ − 220 ≒ 76.2 ＋ 72.6 ＋ 69.1 − 220 ≒ <b>−2.1</b>">計算を見る</button></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="tip"><b>答えはB。</b>回収額の合計が同じなら、<b>早い年にたくさん回収する案ほどNPVは大きくなります</b>。この感覚があれば、計算しなくても見当がつきます。</div>
+
+  <h3>練習2：回収期間で比べる（平成26年度 問4・平成28年度 問4で同じ問題）</h3>
+  <p>投資額500。キャッシュインが次のとき、最も早く回収できるのはどれでしょうか。</p>
+  <div class="tbl-wrap">
+  <table class="num">
+    <thead><tr><th></th><th>1年目</th><th>2年目</th><th>3年目</th><th>4年目</th><th>5年目</th><th>回収期間</th></tr></thead>
+    <tbody>
+      <tr><th>a</th><td>100</td><td>150</td><td>200</td><td>250</td><td>300</td><td><button type="button" class="reveal" data-a="3年目末で450、残り50を4年目の250で回収 → <b>約3.2年</b>">答え</button></td></tr>
+      <tr><th>b</th><td>100</td><td>200</td><td>300</td><td>200</td><td>100</td><td><button type="button" class="reveal" data-a="2年目末で300、残り200を3年目の300で回収 → <b>約2.7年</b>">答え</button></td></tr>
+      <tr><th>c</th><td>200</td><td>150</td><td>100</td><td>150</td><td>200</td><td><button type="button" class="reveal" data-a="3年目末で450、残り50を4年目の150で回収 → <b>約3.3年</b>">答え</button></td></tr>
+      <tr><th>d</th><td>300</td><td>200</td><td>100</td><td>50</td><td>50</td><td><button type="button" class="reveal" data-a="300＋200で<b>2年ちょうど</b>（最短 → 答えはd）">答え</button></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="lead">回収期間＝回収が終わる前の年までの年数 ＋ 残額 ÷ その年のキャッシュイン。回収後の利益は見ないのが回収期間法の弱点です（dは3年目以降が少なくても1位）。</p>
+
+  <h3>練習3：割引係数で計算する（令和5年度 問4）</h3>
+  <p>割引率10%、2年間。1年目は ÷1.1、2年目は ÷1.21 です。問題の数値は、ちょうど割り切れるように作られています。</p>
+  <div class="tbl-wrap">
+  <table class="num">
+    <thead><tr><th></th><th>初期投資</th><th>1年目</th><th>2年目</th><th>NPV</th></tr></thead>
+    <tbody>
+      <tr><th>a</th><td>7.9</td><td>4.40</td><td>4.84</td><td><button type="button" class="reveal" data-a="4.0 ＋ 4.0 − 7.9 ＝ <b>0.1</b>">答え</button></td></tr>
+      <tr><th>b</th><td>5.5</td><td>3.30</td><td>3.63</td><td><button type="button" class="reveal" data-a="3.0 ＋ 3.0 − 5.5 ＝ <b>0.5</b>">答え</button></td></tr>
+      <tr><th>c</th><td>4.3</td><td>3.30</td><td>2.42</td><td><button type="button" class="reveal" data-a="3.0 ＋ 2.0 − 4.3 ＝ <b>0.7</b>（最大 → 答えはc）">答え</button></td></tr>
+      <tr><th>d</th><td>6.1</td><td>2.20</td><td>3.63</td><td><button type="button" class="reveal" data-a="2.0 ＋ 3.0 − 6.1 ＝ <b>−1.1</b>">答え</button></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="tip"><b>問題文に割引係数（0.91など）が書いてあれば、それを掛けるだけ</b>です。割引率は係数を作った前提の説明なので、自分で1.1で割り直すと答えがずれることがあります。</div>
+</section>
+
+<!-- TCO -->
+<section class="card" id="tco">
+  <h2>TCO（総所有コスト）に含めるもの・含めないもの</h2>
+  <p>TCOは、導入費だけでなく、運用・保守・教育や利用部門の手間まで、<b>システムを持ち続けることで自社にかかる費用の全体</b>です。平成25年度 問2と平成27年度 問2で、ほぼ同じ問題が出ました。</p>
+  <div class="babok">
+    <div style="border-color:var(--ok)"><b style="color:var(--ok)">含める</b>
+      ・導入費（ハードウェア、ソフトウェア、構築）<br>
+      ・運用・保守・教育の費用<br>
+      ・エンドユーザコンピューティングでの<b>利用部門の運用費用</b><br>
+      ・システム監査の監査データの収集・管理費用<br>
+      ・利用部門のシステム利用に起因する<b>埋没原価などの見えない費用</b>（過去問の正解）</div>
+    <div style="border-color:var(--warn)"><b style="color:var(--warn)">含めない</b>
+      ・障害と直接関係のない<b>仕入先企業が被るおそれのある将来の損失</b><br>
+      → 自社の所有コストではないため対象外</div>
+  </div>
+  <div class="trap"><b>見分け方：</b>過去問の選択肢は「〜を考慮する必要はない」と除外する文が多く、それが誤りです。TCOは「見えにくい費用まで含める」が正解の方向で、除外してよいのは<b>他社の損失だけ</b>です。</div>
+</section>
+
+<!-- 契約形態 -->
+<section class="card" id="contract">
+  <h2>調達後の契約形態（モデル取引・契約書）</h2>
+  <p>経済産業省の「情報システム・モデル取引・契約書＜第二版＞」では、ウォーターフォール型の開発で、工程ごとに契約形態を使い分けます。令和4年度 問5と令和6年度 問5で出題されました。</p>
+  <div class="contract">
+    <div class="ct jun">要件定義<small>準委任</small></div>
+    <div class="ct mix">外部設計<small>準委任 or 請負</small></div>
+    <div class="ct uke">内部設計<small>請負</small></div>
+    <div class="ct uke">製造・テスト<small>請負</small></div>
+    <div class="ct uke">システム結合<small>請負</small></div>
+    <div class="ct mix">システムテスト<small>準委任 or 請負</small></div>
+    <div class="ct jun">運用テスト・受入<small>準委任</small></div>
+  </div>
+  <div class="tip"><b>理由：</b>要件定義や運用テストは<b>ユーザーの主体的な関与が必要で、作業の中身を事前に確定しにくい</b>ので準委任型（善管注意義務で事務を処理）。内部設計〜システム結合は成果物を明確にでき、ベンダが完成責任を負えるので請負型です。</div>
+  <h3>費用の支払い方による契約の種類（令和元年度 問5）</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>契約</th><th>内容</th><th>コストのリスクを負う側</th></tr></thead>
+    <tbody>
+      <tr><th>完全定額</th><td>注文時に合意した価格を支払う</td><td>ベンダ</td></tr>
+      <tr><th>経済価格調整付き定額</th><td>インフレ率や調達コストの変化に応じて、契約金額を調整する</td><td>分担</td></tr>
+      <tr><th>インセンティブフィー付き</th><td>目標コスト・利益・配分率・上限額を合意し、目標と実績の差で利益を配分する</td><td>分担</td></tr>
+      <tr><th>実費償還型</th><td>報酬に加え、業務の遂行に要した<b>費用の全て</b>を支払う</td><td>発注者</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 仕分けクイズ -->
+<section class="card" id="quiz">
+  <span class="score" id="score">0 / 20</span>
+  <h2>仕分けクイズ</h2>
+  <p class="lead">前半10問は「どの要件か」、後半10問は「どの用語・指標か」です。押すと正誤と理由が出ます。</p>
+  <div id="sort-list"></div>
+  <button type="button" class="btn-reset" id="sort-reset">もう一度（順番を入れ替え）</button>
+</section>
+
+<!-- 過去問 -->
+<section class="card" id="past">
+  <h2>過去問で確認（午前II）</h2>
+  <p class="lead">クリックすると選択肢と解説が開きます。正解は緑色で表示されます。同じ問題が別の年度にも出たものは、まとめて1つにしています。計算問題（NPV・回収期間の表を使うもの）は、上の「計算練習」で扱っています。</p>
+  <div id="past-list"></div>
+</section>
+
+<!-- 覚え方 -->
+<section class="card" id="memo">
+  <h2>直前の覚え方（これだけは）</h2>
+  <div class="memo">
+    <div style="background:var(--c3-soft)"><b style="color:var(--c3)">要件は3層</b>業務（手順・組織・権限）→ 機能（作業・範囲・情報の流れ）→ 非機能（システム基盤・可用性・性能）</div>
+    <div style="background:var(--c2-soft)"><b style="color:var(--c2)">I → P → Q</b>Information（情報）→ Proposal（提案）→ Quotation（見積り）。TCOは見えない費用も含め、他社の損失だけ除く</div>
+    <div style="background:var(--c1-soft)"><b style="color:var(--c1)">NPVとIRR</b>NPV＝現在価値の合計−投資額。IRR＝NPVがゼロになる割引率。回収期間とROIは時間価値を見ない</div>
+  </div>
+</section>
+
+<footer>出典：アプリ内教科書 第2章（2-4〜2-5）と、IPA ITストラテジスト試験 午前IIの過去問（平成21年度〜令和6年度）をもとに作成した学習用資料です。</footer>
+</div>
+
+<button type="button" class="theme-btn" id="theme-btn">表示切替</button>
+
+<script>
+(function () {
+  "use strict";
+  // 表示テーマの切替（自動→ライト→ダーク）。保存できない環境でも動作する
+  var root = document.documentElement, btn = document.getElementById("theme-btn");
+  var modes = ["auto", "light", "dark"], labels = { auto: "表示：自動", light: "表示：ライト", dark: "表示：ダーク" };
+  function apply(m) { if (m === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", m); btn.textContent = labels[m]; }
+  var cur = "auto";
+  try { cur = localStorage.getItem("kikaku_theme") || "auto"; } catch (e) {}
+  apply(cur);
+  btn.addEventListener("click", function () {
+    cur = modes[(modes.indexOf(cur) + 1) % modes.length];
+    apply(cur);
+    try { localStorage.setItem("kikaku_theme", cur); } catch (e) {}
+  });
+
+  // 計算練習: ボタンを押すと計算過程を表示
+  Array.prototype.forEach.call(document.querySelectorAll(".reveal"), function (b) {
+    b.addEventListener("click", function () {
+      var span = document.createElement("span");
+      span.className = "revealed";
+      span.innerHTML = b.getAttribute("data-a");
+      b.parentNode.replaceChild(span, b);
+    });
+  });
+
+  // 仕分けクイズ（前半: 要件の種類、後半: 用語・指標）
+  var GROUPS = [
+    { opts: ["業務要件", "機能要件", "非機能要件"], items: [
+      ["新しい業務の手順と、担当者ごとの責任・権限を決める", 0, "業務の在り方・組織・責任・権限は業務要件。"],
+      ["受注業務で使う入出力情報と、業務上の制約をまとめる", 0, "業務手順・入出力情報・業務上の制約は業務要件（令和5年度 問5の選択肢ア）。"],
+      ["利用者が画面で行う作業と、システム機能の実現範囲を決める", 1, "利用者の作業・機能の範囲は機能要件。"],
+      ["機能と機能の間の情報の流れを定義する", 1, "機能間の情報の流れは機能要件（令和5年度 問5の選択肢イ）。"],
+      ["4時間以内のトレーニングで新しい画面を操作できること", 2, "使用性（平成25年度 問5の正解）。"],
+      ["業務のピーク時でも夜間バッチ処理を8時間以内に終えること", 2, "効率性（性能）に関わる非機能要件。"],
+      ["災害時でも144時間以内にシステムを復旧できること", 2, "可用性（信頼性）に関わる非機能要件。"],
+      ["現行システムから新システムへ72時間以内に移行できること", 2, "移行性に関わる非機能要件。"],
+      ["利用者が倍増してもサーバの追加で対応できること", 2, "拡張性に関わる非機能要件。"],
+      ["ニーズを整理し、新しい業務の在り方や運用をまとめて、業務上実現すべき要件を明らかにする", 0, "機能要件を定義する前提となる業務要件の定義（平成21年度 問8の正解）。"]
+    ] },
+    { opts: ["RFI", "RFP", "RFQ", "NPV", "IRR", "回収期間法", "ROI", "TCO"], items: [
+      ["IT技術動向やパッケージ情報、開発方法論の情報提供をベンダに頼む", 0, "RFI（情報提供依頼書）。平成26年度 問5の正解。"],
+      ["要件と調達条件を示して、ベンダに具体的な提案を頼む", 1, "RFP（提案依頼書）。"],
+      ["仕様がある程度固まった段階で、価格の見積りを頼む", 2, "RFQ（見積依頼書）。"],
+      ["将来のキャッシュインの現在価値の合計から初期投資額を引いて評価する", 3, "NPV（正味現在価値）。"],
+      ["キャッシュアウトとキャッシュインの現在価値が等しくなる割引率を求めて評価する", 4, "IRR（内部収益率）。平成24年度 問23・令和元年度 問22の正解。"],
+      ["投下した資金を何年で回収できるかで評価する", 5, "回収期間法（PBP）。時間価値は考慮しない。"],
+      ["平均年間利益を投資額で割った利回りで評価する", 6, "ROI（投資利益率）。"],
+      ["導入から運用・保守・利用部門の手間まで、システムを持ち続ける総費用", 7, "TCO（総所有コスト）。"],
+      ["NPVがゼロになる割引率を、資本コストと比べて採否を決める", 4, "IRR。基準の割引率より大きければ有利。"],
+      ["複数の案のうち、早く元が取れる案を優先したい", 5, "回収期間法。回収後の利益は見ない点が弱点。"]
+    ] }
+  ];
+  var list = document.getElementById("sort-list"), scoreEl = document.getElementById("score");
+  var total = GROUPS.reduce(function (n, g) { return n + g.items.length; }, 0);
+  var answered = 0, correct = 0;
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function render() {
+    answered = 0; correct = 0; scoreEl.textContent = "0 / " + total;
+    list.innerHTML = "";
+    var n = 0;
+    GROUPS.forEach(function (g, gi) {
+      var head = document.createElement("h3");
+      head.textContent = gi === 0 ? "前半：どの要件？" : "後半：どの用語・指標？";
+      list.appendChild(head);
+      shuffle(g.items.slice()).forEach(function (it) {
+        n++;
+        var box = document.createElement("div"); box.className = "sort-q";
+        box.innerHTML = '<div class="task">' + n + ". " + it[0] + '</div><div class="opts"></div><div class="fb" aria-live="polite"></div>';
+        var opts = box.querySelector(".opts"), fb = box.querySelector(".fb");
+        g.opts.forEach(function (label, i) {
+          var b = document.createElement("button"); b.type = "button"; b.textContent = label;
+          b.addEventListener("click", function () {
+            var btns = opts.querySelectorAll("button");
+            btns.forEach(function (x) { x.disabled = true; });
+            btns[it[1]].classList.add("right");
+            if (i !== it[1]) b.classList.add("wrong"); else correct++;
+            answered++;
+            fb.textContent = (i === it[1] ? "正解。" : "不正解。正しくは「" + g.opts[it[1]] + "」。") + it[2];
+            scoreEl.textContent = correct + " / " + total + (answered === total ? "（完了）" : "");
+          });
+          opts.appendChild(b);
+        });
+        list.appendChild(box);
+      });
+    });
+  }
+  document.getElementById("sort-reset").addEventListener("click", render);
+  render();
+
+  // 過去問（IPA ITストラテジスト試験 午前II）。同じ問題の再出題はまとめて表示
+  var PAST = [
+    ["平成21年度 秋期 問8（平成23年度 問6も同じ問題）", "システムの機能要件を定義する上で，前提となる要件定義作業はどれか。",
+      ["対象業務の業務モデルから業務機能を支援するシステム化機能を整理し，その実現のために必要なシステム方式を策定する。", "対象業務の具体的な業務上の問題点を分析し，解決方向を明確化するとともに，システムを用いて実現すべき課題を定義する。", "利害関係者からのニーズを整理し，新しい業務の在り方や運用をまとめた上で，業務上実現すべき要件を明らかにする。", "利害関係者要件のシステム要求が技術的に実現可能であるかを検証し，システム設計が可能な技術要件に変換する。"], 2,
+      "機能要件の前提は業務要件の定義。イは構想・計画段階の課題定義，アとエは機能要件の定義より後の作業。"],
+    ["平成25年度 秋期 問5", "非機能要件の使用性に該当するものはどれか。",
+      ["4時間以内のトレーニングで新しい画面インタフェースを操作できること", "業務のピーク時でも8時間以内で夜間バッチ処理を完了できること", "現行のシステムから新システムへ72時間以内で移行できること", "地震などの大規模災害時でも144時間以内にシステムを復旧できること"], 0,
+      "使用性は理解・習得・操作のしやすさ。イは効率性（性能），ウは移行性，エは可用性（信頼性）。"],
+    ["令和5年度 春期 問5", "利用者要件のうち，非機能要件項目はどれか。",
+      ["新しい業務の在り方や運用に関わる業務手順，入出力情報，組織，責任，権限，業務上の制約などの項目", "新しい業務の遂行に必要なアプリケーションシステムに関わる利用者の作業，システム機能の実現範囲，機能間の情報の流れなどの項目", "経営戦略や情報戦略に関わる経営上のニーズ，システム化・システム改善を必要とする業務上の課題，求められる成果・目標などの項目", "システム基盤に関わる可用性，性能，拡張性，運用性，保守性，移行性などの項目"], 3,
+      "非機能要件はシステム基盤に関わる品質・制約。アは業務要件，イは機能要件，ウはシステム化の方針・目標。"],
+    ["平成26年度 秋期 問5", "IT技術動向，ソフトウェアパッケージ情報，開発方法論などの情報提供をベンダに要請するものはどれか。",
+      ["IFB", "RFI", "RFP", "RFQ"], 1,
+      "RFIは情報提供依頼書。RFPは提案依頼書，RFQは見積依頼書，IFBは入札招請書。"],
+    ["平成22年度 秋期 問6（平成27年度 問5も同じ問題）", "IT投資案件Xにおいて，投資効果をNPVで評価する場合の算出式はどれか。（初期投資200，1〜5年後のキャッシュインが100，90，80，60，50，割引率2.5％）",
+      ["−200＋100/0.025＋90/0.025²＋80/0.025³＋60/0.025⁴＋50/0.025⁵", "−200＋100/0.025⁵＋90/0.025⁴＋80/0.025³＋60/0.025²＋50/0.025", "−200＋100/1.025＋90/1.025²＋80/1.025³＋60/1.025⁴＋50/1.025⁵", "−200＋100/1.025⁵＋90/1.025⁴＋80/1.025³＋60/1.025²＋50/1.025"], 2,
+      "n年後は（1＋割引率）のn乗で割る。0.025で割る式と，指数が逆順の式がひっかけ。"],
+    ["平成24年度 秋期 問23", "投資評価方法の説明のうち，IRR（Internal Rate of Return）法はどれか。",
+      ["“将来に期待されるキャッシュインフローの現在価値の総額 － 初期投資額”を算出し，評価する。", "“投下された資本 ＝ 将来に期待される各期のキャッシュインフローの累計”になるまでの期間を算出し，評価する。", "“投資案のキャッシュアウトフローの現在価値の総額 ＝ 将来に期待されるキャッシュインフローの現在価値の総額”になるような割引率を算出し，評価する。", "“投資案の効果が及ぶ最終年までの平均年間純利益 ÷ 投資総額”で利回りを算出し，評価する。"], 2,
+      "IRRはNPVがゼロになる割引率。アはNPV法，イは回収期間法，エはROI法。"],
+    ["令和元年度 秋期 問22", "投資効果の評価に用いられる内部収益率法（IRR法）を説明したものはどれか。",
+      ["現金の支出（投資額）と収入（利益額）のフローを現在価値に置き換えた金額の大小によって投資の有利性を評価する方法である。", "投下した資金がどれだけの期間で回収できるかによって投資の有利性を評価する方法である。", "投資から回収される現金収入（利益額）の現在価値が投資額に等しくなるような割引率を求め，基準の割引率よりも大きければ有利と評価する方法である。", "投資によって生じる年々の平均現金流入額を投資額で割って投資利益率を算出し，投資利益率が高ければ有利と評価する方法である。"], 2,
+      "平成24年度 問23と同じ観点。アはNPV法，イは回収期間法，エはROI法。"],
+    ["令和3年度 春期 問2", "情報システムの導入と活用によって生み出されるキャッシュフローの現在価値を計算することによって，投資効果を評価したい。このときに使われる指標はどれか。",
+      ["BSC", "EVA", "NPV", "ROI"], 2,
+      "現在価値を計算するのはNPV。BSCは4つの視点の業績評価，EVAは税引後営業利益から資本コストを引いた経済的付加価値，ROIは投資額に対する利益の比率。"],
+    ["平成25年度 秋期 問2（平成27年度 問2もほぼ同じ問題）", "TCOの策定に当たって適切なものはどれか。",
+      ["エンドユーザコンピューティングにおけるユーザ部門の運用コストを考慮する必要はない。", "システム監査における監査対象データの収集コストや管理コストを考慮する必要はない。", "システム障害の発生などによって仕入先企業が被るおそれのある，将来的な損失額も考慮する必要がある。", "ユーザ部門におけるシステム利用に起因する，埋没原価などの見えないコストも考慮する必要がある。"], 3,
+      "TCOは見えにくい費用まで含める。アとイの除外は誤り，ウの仕入先企業の損失は自社の所有コストではないので含めない。"],
+    ["令和元年度 秋期 問5", "システム開発における発注者と受注者であるベンダとの契約方法のうち，実費償還型契約はどれか。",
+      ["委託業務の進行中に発生するリスクはベンダが負い，発注者は注文時に合意した価格を支払う。", "インフレ率や特定の製品の調達コストの変化に応じて，あらかじめ取り決められた契約金額を調整する。", "契約時に，目標とするコスト，利益，利益配分率，上限額を合意し，目標とするコストと実際に発生したコストの差異に基づいて利益を配分する。", "ベンダの役務や技術に対する報酬に加え，委託業務の遂行に要した費用の全てをベンダに支払う。"], 3,
+      "実費償還型は費用の全てを支払う（リスクは発注者）。アは完全定額，イは経済価格調整付き定額，ウはインセンティブフィー付き。"],
+    ["令和6年度 春期 問5", "“情報システム・モデル取引・契約書＜第二版＞”によれば，ウォーターフォールモデルによるシステム開発において，ユーザー（取得者）とベンダー（供給者）間で請負型の契約を基本とするフェーズはどれか。",
+      ["システム化計画フェーズから受入・導入支援フェーズまで", "要件定義フェーズから受入・導入支援フェーズまで", "要件定義フェーズからシステム結合フェーズまで", "システム内部設計フェーズからシステム結合フェーズまで"], 3,
+      "仕様が確定する内部設計〜システム結合が請負型。要件定義や受入は準委任型が基本（令和4年度 問5も同じ考え方）。"]
+  ];
+  var KANA = ["ア", "イ", "ウ", "エ"];
+  var past = document.getElementById("past-list");
+  PAST.forEach(function (p) {
+    var d = document.createElement("details"); d.className = "pq";
+    var s = document.createElement("summary");
+    s.innerHTML = '<span class="pq-src">' + p[0] + "</span>";
+    s.appendChild(document.createTextNode(p[1]));
+    d.appendChild(s);
+    var ol = document.createElement("ol");
+    p[2].forEach(function (c, i) {
+      var li = document.createElement("li");
+      li.textContent = KANA[i] + "　" + c + (i === p[3] ? "　← 正解" : "");
+      if (i === p[3]) li.className = "ans";
+      ol.appendChild(li);
+    });
+    d.appendChild(ol);
+    var e = document.createElement("div"); e.className = "exp"; e.textContent = p[4];
+    d.appendChild(e);
+    past.appendChild(d);
+  });
+})();
+</script>
+</body>
+</html>
