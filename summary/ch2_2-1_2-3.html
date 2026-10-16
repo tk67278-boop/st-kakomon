@@ -131,15 +131,17 @@
   .btn-reset { font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; margin-top: 6px; }
 
   /* 過去問 */
-  details.pq { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 10px 0; background: var(--card); }
-  details.pq summary { cursor: pointer; font-weight: 600; list-style: none; }
-  details.pq summary::-webkit-details-marker { display: none; }
-  details.pq summary::before { content: "▸"; color: var(--accent); margin-right: 8px; }
-  details.pq[open] summary::before { content: "▾"; }
+  .pq { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 12px 0; background: var(--card); }
+  .pq-q { font-weight: 600; }
   .pq-src { font-size: 12.5px; color: var(--muted); display: block; font-weight: 500; }
-  .pq ol { list-style: none; padding: 0; margin: 10px 0; }
-  .pq li { padding: 4px 0 4px 1.8em; text-indent: -1.8em; font-size: 14.5px; }
-  .pq li.ans { color: var(--ok); font-weight: 700; }
+  .pq ol { list-style: none; padding: 0; margin: 10px 0 6px; display: grid; gap: 6px; }
+  .pq-ch { width: 100%; text-align: left; font: inherit; font-size: 14.5px; line-height: 1.65; padding: 7px 10px 7px 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; position: relative; }
+  .pq-ch:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+  .pq-ch:disabled { cursor: default; }
+  .pq-k { position: absolute; left: 12px; top: 7px; font-weight: 800; }
+  .pq-ch.right { border-color: var(--ok); background: var(--ok-soft); font-weight: 700; }
+  .pq-ch.right .pq-k { color: var(--ok); }
+  .pq-ch.wrong { border-color: var(--warn); background: var(--warn-soft); }
   .pq .exp { font-size: 14px; background: var(--c4-soft); border-radius: 8px; padding: 8px 12px; }
 
   .memo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -318,9 +320,11 @@
 
 <!-- 過去問 -->
 <section class="card" id="past">
+  <span class="score" id="past-score">0 / 11</span>
   <h2>過去問で確認（午前II・11問）</h2>
-  <p class="lead">クリックすると選択肢と解説が開きます。正解は緑色で表示されます。まず自分で答えを決めてから開いてください。</p>
+  <p class="lead">本番と同じく，選択肢を見て答えを選んでください。押すとその場で正誤と解説が出ます。</p>
   <div id="past-list"></div>
+  <button type="button" class="btn-reset" id="past-reset">もう一度解く</button>
 </section>
 
 <!-- 覚え方 -->
@@ -443,24 +447,46 @@
   ];
   var KANA = ["ア", "イ", "ウ", "エ"];
   var past = document.getElementById("past-list");
-  PAST.forEach(function (p) {
-    var d = document.createElement("details"); d.className = "pq";
-    var s = document.createElement("summary");
-    s.innerHTML = '<span class="pq-src">' + p[0] + "</span>";
-    s.appendChild(document.createTextNode(p[1]));
-    d.appendChild(s);
-    var ol = document.createElement("ol");
-    p[2].forEach(function (c, i) {
-      var li = document.createElement("li");
-      li.textContent = KANA[i] + "　" + c + (i === p[3] ? "　← 正解" : "");
-      if (i === p[3]) li.className = "ans";
-      ol.appendChild(li);
+  var pastScore = document.getElementById("past-score");
+  var pastDone = 0, pastOk = 0;
+  // 選択肢を最初から表示し，押した時点で正誤・正解・解説を出す（本番と同じく選択肢を見ながら考える）
+  function renderPast() {
+    past.innerHTML = ""; pastDone = 0; pastOk = 0;
+    if (pastScore) pastScore.textContent = "0 / " + PAST.length;
+    PAST.forEach(function (p, n) {
+      var d = document.createElement("div"); d.className = "pq";
+      var head = document.createElement("div"); head.className = "pq-q";
+      head.innerHTML = '<span class="pq-src">' + (n + 1) + ". " + p[0] + "</span>";
+      head.appendChild(document.createTextNode(p[1]));
+      d.appendChild(head);
+      var ol = document.createElement("ol");
+      var fb = document.createElement("div"); fb.className = "exp"; fb.hidden = true;
+      p[2].forEach(function (c, i) {
+        var li = document.createElement("li");
+        var b = document.createElement("button"); b.type = "button"; b.className = "pq-ch";
+        b.innerHTML = '<span class="pq-k">' + KANA[i] + "</span>";
+        b.appendChild(document.createTextNode(c));
+        b.addEventListener("click", function () {
+          var all = ol.querySelectorAll("button");
+          all.forEach(function (x) { x.disabled = true; });
+          all[p[3]].classList.add("right");
+          if (i !== p[3]) b.classList.add("wrong"); else pastOk++;
+          pastDone++;
+          fb.hidden = false;
+          fb.innerHTML = "<b>" + (i === p[3] ? "正解" : "不正解（正解は" + KANA[p[3]] + "）") + "</b>　";
+          fb.appendChild(document.createTextNode(p[4]));
+          if (pastScore) pastScore.textContent = pastOk + " / " + PAST.length + (pastDone === PAST.length ? "（完了）" : "");
+        });
+        li.appendChild(b);
+        ol.appendChild(li);
+      });
+      d.appendChild(ol);
+      d.appendChild(fb);
+      past.appendChild(d);
     });
-    d.appendChild(ol);
-    var e = document.createElement("div"); e.className = "exp"; e.textContent = p[4];
-    d.appendChild(e);
-    past.appendChild(d);
-  });
+  }
+  renderPast();
+  document.getElementById("past-reset").addEventListener("click", renderPast);
 })();
 </script>
 </body>
