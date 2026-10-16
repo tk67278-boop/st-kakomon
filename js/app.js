@@ -150,14 +150,17 @@
 
   // 他年度の同一問題をひとまとまりとして扱う（タグは同じ問題なら年度をまたいで共有する）。
   // "same" のつながりをたどった連結成分を返すので、どの年度から見ても同じ顔ぶれになる。
-  function tagGroup(key) {
+  function tagGroup(key) { return relGroup(key, false); }
+  // 解答回数・解答履歴の合算用: 同一問題に加えて類似問題（"similar"）もたどった連結成分
+  function countGroup(key) { return relGroup(key, true); }
+  function relGroup(key, withSimilar) {
     var SIM = window.SIMILAR_QUESTIONS || {};
     var group = [key], queue = [key], seen = {};
     seen[key] = true;
     while (queue.length) {
       var cur = queue.shift();
       (SIM[cur] || []).forEach(function (r) {
-        if (r[2] !== "same") return;
+        if (r[2] !== "same" && !(withSimilar && r[2] === "similar")) return;
         var k = r[0] + "#" + r[1];
         if (seen[k]) return;
         seen[k] = true;
@@ -364,16 +367,15 @@
     return el ? el.checked : true;
   }
 
-  // 他年度の同一問題（js/data/similar.js の "same"）の解答履歴も合算する。
-  // 同じ問題を別の年度で解いていたのに「初挑戦」と出てしまうのを防ぐ。
+  // 他年度の同一問題・類似問題（js/data/similar.js の "same"/"similar" をたどった連結成分）の
+  // 解答履歴も合算する。同じ問題を別の年度で解いていたのに「初挑戦」と出てしまうのを防ぐ。
   function mergedHistory(item, stats) {
     var s = stats[item.key];
     var own = { a: (s && s.a) || 0, c: (s && s.c) || 0 };
     var ext = { a: 0, c: 0 };
-    var rel = (window.SIMILAR_QUESTIONS || {})[item.key] || [];
-    rel.forEach(function (r) {
-      if (r[2] !== "same") return;
-      var t = stats[r[0] + "#" + r[1]];
+    countGroup(item.key).forEach(function (k) {
+      if (k === item.key) return;
+      var t = stats[k];
       if (t && t.a) { ext.a += t.a; ext.c += t.c; }
     });
     return { own: own, ext: ext, a: own.a + ext.a, c: own.c + ext.c };
@@ -500,10 +502,10 @@
     var stats = loadStats();
 
     if (settings.order === "least") {
-      // 解答回数が少ない順（未挑戦は0回）。他年度の同一問題（similar.jsのsame）の回数も合算する。
+      // 解答回数が少ない順（未挑戦は0回）。他年度の同一問題・類似問題（similar.jsのsame/similar）の回数も合算する。
       // 同じ回数の中はランダム。「苦手を優先」より優先する
       items.forEach(function (it) {
-        it._cnt = tagGroup(it.key).reduce(function (n, k) { var s = stats[k]; return n + ((s && s.a) || 0); }, 0);
+        it._cnt = countGroup(it.key).reduce(function (n, k) { var s = stats[k]; return n + ((s && s.a) || 0); }, 0);
         it._rnd = Math.random();
       });
       items.sort(function (a, b) { return a._cnt - b._cnt || a._rnd - b._rnd; });
@@ -562,7 +564,7 @@
     var histEl = $("#q-history");
     histEl.hidden = !showHistoryLabel();
     histEl.textContent = mh.a === 0 ? "初挑戦"
-      : "これまで " + mh.a + " 回中 " + mh.c + " 回正解" + (mh.ext.a ? "（他年度の同一問題を含む）" : "");
+      : "これまで " + mh.a + " 回中 " + mh.c + " 回正解" + (mh.ext.a ? "（他年度の同一・類似問題を含む）" : "");
 
     $("#q-text").textContent = q.question;
     $("#q-extra").innerHTML = q.html || "";
