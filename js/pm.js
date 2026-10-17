@@ -130,6 +130,14 @@
       $("#mode-textbook").hidden = true;
       filters = { industry: "all", theme: "all", status: "all" };
       $("#pm-heading").textContent = mode === "pm1" ? "午後I 過去問" : "午後II 過去問";
+      // 解き方ガイド（summary/ の1ページ資料）へのリンクを午後I・IIで切り替える
+      var guide = $("#pm-guide-link");
+      if (guide) {
+        guide.setAttribute("href", mode === "pm1" ? "summary/pm1_guide.html" : "summary/pm2_guide.html");
+        $("#pm-guide-title").textContent = mode === "pm1"
+          ? "午後I 解き方ガイド（時間配分・問い方別の型・採点講評の落とし穴）"
+          : "午後II 論文ガイド（ア・イ・ウの型・事業特性・経験がない人の事例設定）";
+      }
       renderFilters(mode);
       renderList();
       if (window.DrillUI) window.DrillUI.onPmModeShown(mode);
