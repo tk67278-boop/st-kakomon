@@ -1375,6 +1375,33 @@
   bind();
   showScreen("setup");
 
+  // 資料ページ（summary/）からのリンク: ?practice=2019r01a-7,2017h29a-5 で指定の問題だけを出題する。
+  // ログイン中は同期の準備ができてから始め、解答が端末間同期の履歴に入るようにする。
+  (function () {
+    var m = /[?&]practice=([^&#]+)/.exec(location.search);
+    if (!m) return;
+    var refs = decodeURIComponent(m[1]).split(",").map(function (s) {
+      var i = s.lastIndexOf("-");
+      return [s.slice(0, i), parseInt(s.slice(i + 1), 10)];
+    }).filter(function (r) { return r[0] && r[1] > 0; });
+    if (!refs.length) return;
+    var started = false;
+    function go() {
+      if (started) return;
+      started = true;
+      var tab = document.querySelector('.mode-tab[data-mode="am2"]');
+      if (tab && !tab.classList.contains("active")) tab.click();
+      window.AM2PracticeSet(refs);
+      if (window.history && history.replaceState) history.replaceState(null, "", location.pathname);
+    }
+    if (window.STSync && window.FIREBASE_CONFIG) {
+      window.STSync.setOnChange(function () { setTimeout(go, 0); });
+      setTimeout(go, 4000); // 同期が使えない環境でも4秒後には始める
+    } else {
+      setTimeout(go, 0);
+    }
+  })();
+
   // クラウド同期の状態変化（ログイン/ログアウト/他端末の更新）でサマリを更新
   if (window.STSync) {
     window.STSync.setOnChange(function () {

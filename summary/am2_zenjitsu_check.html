@@ -189,6 +189,15 @@
   ol.threats li span.new { color: #fff; background: var(--warn); border-radius: 999px; padding: 1px 8px; font-weight: 700; }
   .src-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
   @media (max-width: 680px) { .cards, .fgrid { grid-template-columns: 1fr; } }
+
+  /* 過去問へのリンク */
+  .pr-link { display: inline-block; margin-top: 4px; font-size: 12.5px; font-weight: 700; color: var(--accent); text-decoration: none; border: 1px solid var(--accent); border-radius: 999px; padding: 1px 10px; background: var(--card); white-space: nowrap; }
+  .pr-link:hover { background: var(--accent-soft); }
+  td .pr-link, th .pr-link { margin-left: 0; }
+  .flash-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .flash-wrap .pr-link { align-self: flex-start; }
+  .pr-all { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+  .pr-all a { font-size: 13.5px; padding: 4px 14px; }
 </style>
 </head>
 <body>
@@ -197,7 +206,7 @@
 <header class="hero">
   <div class="eyebrow">ITストラテジスト 午前II（科目A-2）前日チェック</div>
   <h1>明日の午前IIで落とさないための最終確認</h1>
-  <p class="lead">新しいことは覚えず、<b>何度も出ている問題</b>と<b>公式</b>と<b>セキュリティの定番</b>だけを確認するページです。全部で30分ほどで読み終わります。カードは押すと答えが出ます。</p>
+  <p class="lead">新しいことは覚えず、<b>何度も出ている問題</b>と<b>公式</b>と<b>セキュリティの定番</b>だけを確認するページです。全部で30分ほどで読み終わります。カードは押すと答えが出ます。<b>「この問題を解く」</b>を押すと、学習アプリでその項目の過去問だけが出題されます（解答は学習履歴に記録されます）。</p>
   <div class="stats">
     <div class="stat"><b>15 / 25</b><span>合格ライン（60%）</span></div>
     <div class="stat"><b>96秒</b><span>1問あたりの持ち時間（25問・40分）</span></div>
@@ -224,6 +233,7 @@
 <section class="card" id="repeat">
   <h2>何度も出ている問題 TOP15（押すと答え）</h2>
   <p class="lead">アプリに入っている過去16回分から、同じ問題（または類似問題）が出た回数が多い順に並べました。明日も出る可能性が高い問題です。</p>
+  <div class="pr-all" id="pr-all-top"></div>
   <div class="cards" id="repeat-cards"></div>
 </section>
 
@@ -274,6 +284,7 @@
 <section class="card" id="sec">
   <h2>セキュリティ（毎回2〜3問、ほぼ定番から）</h2>
   <p class="lead">過去16回で出たセキュリティ問題を集計しました。同じ用語が何度も出ています。</p>
+  <div class="pr-all" id="pr-all-sec"></div>
   <div class="tbl-wrap">
   <table>
     <thead><tr><th>用語</th><th>何か</th><th>出題</th></tr></thead>
@@ -320,7 +331,7 @@
 <!-- 法改正 -->
 <section class="card" id="law">
   <h2>古い過去問と答えが変わっている注意点</h2>
-  <div class="trap"><b>電子帳簿保存法（過去3回出題）：</b>平成23・27・29年度の過去問では「あらかじめ所轄の税務署長の<b>承認</b>が必要」が正解でした。しかし、<b>2022年の改正で事前承認の制度は廃止</b>されています。新しく作られた問題なら「承認は不要」「電子取引のデータは電子のまま保存」が正解の方向です。</div>
+  <div class="trap" id="law-denchou"><b>電子帳簿保存法（過去3回出題）：</b>平成23・27・29年度の過去問では「あらかじめ所轄の税務署長の<b>承認</b>が必要」が正解でした。しかし、<b>2022年の改正で事前承認の制度は廃止</b>されています。新しく作られた問題なら「承認は不要」「電子取引のデータは電子のまま保存」が正解の方向です。</div>
   <div class="tip"><b>考え方：</b>本番の再出題は、法改正があったものは問題が作り直されます。過去問の答えを丸暗記していて、選択肢が見覚えと違うと感じたら、<b>今の制度ではどうか</b>で判断してください。</div>
 </section>
 
@@ -386,6 +397,67 @@
     });
     box.appendChild(b);
   });
+})();
+</script>
+
+<script>
+(function () {
+  "use strict";
+  // 各項目に当てはまる過去問（examId-問番号）。学習アプリの ?practice= で出題する
+  var PR = {"r1": ["2010h22a-7", "2011h23a-11", "2013h25a-8", "2015h27a-6", "2017h29a-5", "2019r01a-7", "2024r06h-6"], "r2": ["2013h25a-16", "2015h27a-13", "2017h29a-14", "2022r04h-11"], "r3": ["2012h24a-7", "2014h26a-7", "2016h28a-6", "2019r01a-6"], "r4": ["2010h22a-15", "2012h24a-16", "2014h26a-9", "2019r01a-14"], "r5": ["2009h21a-16", "2011h23a-15", "2014h26a-13", "2017h29a-7", "2019r01a-13", "2021r03h-6"], "r6": ["2010h22a-8", "2013h25a-10", "2015h27a-7", "2017h29a-6"], "r7": ["2018h30a-3", "2022r04h-3", "2025r07h-3"], "r8": ["2017h29a-9", "2022r04h-8", "2024r06h-8"], "r9": ["2009h21a-24", "2015h27a-21", "2024r06h-21"], "r10": ["2014h26a-11", "2021r03h-12", "2023r05h-8"], "r11": ["2009h21a-18", "2010h22a-16", "2011h23a-16", "2013h25a-17", "2015h27a-14", "2016h28a-14", "2018h30a-14", "2021r03h-13", "2022r04h-13", "2023r05h-13", "2024r06h-13"], "r12": ["2016h28a-2", "2019r01a-3", "2023r05h-1"], "r13": ["2010h22a-24", "2012h24a-22", "2021r03h-20"], "r14": ["2010h22a-19", "2012h24a-20", "2014h26a-17", "2016h28a-18", "2018h30a-17", "2021r03h-16"], "r15": ["2015h27a-17", "2017h29a-16", "2019r01a-17"], "p_ansoff": ["2010h22a-7", "2011h23a-11", "2013h25a-8", "2015h27a-6", "2017h29a-5", "2019r01a-7", "2024r06h-6"], "p_ppm": ["2011h23a-7", "2012h24a-8", "2013h25a-7", "2014h26a-8", "2018h30a-7"], "p_five": ["2009h21a-16", "2011h23a-15", "2014h26a-13", "2016h28a-7", "2017h29a-7", "2019r01a-13", "2021r03h-6"], "p_vc": ["2010h22a-8", "2013h25a-10", "2015h27a-7", "2016h28a-7", "2017h29a-6", "2025r07h-6"], "p_seci": ["2009h21a-18", "2010h22a-16", "2011h23a-16", "2013h25a-17", "2015h27a-14", "2016h28a-14", "2018h30a-14", "2021r03h-13", "2022r04h-13", "2023r05h-13", "2024r06h-13"], "p_4p": ["2009h21a-11", "2011h23a-13", "2017h29a-11"], "p_ma": ["2009h21a-10", "2010h22a-3", "2011h23a-8", "2012h24a-7", "2014h26a-7", "2015h27a-3", "2016h28a-6", "2019r01a-6"], "p_kensa": ["2010h22a-24", "2012h24a-22", "2021r03h-20"], "p_mkt": ["2010h22a-10", "2013h25a-15", "2014h26a-11", "2015h27a-11", "2018h30a-3", "2021r03h-12", "2022r04h-3", "2022r04h-9", "2023r05h-8", "2025r07h-3"], "p_ad": ["2015h27a-10", "2015h27a-17", "2017h29a-16", "2019r01a-17", "2021r03h-9"], "p_long": ["2009h21a-21", "2011h23a-20", "2015h27a-18"], "p_cause": ["2013h25a-6", "2017h29a-9", "2022r04h-8", "2024r06h-8"], "p_toc": ["2010h22a-19", "2011h23a-17", "2012h24a-20", "2013h25a-18", "2014h26a-17", "2016h28a-15", "2016h28a-18", "2018h30a-17", "2021r03h-16"], "p_ivr": ["2010h22a-15", "2012h24a-16", "2014h26a-9", "2019r01a-14"], "f_npv": ["2010h22a-6", "2011h23a-4", "2013h25a-1", "2015h27a-5", "2017h29a-8", "2021r03h-2", "2023r05h-4", "mock2026e-15"], "f_irr": ["2012h24a-23", "2013h25a-1", "2019r01a-22", "mock2026e-16"], "f_pbp": ["2014h26a-4", "2016h28a-4", "mock2026f-15"], "f_bep": ["2015h27a-20", "mock2026f-6"], "f_eva": ["2009h21a-24", "2013h25a-1", "2015h27a-21", "2021r03h-2", "2024r06h-21", "mock2026e-19"], "f_roe": ["2014h26a-22", "mock2026f-4"], "f_cf": ["2011h23a-24", "2022r04h-20", "2024r06h-20", "2025r07h-19", "mock2026e-20"], "f_eoq": ["mock2026e-11"], "f_reorder": ["2018h30a-13", "2023r05h-12", "mock2026f-9"], "f_consol": ["2012h24a-24", "2013h25a-24", "2014h26a-23", "2016h28a-22", "2018h30a-22", "2023r05h-21", "mock2026f-19"], "s_ocsp": ["2017h29a-25", "2021r03h-24", "2024r06h-23"], "s_aes": ["2016h28a-25", "2019r01a-25", "2023r05h-24"], "s_xss": ["2018h30a-24", "2021r03h-23", "2024r06h-24"], "s_ismap": ["2022r04h-24", "2024r06h-25"], "s_sso": ["2014h26a-25", "2016h28a-24"], "s_risk": ["2018h30a-25", "2022r04h-24", "2024r06h-25"], "s_sign": ["2023r05h-23"], "s_cryptrec": ["2022r04h-23"], "s_notice": ["2021r03h-25"], "s_osint": ["2023r05h-25"], "s_fileless": ["2024r06h-24"], "s_race": ["2025r07h-23"], "s_foren": ["2025r07h-25"], "s_other": ["2015h27a-24", "2015h27a-25", "2017h29a-24", "2019r01a-24"], "l_denchou": ["2011h23a-25", "2015h27a-23", "2017h29a-23"]};
+  var BASE = /\/summary\//.test(location.pathname) ? "../index.html" : "https://tk67278-boop.github.io/st-kakomon/";
+  function link(keys, label) {
+    if (!keys || !keys.length) return null;
+    var a = document.createElement("a");
+    a.className = "pr-link";
+    a.href = BASE + "?practice=" + encodeURIComponent(keys.join(","));
+    a.textContent = (label || "この問題を解く") + "（" + keys.length + "問）";
+    return a;
+  }
+  function uniq(list) { var o = {}, r = []; list.forEach(function (k) { if (!o[k]) { o[k] = 1; r.push(k); } }); return r; }
+  // 再出題TOP15（カードの並び順 = r1〜r15）
+  var cards = document.querySelectorAll("#repeat-cards .flash"), all = [];
+  Array.prototype.forEach.call(cards, function (c, i) {
+    var keys = PR["r" + (i + 1)];
+    if (!keys) return;
+    all = all.concat(keys);
+    var w = document.createElement("div"); w.className = "flash-wrap";
+    c.parentNode.insertBefore(w, c); w.appendChild(c);
+    w.appendChild(link(keys));
+  });
+  var topAll = document.getElementById("pr-all-top");
+  if (topAll && all.length) topAll.appendChild(link(uniq(all), "TOP15の過去問をまとめて解く"));
+  // 表の行（見出しの文字で対応づけ）
+  var ROWS = {
+    "アンゾフ": "p_ansoff", "PPM": "p_ppm", "ファイブフォース": "p_five", "バリューチェーン": "p_vc", "SECIモデル": "p_seci",
+    "4P → 4C": "p_4p", "M&A": "p_ma", "抜取検査": "p_kensa", "マーケティング手法": "p_mkt", "ネット広告": "p_ad",
+    "ロングテール": "p_long", "コーズリレーテッド": "p_cause", "TOC・TRIZ": "p_toc", "IVR": "p_ivr",
+    "OCSP": "s_ocsp", "AES": "s_aes", "格納型XSS": "s_xss", "ISMAP管理基準": "s_ismap", "シングルサインオン": "s_sso",
+    "リスク対応": "s_risk", "デジタル署名": "s_sign", "CRYPTREC": "s_cryptrec", "NOTICE": "s_notice", "OSINT": "s_osint",
+    "ファイルレス攻撃": "s_fileless", "レースコンディション": "s_race", "デジタルフォレンジックス": "s_foren", "その他": "s_other"
+  };
+  var secAll = [];
+  Array.prototype.forEach.call(document.querySelectorAll("#pairs tbody tr, #sec tbody tr"), function (tr) {
+    var th = tr.querySelector("th");
+    var id = th && ROWS[th.textContent.trim()];
+    var a = id && link(PR[id]);
+    if (!a) return;
+    if (id.indexOf("s_") === 0) secAll = secAll.concat(PR[id]);
+    th.appendChild(document.createElement("br"));
+    th.appendChild(a);
+  });
+  var secBox = document.getElementById("pr-all-sec");
+  if (secBox && secAll.length) secBox.appendChild(link(uniq(secAll), "セキュリティの過去問をまとめて解く"));
+  // 公式カード（見出しの文字で対応づけ）
+  var F = { "NPV": "f_npv", "IRR": "f_irr", "回収期間": "f_pbp", "損益分岐点売上高": "f_bep", "EVA": "f_eva", "ROE": "f_roe",
+    "営業CF（間接法）": "f_cf", "EOQ（経済的発注量）": "f_eoq", "発注点": "f_reorder", "連結売上高": "f_consol" };
+  Array.prototype.forEach.call(document.querySelectorAll("#formula .fcard"), function (c) {
+    var b = c.querySelector("b"), id = b && F[b.textContent.trim()];
+    var a = id && link(PR[id]);
+    if (a) { c.appendChild(document.createElement("br")); c.appendChild(a); }
+  });
+  var law = document.getElementById("law-denchou");
+  if (law && PR.l_denchou) { law.appendChild(document.createElement("br")); law.appendChild(link(PR.l_denchou, "当時の過去問を解く")); }
 })();
 </script>
 </body>
