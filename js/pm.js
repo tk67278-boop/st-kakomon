@@ -140,6 +140,7 @@
       }
       renderFilters(mode);
       renderList();
+      if (window.PmSchedule) window.PmSchedule.render(mode); // 週ごとの練習スケジュール（js/pm_schedule.js）
       if (window.DrillUI) window.DrillUI.onPmModeShown(mode);
     }
   }
@@ -482,6 +483,7 @@
   window.PmUI = {
     refreshList: function () {
       if (currentMode !== "am2") renderList();
+      if ((currentMode === "pm1" || currentMode === "pm2") && window.PmSchedule) window.PmSchedule.render(currentMode);
     }
   };
 

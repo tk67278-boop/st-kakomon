@@ -1109,3 +1109,23 @@ mark.pmk-y { background: #fde047; } mark.pmk-r { background: #fca5a5; } mark.pmk
 .tb-sum-badge { flex: none; font-size: 11.5px; font-weight: 800; color: #fff; background: var(--accent); border-radius: 999px; padding: 2px 9px; }
 .tb-sum-title { flex: 1; font-size: 14.5px; font-weight: 600; line-height: 1.5; }
 .tb-sum-go { flex: none; font-size: 13px; font-weight: 700; color: var(--accent); }
+
+/* 午後I・IIの練習スケジュール（js/pm_schedule.js） */
+.sch-left { font-size: 14px; color: var(--muted); }
+.sch-left b { font-size: 20px; color: var(--accent); margin: 0 2px; }
+.sch-week { border: 1px solid var(--line); border-radius: 10px; margin: 8px 0; background: var(--card); }
+.sch-week > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 9px 12px; cursor: pointer; list-style: none; }
+.sch-week > summary::-webkit-details-marker { display: none; }
+.sch-week.cur { border: 2px solid var(--accent); background: var(--accent-soft); }
+.sch-week.past { opacity: .75; }
+.sch-wk { font-weight: 800; font-size: 13px; color: #fff; background: var(--muted); border-radius: 999px; padding: 1px 10px; }
+.sch-week.cur .sch-wk { background: var(--accent); }
+.sch-date { font-weight: 700; font-size: 14px; }
+.sch-goal { flex: 1 1 260px; font-size: 13.5px; color: var(--text); }
+.sch-cnt { font-size: 13px; font-weight: 700; color: var(--muted); }
+.sch-cnt.ok { color: var(--ok); }
+.sch-tasks { list-style: none; margin: 0; padding: 0 12px 10px; display: grid; gap: 4px; }
+.sch-tasks li { display: flex; align-items: center; gap: 8px; font-size: 14.5px; background: var(--card); border-radius: 8px; padding: 5px 8px; }
+.sch-tasks label { flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.sch-tasks li.done span { color: var(--muted); text-decoration: line-through; }
+.sch-note { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
