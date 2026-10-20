@@ -131,6 +131,8 @@
       filters = { industry: "all", theme: "all", status: "all" };
       $("#pm-heading").textContent = mode === "pm1" ? "午後I 過去問" : "午後II 過去問";
       // 解き方ガイド（summary/ の1ページ資料）へのリンクを午後I・IIで切り替える
+      var caseLink = $("#pm-case-link");
+      if (caseLink) caseLink.hidden = mode !== "pm2"; // 午後IIだけ事例設定シートを表示
       var guide = $("#pm-guide-link");
       if (guide) {
         guide.setAttribute("href", mode === "pm1" ? "summary/pm1_guide.html" : "summary/pm2_guide.html");
