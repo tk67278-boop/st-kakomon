@@ -130,6 +130,7 @@
     if (data.check) {
       if (data.check.items && typeof data.check.items === "object") d.check.items = data.check.items;
       if (typeof data.check.ai === "string") d.check.ai = data.check.ai;
+      if (data.check.self && typeof data.check.self === "object") d.check.self = data.check.self; // 自己評価（ア・イ・ウ・総合のA〜D）
       if (data.check.t) d.check.t = data.check.t;
     }
     return d;
@@ -840,7 +841,74 @@
     lines.push("2. 出題趣旨とのギャップ（出題趣旨が求める観点に対し、論文で不足している点）");
     lines.push("3. 改善点（具体的に）");
     lines.push("4. 設問イの改善リライト例");
+    lines.push("");
+    lines.push("最後に、次の形式で評価一覧を1行で出力してください（アプリが読み取ります）:");
+    lines.push("評価一覧: 設問ア=B, 設問イ=B, 設問ウ=B, 総合=B");
     return lines.join("\n");
+  }
+
+  // AI採点の結果から設問ア・イ・ウと総合の評価（A〜D）を読み取る
+  var EVAL_KEYS = [["a", "設問ア"], ["i", "設問イ"], ["u", "設問ウ"], ["total", "総合"]];
+  function normEval(t) {
+    return String(t || "").replace(/[Ａ-Ｄ]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+      .replace(/[ 　\t*]/g, "");
+  }
+  function aiEvalFrom(text) {
+    var out = {}, t = normEval(text);
+    if (!t) return out;
+    var m = /評価一覧[:：]?([^\n]*)/.exec(t);
+    if (m) {
+      EVAL_KEYS.forEach(function (k) {
+        var r = new RegExp(k[1] + "[=＝:：]([A-D])").exec(m[1]);
+        if (r) out[k[0]] = r[1];
+      });
+      if (Object.keys(out).length) return out;
+    }
+    var lines = t.split("\n");
+    EVAL_KEYS.forEach(function (k) {
+      var label = k[0] === "total" ? /(総合|全体)評価|総合[:：]|総評/ : new RegExp(k[1]);
+      for (var i = 0; i < lines.length; i++) {
+        if (!label.test(lines[i])) continue;
+        var chunk = lines.slice(i, i + 4).join("\n");
+        var r = /評価[:：]?\n?([A-D])(?![a-z])/.exec(chunk) || /[:：（(]([A-D])[)）]?(?:評価|ランク|$|\n)/.exec(chunk) || /([A-D])(?:評価|ランク)/.exec(chunk);
+        if (r) { out[k[0]] = r[1]; break; }
+      }
+    });
+    return out;
+  }
+  function selfEval() {
+    if (!state.doc.check.self || typeof state.doc.check.self !== "object") state.doc.check.self = {};
+    return state.doc.check.self;
+  }
+  function evalTableHtml() {
+    var self = selfEval(), ai = aiEvalFrom(state.doc.check.ai);
+    return '<table class="pm2-eval"><thead><tr><th></th><th>自分の評価</th><th>AI評価</th><th></th></tr></thead><tbody>' +
+      EVAL_KEYS.map(function (k) {
+        var mine = self[k[0]] || "", a = ai[k[0]] || "";
+        return '<tr' + (k[0] === "total" ? ' class="total"' : '') + '><th>' + k[1] + '</th>' +
+          '<td><select class="pm2-self-eval" data-k="' + k[0] + '">' +
+            ['', 'A', 'B', 'C', 'D'].map(function (g) { return '<option value="' + g + '"' + (mine === g ? ' selected' : '') + '>' + (g || '未評価') + '</option>'; }).join("") +
+          '</select></td>' +
+          '<td class="pm2-ai-eval">' + (a ? '<b>' + a + '</b>' : '－') + '</td>' +
+          '<td>' + (a && mine ? (a === mine ? '<span class="pm2-eval-same">一致</span>' : '<span class="pm1-ai-diff">自分と違う</span>') : '') + '</td></tr>';
+      }).join("") +
+      '</tbody></table>';
+  }
+  function updateEvalTable() {
+    var box = $("#pm2-eval-box");
+    if (!box) return;
+    box.innerHTML = evalTableHtml();
+    bindEvalSelects();
+  }
+  function bindEvalSelects() {
+    $all($("#pm2-eval-box"), ".pm2-self-eval").forEach(function (sel) {
+      sel.addEventListener("change", function () {
+        selfEval()[sel.dataset.k] = sel.value;
+        state.doc.check.t = Date.now();
+        saveDoc();
+        updateEvalTable();
+      });
+    });
   }
 
   function renderReviewTab(body) {
@@ -848,6 +916,13 @@
     var essay = getLatestEssayForPrompt();
 
     body.innerHTML =
+      '<div class="card">' +
+        '<div class="group-head"><h2>評価（自分とAI）</h2></div>' +
+        '<p class="stats-note">IPAの評価はA（合格水準）〜Dの4段階です。自分の評価を付け，AI採点の結果を下に貼り付けると，AIの評価が並んで表示されます。自分の評価はAIで上書きされません。</p>' +
+        '<div id="pm2-eval-box">' + evalTableHtml() + '</div>' +
+        '<div class="pm-panel-actions"><span class="pm2-save-status" id="pm2-record-status"></span>' +
+          '<button type="button" class="primary" id="pm2-btn-save-record">演習記録に保存</button></div>' +
+      '</div>' +
       '<div class="card">' +
         '<div class="group-head"><h2>セルフチェックリスト</h2></div>' +
         '<ul class="pm2-checklist">' +
@@ -876,9 +951,28 @@
       });
     });
 
+    bindEvalSelects();
+    $("#pm2-btn-save-record").addEventListener("click", function () {
+      var self = selfEval(), ai = aiEvalFrom(state.doc.check.ai);
+      var v = (state.doc.essay.versions || [])[0];
+      var rec = { s: "done", g: self.total || "", m: v && v.sec ? Math.round(v.sec / 60) : 0, note: "", t: Date.now() };
+      if (ai.total || ai.a || ai.i || ai.u) {
+        rec.ai = (ai.total ? "総合" + ai.total : "") + "(" + ["a", "i", "u"].map(function (k) { return ({ a: "ア", i: "イ", u: "ウ" })[k] + (ai[k] || "-"); }).join("") + ")";
+      }
+      var key = state.examId + "#pm2#" + state.no;
+      if (window.STSync && window.STSync.active() && window.STSync.setPmRecord) window.STSync.setPmRecord(key, rec);
+      else {
+        var r;
+        try { r = JSON.parse(localStorage.getItem("st_pm_records_v1")) || {}; } catch (e) { r = {}; }
+        r[key] = rec;
+        try { localStorage.setItem("st_pm_records_v1", JSON.stringify(r)); } catch (e) { /* ignore */ }
+      }
+      flashText($("#pm2-record-status"), "演習記録に保存しました");
+    });
+
     var aiTa = $("#pm2-ai-result");
     aiTa.value = state.doc.check.ai || "";
-    aiTa.addEventListener("input", function () { state.doc.check.ai = aiTa.value; });
+    aiTa.addEventListener("input", function () { state.doc.check.ai = aiTa.value; updateEvalTable(); });
     aiTa.addEventListener("change", function () {
       state.doc.check.ai = aiTa.value;
       state.doc.check.t = Date.now();

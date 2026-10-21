@@ -220,30 +220,62 @@
       list.appendChild(empty);
     }
 
+    // 開いている試験回を端末に記憶（初回は未完了の問題がある最新の試験回だけ開く）
+    var openKey = "st_pm_open_" + currentMode, openSet = null;
+    try { openSet = JSON.parse(localStorage.getItem(openKey)); } catch (e) { openSet = null; }
+    var filtering = filters.industry !== "all" || filters.theme !== "all" || filters.status !== "all";
+    if (!openSet) {
+      openSet = {};
+      for (var oi = 0; oi < examOrder.length; oi++) {
+        var undone = byExam[examOrder[oi]].some(function (it) { return statusOf(records, it.key) !== "done"; });
+        if (undone) { openSet[examOrder[oi]] = true; break; }
+      }
+    }
+
     examOrder.forEach(function (examId) {
       var exam = byExam[examId][0].exam;
       var pm = exam[currentMode];
-      var card = document.createElement("div");
-      card.className = "card pm-exam-card";
+      var its = byExam[examId];
+      var doneN = its.filter(function (it) { return statusOf(records, it.key) === "done"; }).length;
+      var card = document.createElement("details");
+      card.className = "card pm-exam-card" + (doneN === its.length ? " all-done" : "");
+      if (filtering || openSet[examId]) card.open = true;
 
       var ansLabel = currentMode === "pm1" ? "解答例" : "出題趣旨";
-      var head = document.createElement("div");
+      var head = document.createElement("summary");
       head.className = "pm-exam-head";
       head.innerHTML =
+        '<span class="pm-exam-caret" aria-hidden="true"></span>' +
         "<h3>" + escapeHtml(exam.examLabel) + "</h3>" +
-        '<div class="pm-exam-links">' +
-        '<a href="' + escapeAttr(pm.urls.qs) + '" target="_blank" rel="noopener">問題</a>' +
+        '<span class="pm-exam-dots" aria-hidden="true">' + its.map(function (it) {
+          return '<i class="' + statusOf(records, it.key) + '" title="問' + it.q.no + '"></i>';
+        }).join("") + "</span>" +
+        '<span class="pm-exam-count' + (doneN === its.length ? " ok" : "") + '">済 ' + doneN + " / " + its.length + "</span>";
+      card.appendChild(head);
+      card.addEventListener("toggle", function () {
+        if (filtering) return;
+        if (card.open) openSet[examId] = true; else delete openSet[examId];
+        try { localStorage.setItem(openKey, JSON.stringify(openSet)); } catch (e) { /* ignore */ }
+      });
+
+      var body = document.createElement("div");
+      body.className = "pm-exam-body";
+      body.innerHTML = '<div class="pm-exam-links">' +
+        '<a href="' + escapeAttr(pm.urls.qs) + '" target="_blank" rel="noopener">問題PDF</a>' +
         '<a href="' + escapeAttr(pm.urls.ans) + '" target="_blank" rel="noopener">' + ansLabel + '</a>' +
         '<a href="' + escapeAttr(pm.urls.cmnt) + '" target="_blank" rel="noopener">講評</a>' +
         "</div>";
-      card.appendChild(head);
-
-      byExam[examId].forEach(function (it) {
-        card.appendChild(renderRow(it, records));
+      its.forEach(function (it) {
+        body.appendChild(renderRow(it, records));
       });
+      card.appendChild(body);
 
       list.appendChild(card);
     });
+
+    // すべて開く／閉じる
+    var bar = $("#pm-open-bar");
+    if (bar) bar.hidden = filtering || !examOrder.length;
 
     renderProgress();
   }
@@ -261,18 +293,18 @@
     var displayTitle = (studyData && studyData.title) ? studyData.title : q.title;
 
     var row = document.createElement("div");
-    row.className = "pm-row";
+    row.className = "pm-row" + (status === "done" ? " is-done" : "");
 
     var main = document.createElement("div");
     main.className = "pm-row-main";
     main.innerHTML =
+      '<span class="pm-row-mark ' + status + '" aria-hidden="true">' + (status === "done" ? "✓" : status === "review" ? "!" : "") + "</span>" +
       '<span class="badge pm-no">問' + q.no + "</span>" +
-      '<div class="pm-row-body">' +
+      '<div class="pm-row-body" title="' + escapeAttr(q.desc || "") + '">' +
       '<div class="pm-row-title">' + escapeHtml(displayTitle) + "</div>" +
-      '<div class="pm-row-desc">' + escapeHtml(q.desc || "") + "</div>" +
       '<div class="pm-row-tags">' +
-      (tg.industry ? '<span class="badge cat">' + escapeHtml(tg.industry) + "</span>" : "") +
-      (tg.theme ? '<span class="badge cat">' + escapeHtml(tg.theme) + "</span>" : "") +
+      (tg.industry ? '<span class="pm-tag">' + escapeHtml(tg.industry) + "</span>" : "") +
+      (tg.theme ? '<span class="pm-tag">' + escapeHtml(tg.theme) + "</span>" : "") +
       "</div>" +
       "</div>" +
       '<div class="pm-row-actions">' +
@@ -315,7 +347,7 @@
       '<option value="todo">未着手</option><option value="done">演習済</option><option value="review">要復習</option>' +
       "</select></label>" +
       '<label class="opt">自己採点<select class="pm-in-grade">' +
-      '<option value="">未評価</option><option value="A">A</option><option value="B">B</option><option value="C">C</option>' +
+      '<option value="">未評価</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>' +
       "</select></label>" +
       '<label class="opt">所要時間(分)<input type="number" class="pm-in-min" min="0" step="1"></label>' +
       '<label class="opt pm-note-label">メモ<textarea class="pm-in-note" rows="3" placeholder="気づき・弱点など"></textarea></label>' +
@@ -488,6 +520,17 @@
       if ((currentMode === "pm1" || currentMode === "pm2") && window.PmSchedule) window.PmSchedule.render(currentMode);
     }
   };
+
+  function setAllOpen(open) {
+    var key = "st_pm_open_" + currentMode, set = {};
+    Array.prototype.forEach.call(document.querySelectorAll("#pm-list details.pm-exam-card"), function (d) { d.open = open; });
+    if (open) itemsForMode(currentMode).forEach(function (it) { set[it.exam.examId] = true; });
+    try { localStorage.setItem(key, JSON.stringify(set)); } catch (e) { /* ignore */ }
+  }
+  if ($("#pm-open-all")) {
+    $("#pm-open-all").addEventListener("click", function () { setAllOpen(true); });
+    $("#pm-close-all").addEventListener("click", function () { setAllOpen(false); });
+  }
 
   /* ---------- 起動 ---------- */
   bindModeTabs();
