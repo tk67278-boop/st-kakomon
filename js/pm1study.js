@@ -955,7 +955,81 @@
     lines.push("2. 判定の根拠");
     lines.push("3. 公式解答例との差分（趣旨のズレ・不足している要素）");
     lines.push("4. 改善答案例");
+    lines.push("");
+    lines.push("最後に、次の形式で判定一覧を1行で出力してください（アプリが読み取ります。設問名は下の表記のまま）:");
+    lines.push("判定一覧: " + state.flat.map(function (fp) { return (fp.part.label || "") + "=○"; }).join(", "));
     return lines.join("\n");
+  }
+
+  // AI採点の結果から、解答欄ごとの判定（○・△・×）を読み取る。自己採点（doc.grades）とは別に扱う
+  function normAi(t) {
+    return String(t || "").replace(/（/g, "(").replace(/）/g, ")").replace(/[◯〇]/g, "○").replace(/[✕✖╳]/g, "×").replace(/[ 　\t]/g, "");
+  }
+  function aiGradesFrom(text) {
+    var out = {};
+    var t = normAi(text);
+    if (!t) return out;
+    var labels = state.flat.map(function (fp) { return { idx: fp.idx, label: normAi(fp.part.label) }; });
+    // (a) 判定一覧: 設問1=○,設問2(1)=△ ...
+    var m = /判定一覧[:：]?([^\n]*)/.exec(t);
+    if (m) {
+      labels.forEach(function (L) {
+        var i = m[1].indexOf(L.label + "=");
+        if (i < 0) i = m[1].indexOf(L.label + "＝");
+        if (i >= 0) {
+          var g = /[○△×◎]/.exec(m[1].slice(i + L.label.length + 1, i + L.label.length + 3));
+          if (g) out[L.idx] = g[0];
+        }
+      });
+      if (Object.keys(out).length) return out;
+    }
+    // (b) 見出しの行（「## 設問2(1)」「【設問2(1)】」など）の後ろで最初に出てくる判定
+    var lines = t.split("\n");
+    labels.forEach(function (L) {
+      for (var i = 0; i < lines.length; i++) {
+        var ln = lines[i].replace(/^[#■□◆●・\-*【\[\d.]+/, "");
+        if (ln.indexOf(L.label) !== 0) continue;
+        var rest = ln.slice(L.label.length);
+        if (rest.charAt(0) === "(" && L.label.slice(-1) !== ")") continue; // 「設問1」が「設問1(1)」に当たらないように
+        var chunk = lines.slice(i, i + 8).join("\n");
+        var j = chunk.indexOf("判定");
+        var g = /[○△×◎]/.exec(j >= 0 ? chunk.slice(j) : chunk.slice(L.label.length));
+        if (g) { out[L.idx] = g[0]; break; }
+      }
+    });
+    return out;
+  }
+  function gradeCounts(map) {
+    var c = { "◎": 0, "○": 0, "△": 0, "×": 0, n: 0 };
+    Object.keys(map).forEach(function (k) { if (c.hasOwnProperty(map[k])) { c[map[k]]++; c.n++; } });
+    return c;
+  }
+  function countsText(c) {
+    return (c["◎"] ? "◎" + c["◎"] + " " : "") + "○" + c["○"] + " △" + c["△"] + " ×" + c["×"];
+  }
+  // 自己採点とAI判定の集計を更新（自己採点の◎はAIの○と一致とみなす）
+  function updateGradeSummary() {
+    var el = $("#pm1-grade-summary");
+    if (!el) return;
+    var mine = state.doc.grades || {}, ai = aiGradesFrom(state.doc.ai);
+    var cm = gradeCounts(mine), ca = gradeCounts(ai);
+    var same = 0, both = 0;
+    state.flat.forEach(function (fp) {
+      var a = mine[fp.idx], b = ai[fp.idx];
+      if (a && b) { both++; if ((a === "◎" ? "○" : a) === (b === "◎" ? "○" : b)) same++; }
+    });
+    el.innerHTML =
+      '<div class="pm1-gs-row"><span class="pm1-gs-who">自分の採点</span><span>' + countsText(cm) + '</span><span class="pm1-gs-n">（' + cm.n + ' / ' + state.flat.length + ' 欄）</span></div>' +
+      '<div class="pm1-gs-row"><span class="pm1-gs-who ai">AI採点</span><span>' + (ca.n ? countsText(ca) : '未読み取り') + '</span><span class="pm1-gs-n">' + (ca.n ? '（' + ca.n + ' / ' + state.flat.length + ' 欄）' : '（下の欄にAI採点の結果を貼り付けると表示）') + '</span></div>' +
+      (both ? '<div class="pm1-gs-row"><span class="pm1-gs-who">一致</span><span>' + same + ' / ' + both + ' 欄</span><span class="pm1-gs-n">判定が違う欄は、解答例とAIの指摘を読み比べる</span></div>' : '');
+    state.flat.forEach(function (fp) {
+      var b = $("#pm1-ai-g-" + fp.idx);
+      if (!b) return;
+      var g = ai[fp.idx], mg = mine[fp.idx];
+      b.innerHTML = 'AI判定：<b>' + (g || "－") + '</b>' +
+        (g && mg && (g === "◎" ? "○" : g) !== (mg === "◎" ? "○" : mg) ? '<span class="pm1-ai-diff">自分の採点と違う</span>' : '');
+      b.className = "pm1-ai-grade" + (g ? " has" : "");
+    });
   }
 
   function renderCompareTab(body) {
@@ -990,6 +1064,7 @@
             return '<button type="button" class="pm1-grade-btn' + (g === sym ? ' active' : '') +
               '" data-idx="' + fp.idx + '" data-g="' + sym + '">' + sym + '</button>';
           }).join("") +
+          '<span class="pm1-ai-grade" id="pm1-ai-g-' + fp.idx + '"></span>' +
         '</div>' +
       '</div>';
     });
@@ -1000,7 +1075,8 @@
     '</div>';
 
     html += '<div class="card">' +
-      '<div class="group-head"><h2>総合自己評価</h2></div>' +
+      '<div class="group-head"><h2>総合評価</h2></div>' +
+      '<div class="pm1-grade-summary" id="pm1-grade-summary"></div>' +
       '<label class="opt">評価 <select id="pm1-overall">' +
         '<option value="">未評価</option><option value="A">A</option><option value="B">B</option><option value="C">C</option>' +
       '</select></label>' +
@@ -1038,6 +1114,7 @@
         $all(body, '.pm1-grade-btn[data-idx="' + idx + '"]').forEach(function (b2) {
           b2.classList.toggle("active", state.doc.grades[idx] === b2.dataset.g);
         });
+        updateGradeSummary();
       });
     });
 
@@ -1069,18 +1146,22 @@
       };
       var hintN = Object.keys(state.doc.hints || {}).filter(function (k) { return state.doc.hints[k] > 0; }).length;
       if (hintN) rec.h = hintN; // ヒントを使った解答欄の数（一覧に「ヒント使用」と表示）
+      var ca = gradeCounts(aiGradesFrom(state.doc.ai));
+      if (ca.n) rec.ai = countsText(ca).replace(/ /g, ""); // AI採点の集計（一覧に表示）
       saveExerciseRecord(recKey, rec);
       flashText($("#pm1-record-status"), "演習記録に保存しました");
     });
 
     var aiTa = $("#pm1-ai-result");
     aiTa.value = state.doc.ai || "";
-    aiTa.addEventListener("input", function () { state.doc.ai = aiTa.value; });
+    aiTa.addEventListener("input", function () { state.doc.ai = aiTa.value; updateGradeSummary(); });
     aiTa.addEventListener("change", function () {
       state.doc.ai = aiTa.value;
       state.doc.t = Date.now();
       saveDoc();
     });
+
+    updateGradeSummary();
 
     $("#pm1-btn-copy-prompt").addEventListener("click", function () {
       var text = buildAiPrompt(answers);

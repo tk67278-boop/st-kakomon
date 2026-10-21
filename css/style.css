@@ -1131,3 +1131,16 @@ mark.pmk-y { background: #fde047; } mark.pmk-r { background: #fca5a5; } mark.pmk
 .sch-note { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
 
 .pm1x-done-badge { font-size: 12.5px; font-weight: 800; color: #fff; background: var(--ok); border-radius: 999px; padding: 2px 12px; }
+
+/* 午後I 対比・採点: AI判定と自己採点の集計 */
+.pm1-grade-row { align-items: center; flex-wrap: wrap; }
+.pm1-ai-grade { margin-left: auto; font-size: 13.5px; color: var(--muted); }
+.pm1-ai-grade.has { color: var(--text); }
+.pm1-ai-grade b { font-size: 17px; margin-left: 2px; }
+.pm1-ai-diff { margin-left: 8px; font-size: 11.5px; font-weight: 700; color: #b45309; background: #fef3c7; border-radius: 999px; padding: 1px 8px; }
+.pm1-grade-summary { display: grid; gap: 4px; margin: 4px 0 12px; }
+.pm1-gs-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 15px; }
+.pm1-gs-who { min-width: 6.5em; font-size: 12.5px; font-weight: 800; color: #fff; background: var(--muted); border-radius: 999px; padding: 1px 10px; text-align: center; }
+.pm1-gs-who.ai { background: var(--accent); }
+.pm1-gs-n { font-size: 12.5px; color: var(--muted); }
+@media (prefers-color-scheme: dark) { .pm1-ai-diff { color: #fde68a; background: #78350f; } }
