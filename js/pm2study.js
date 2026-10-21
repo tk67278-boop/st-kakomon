@@ -550,7 +550,58 @@
   }
 
   // 執筆タブ: CBT形式の全画面で論述する。タブ自体には再開用の案内と保存した版の一覧を置く
+  // 脱稿済みか: 版があり、その後の下書きがない（脱稿保存で下書きを消す）。書き直しを始めたら未完了に戻す
+  function writeSubmitted() {
+    return !state.writeRestarted && !state.doc.essay.draft && (state.doc.essay.versions || []).length > 0;
+  }
+  function stopWriteTimerAtFinish() {
+    var wt = state.writeTimer;
+    if (wt.running) {
+      wt.remainingSec = Math.max(0, Math.round((wt.endAt - Date.now()) / 1000));
+      wt.running = false;
+    }
+    stopWriteTimerDisplayLoop();
+  }
+  // 書き直しを始める: 入力欄（空 or 指定した版）を用意し、タイマーを120分に戻す
+  function restartWrite(essay) {
+    state.essayLive = { a: (essay && essay.a) || "", i: (essay && essay.i) || "", u: (essay && essay.u) || "" };
+    state.essayLiveInit = true;
+    state.writeRestarted = true;
+    var wt = state.writeTimer;
+    stopWriteTimerDisplayLoop();
+    wt.running = false; wt.started = false; wt.finished = false; wt.remainingSec = wt.totalSec; wt.endAt = null;
+  }
+
   function renderWriteTab(body) {
+    if (writeSubmitted()) {
+      var v = state.doc.essay.versions[0];
+      var vt = KEY_ORDER.reduce(function (n, k) { return n + charLen(v[k]); }, 0);
+      body.innerHTML =
+        '<div class="card">' +
+          '<div class="group-head"><h2>執筆（CBT形式・120分）</h2><span class="spacer"></span><span class="pm1x-done-badge">脱稿済み</span></div>' +
+          '<p class="stats-note">' + escapeHtml(fmtDateTime(v.t)) + 'に脱稿しました。計 ' + vt + ' 字・所要 ' + escapeHtml(fmtElapsed(v.sec)) +
+            '。「振り返り」タブでチェックリストとAI採点ができます。</p>' +
+          '<div class="pm-panel-actions">' +
+            '<button type="button" id="pm2-restart">白紙から書き直す（120分）</button>' +
+            '<button type="button" class="primary" id="pm2-to-review">振り返りへ &rarr;</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card">' +
+          '<div class="group-head"><h2>保存した版（最新5件）</h2></div>' +
+          '<p class="stats-note">「開く」で過去の版を読み込み，続きから書き直せます（タイマーは120分に戻ります）。</p>' +
+          '<div id="pm2-essay-versions"></div>' +
+        '</div>';
+      $("#pm2-to-review").addEventListener("click", function () { switchTab("review"); });
+      $("#pm2-restart").addEventListener("click", function () {
+        if (!confirm("入力欄を空にして，120分のタイマーで書き直します。脱稿した論文は保存済みの版として残ります。よろしいですか？")) return;
+        restartWrite(null);
+        renderTabBody();
+        openWriteCbt();
+      });
+      renderEssayVersions();
+      state.cbtShownOnce = true;
+      return;
+    }
     if (!state.essayLiveInit) {
       var d = state.doc.essay.draft;
       state.essayLive = { a: (d && d.a) || "", i: (d && d.i) || "", u: (d && d.u) || "" };
@@ -656,7 +707,9 @@
     });
     $("#pm2-btn-final-save").addEventListener("click", function () {
       if (!confirm("脱稿として保存し，振り返りに進みます。よろしいですか？")) return;
-      saveFinalVersion();
+      saveFinalVersion(); // 下書きは消える（脱稿済み）
+      stopWriteTimerAtFinish();
+      state.writeRestarted = false;
       closeWriteCbt();
       switchTab("review");
     });
@@ -713,6 +766,12 @@
         var idx = parseInt(btn.dataset.idx, 10);
         var v = state.doc.essay.versions[idx];
         if (!v) return;
+        if (writeSubmitted()) {
+          // 脱稿済みの画面から版を開いたら、その版で書き直しを始める
+          restartWrite(v);
+          renderTabBody();
+          return;
+        }
         state.essayLive = { a: v.a || "", i: v.i || "", u: v.u || "" };
         KEY_ORDER.forEach(function (k) {
           var ta = $("#pm2-essay-" + k);

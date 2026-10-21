@@ -697,8 +697,54 @@
   }
 
   // 演習タブ: CBT形式の全画面で解く。タブ自体には再開用の案内だけを置く
+  // 確認終了済みか: 答案の版があり、その後の下書きがない（確認終了で下書きを消す）。解き直しを始めたら未完了に戻す
+  function exSubmitted() {
+    return !state.exRestarted && !state.doc.ans.draft && (state.doc.ans.versions || []).length > 0;
+  }
+  // 確認終了時: タイマーを止める（残り時間を確定）
+  function stopExTimerAtFinish() {
+    var t = state.exTimer;
+    if (t.running) {
+      t.remainingSec = Math.max(0, Math.round((t.endAt - Date.now()) / 1000));
+      t.running = false;
+    }
+    stopExTimerLoop();
+  }
+  // 最初から解き直す: 答案を空にし、タイマーを45分に戻して開く（前回の答案は版として残っている）
+  function restartExercise() {
+    var live = {};
+    state.flat.forEach(function (fp) { live[fp.idx] = ""; });
+    state.ansLive = live;
+    state.ansLiveInit = true;
+    state.exRestarted = true;
+    var t = state.exTimer;
+    stopExTimerLoop();
+    t.running = false; t.started = false; t.finished = false; t.remainingSec = t.totalSec; t.endAt = null;
+    openExerciseCbt();
+  }
+
   function renderExerciseTab(body) {
     ensureAnsLive();
+    if (exSubmitted()) {
+      var v = state.doc.ans.versions[0];
+      var filled = state.flat.filter(function (fp) { return trimStr((v.ans || {})[fp.idx]); }).length;
+      body.innerHTML =
+        '<div class="card">' +
+          '<div class="group-head"><h2>演習（CBT形式・45分）</h2><span class="spacer"></span><span class="pm1x-done-badge">確認終了済み</span></div>' +
+          '<p class="stats-note">' + escapeHtml(fmtDateTime(v.t)) + 'に確認終了しました。所要 ' + escapeHtml(fmtElapsed(v.sec)) +
+            '・記入 ' + filled + ' / ' + state.flat.length + ' 欄。答案は「対比・採点」タブで解答例と比べられます。</p>' +
+          '<div class="pm-panel-actions">' +
+            '<button type="button" id="pm1-restart">最初から解き直す（答案を空にして45分）</button>' +
+            '<button type="button" class="primary" id="pm1-to-compare">対比・採点を見る &rarr;</button>' +
+          '</div>' +
+        '</div>';
+      $("#pm1-to-compare").addEventListener("click", function () { switchTab("compare"); });
+      $("#pm1-restart").addEventListener("click", function () {
+        if (confirm("答案を空にして，45分のタイマーで最初から解き直します。前回の答案は保存済みの版として残ります。よろしいですか？")) restartExercise();
+      });
+      state.cbtShownOnce = true;
+      return;
+    }
     var answered = state.flat.filter(function (fp) { return trimStr(state.ansLive[fp.idx]); }).length;
     var t = state.exTimer;
     body.innerHTML =
@@ -802,6 +848,11 @@
       if (!confirm("答案を保存して，解答例との対比に進みます。よろしいですか？")) return;
       saveDraft();
       saveVersionSnapshot();
+      // 確認終了: タイマーを止め、下書きを消して「確認終了済み」にする（答案は版として保存済み）
+      stopExTimerAtFinish();
+      state.doc.ans.draft = null;
+      state.exRestarted = false;
+      saveDoc();
       closeExerciseCbt();
       switchTab("compare");
     });

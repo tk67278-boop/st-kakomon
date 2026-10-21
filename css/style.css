@@ -1129,3 +1129,5 @@ mark.pmk-y { background: #fde047; } mark.pmk-r { background: #fca5a5; } mark.pmk
 .sch-tasks label { flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .sch-tasks li.done span { color: var(--muted); text-decoration: line-through; }
 .sch-note { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+
+.pm1x-done-badge { font-size: 12.5px; font-weight: 800; color: #fff; background: var(--ok); border-radius: 999px; padding: 2px 12px; }
