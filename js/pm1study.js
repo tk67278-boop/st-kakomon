@@ -1043,6 +1043,17 @@
     });
   }
 
+  // 対比・採点の各欄に出す設問文。小問があれば「設問の前文＋その小問」，なければ設問文全体
+  function comparePartQuestionHtml(fp) {
+    var full = String(fp.setsumon.text || "");
+    var sub = partQuestionText(fp);
+    var lead = sub !== full ? trimStr(full.split("\n")[0]) : "";
+    return '<div class="pm1-compare-q">' +
+      (lead ? '<div class="pm1-compare-q-lead">' + escapeHtml(lead) + '</div>' : '') +
+      '<div>' + escapeHtml(sub) + '</div>' +
+    '</div>';
+  }
+
   function renderCompareTab(body) {
     var q = state.q;
     var answers = getCurrentAnswers();
@@ -1051,17 +1062,12 @@
 
     var html = "";
     state.flat.forEach(function (fp) {
-      if (fp.isFirstInSetsumon) {
-        html += '<div class="card pm2-setumon-box">' +
-          '<div class="group-head"><h2>' + escapeHtml(fp.setsumon.label || "") + '</h2></div>' +
-          '<div class="pm2-setumon-body">' + escapeHtml(fp.setsumon.text || "") + '</div>' +
-        '</div>';
-      }
       var ansText = trimStr(answers[fp.idx]);
       var g = grades[fp.idx] || "";
       html += '<div class="card">' +
         '<div class="group-head"><h3>' + escapeHtml(fp.part.label || "") + '</h3>' +
           (hintsUsed[fp.idx] ? '<span class="pm1x-hint-badge">ヒント' + hintsUsed[fp.idx] + 'まで使用</span>' : '') + '</div>' +
+        comparePartQuestionHtml(fp) +
         '<div class="pm1-compare-box pm1-compare-mine">' +
           '<div class="pm1-compare-label">あなたの答案</div>' +
           '<div class="pm1-compare-text">' + (ansText ? escapeHtml(ansText) : '<span class="pm1-empty-inline">（未入力）</span>') + '</div>' +
