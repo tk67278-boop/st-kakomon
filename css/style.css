@@ -1183,3 +1183,10 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
   .pm-row-main { flex-wrap: wrap; }
 }
 .pm-record-panel[hidden] { display: none; } /* display:flex が hidden 属性を上書きして常に開いていた */
+
+/* 午後I 対比・採点: 解答例の解説 */
+.pm1-explain { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.pm1-explain > summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--accent); }
+.pm1-explain-row { margin-top: 8px; }
+.pm1-explain-row b { display: inline-block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.pm1-explain-row p { margin: 0; font-size: 14.5px; line-height: 1.75; }

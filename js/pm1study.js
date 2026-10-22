@@ -561,6 +561,17 @@
     return h[state.examId + "#" + state.no + "#" + (fp.part.label || "")] || "";
   }
 
+  /* ---------- 解答例の解説（js/data/pm1_explain.js。キーはヒントと同じ examId#問番号#解答欄ラベル） ---------- */
+  function explainHtml(fp) {
+    var e = (window.PM1_EXPLAIN || {})[state.examId + "#" + state.no + "#" + (fp.part.label || "")];
+    if (!e) return "";
+    return '<details class="pm1-explain"><summary>解説を見る</summary>' +
+      (e.k ? '<div class="pm1-explain-row"><b>根拠</b><p>' + escapeHtml(e.k) + '</p></div>' : '') +
+      (e.w ? '<div class="pm1-explain-row"><b>なぜこの解答か</b><p>' + escapeHtml(e.w) + '</p></div>' : '') +
+      (e.p ? '<div class="pm1-explain-row"><b>書き方のポイント</b><p>' + escapeHtml(e.p) + '</p></div>' : '') +
+    '</details>';
+  }
+
   /* ---------- 演習用の本文（段落ごとに〔節〕・下線番号・図表を属性で持たせる） ---------- */
   function renderExerciseBody(q) {
     var lines = String(q.body || "").split("\n");
@@ -1058,6 +1069,7 @@
         '<div class="pm1-compare-box pm1-compare-model">' +
           '<div class="pm1-compare-label">公式解答例</div>' +
           '<div class="pm1-compare-text">' + escapeHtml(fp.part.answer || "（未収録）") + '</div>' +
+          explainHtml(fp) +
         '</div>' +
         '<div class="pm1-grade-row">' +
           GRADE_OPTIONS.map(function (sym) {
