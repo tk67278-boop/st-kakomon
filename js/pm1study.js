@@ -188,12 +188,14 @@
   var state = null;
 
   function newState(examId, no, exam, q) {
+    var flat = flatParts(q);
     return {
+      points: partPoints(flat), // {idx: 独自配点}
       examId: examId,
       no: no,
       exam: exam,
       q: q,
-      flat: flatParts(q),
+      flat: flat,
       themeKey: examId + "#pm1#" + no,
       doc: defaultDoc(),
       useLocalFallback: false,
@@ -810,10 +812,13 @@
         '<div class="cbt-splitter" role="separator" aria-orientation="vertical" title="ドラッグで左右の幅を変更"></div>' +
         '<div class="cbt-right pm1x-answer' + (hintOn ? ' hint-on' : '') + '" id="pm1x-answer">';
     state.flat.forEach(function (fp) {
-      if (fp.isFirstInSetsumon) html += '<div class="pm2-setumon-inline">' + escapeHtml(fp.setsumon.text || "") + '</div>';
+      var full = String(fp.setsumon.text || ""), sub = partQuestionText(fp);
+      if (fp.isFirstInSetsumon && sub !== full) html += '<div class="pm1x-setumon-lead">' + escapeHtml(trimStr(full.split("\n")[0])) + '</div>';
       html += '<div class="pm2-field">' +
+        '<div class="pm1x-part-q">' + escapeHtml(sub) + '</div>' +
         '<label class="pm2-field-label" for="pm1-ans-' + fp.idx + '">' + escapeHtml(fp.part.label || "") +
-          (fp.part.limit ? '（' + escapeHtml(String(fp.part.limit)) + '字以内）' : '') + '</label>' +
+          (fp.part.limit ? '（' + escapeHtml(String(fp.part.limit)) + '字以内）' : '') +
+          '<span class="pm1-pt">' + state.points[fp.idx] + '点</span></label>' +
         hintBoxHtml(fp) +
         '<textarea class="pm1-ans-ta" id="pm1-ans-' + fp.idx + '" rows="3"></textarea>' +
         '<div class="pm2-count" id="pm1-count-' + fp.idx + '"></div>' +
@@ -972,6 +977,31 @@
     return lines.join("\n");
   }
 
+  // 独自配点。IPAの午後Iは1問50点（2問解答で100点満点）なので，50点を各欄の字数制限に比例して整数で配る
+  var PM1_POINTS_TOTAL = 50;
+  var GRADE_RATE = { "◎": 1, "○": 1, "△": 0.5, "×": 0 }; // △は部分点として半分
+  function partPoints(flat) {
+    var w = flat.map(function (fp) { return Number(fp.part.limit) || 20; });
+    var sum = w.reduce(function (a, b) { return a + b; }, 0);
+    var raw = w.map(function (x) { return PM1_POINTS_TOTAL * x / sum; });
+    var pts = raw.map(Math.floor);
+    var rest = PM1_POINTS_TOTAL - pts.reduce(function (a, b) { return a + b; }, 0);
+    raw.map(function (x, i) { return { i: i, f: x - Math.floor(x) }; })
+      .sort(function (a, b) { return b.f - a.f; })
+      .slice(0, rest).forEach(function (o) { pts[o.i]++; });
+    var out = {};
+    flat.forEach(function (fp, i) { out[fp.idx] = pts[i]; });
+    return out;
+  }
+  function scoreOf(grades) {
+    var pts = state.points, got = 0, n = 0;
+    state.flat.forEach(function (fp) {
+      var g = grades[fp.idx];
+      if (GRADE_RATE.hasOwnProperty(g)) { got += pts[fp.idx] * GRADE_RATE[g]; n++; }
+    });
+    return { got: Math.round(got * 10) / 10, n: n };
+  }
+
   // AI採点の結果から、解答欄ごとの判定（○・△・×）を読み取る。自己採点（doc.grades）とは別に扱う
   function normAi(t) {
     return String(t || "").replace(/（/g, "(").replace(/）/g, ")").replace(/[◯〇]/g, "○").replace(/[✕✖╳]/g, "×").replace(/[ 　\t]/g, "");
@@ -1029,7 +1059,11 @@
       var a = mine[fp.idx], b = ai[fp.idx];
       if (a && b) { both++; if ((a === "◎" ? "○" : a) === (b === "◎" ? "○" : b)) same++; }
     });
+    var sm = scoreOf(mine), sa = scoreOf(ai);
     el.innerHTML =
+      '<div class="pm1-gs-score"><span>自分 <b>' + sm.got + '</b> / ' + PM1_POINTS_TOTAL + '点</span>' +
+        (ca.n ? '<span class="ai">AI <b>' + sa.got + '</b> / ' + PM1_POINTS_TOTAL + '点</span>' : '') +
+        '<span class="pm1-gs-n">2問で100点満点・60点以上が合格基準。1問あたり30点が目安</span></div>' +
       '<div class="pm1-gs-row"><span class="pm1-gs-who">自分の採点</span><span>' + countsText(cm) + '</span><span class="pm1-gs-n">（' + cm.n + ' / ' + state.flat.length + ' 欄）</span></div>' +
       '<div class="pm1-gs-row"><span class="pm1-gs-who ai">AI採点</span><span>' + (ca.n ? countsText(ca) : '未読み取り') + '</span><span class="pm1-gs-n">' + (ca.n ? '（' + ca.n + ' / ' + state.flat.length + ' 欄）' : '（下の欄にAI採点の結果を貼り付けると表示）') + '</span></div>' +
       (both ? '<div class="pm1-gs-row"><span class="pm1-gs-who">一致</span><span>' + same + ' / ' + both + ' 欄</span><span class="pm1-gs-n">判定が違う欄は、解答例とAIの指摘を読み比べる</span></div>' : '');
@@ -1037,7 +1071,9 @@
       var b = $("#pm1-ai-g-" + fp.idx);
       if (!b) return;
       var g = ai[fp.idx], mg = mine[fp.idx];
-      b.innerHTML = 'AI判定：<b>' + (g || "－") + '</b>' +
+      var pe = $("#pm1-pt-got-" + fp.idx);
+      if (pe) pe.textContent = GRADE_RATE.hasOwnProperty(mg) ? "得点 " + (state.points[fp.idx] * GRADE_RATE[mg]) + " / " + state.points[fp.idx] + "点" : "";
+      b.innerHTML = 'AI判定：<b>' + (g || "－") + '</b>' + (g ? '（' + (state.points[fp.idx] * GRADE_RATE[g]) + '点）' : '') +
         (g && mg && (g === "◎" ? "○" : g) !== (mg === "◎" ? "○" : mg) ? '<span class="pm1-ai-diff">自分の採点と違う</span>' : '');
       b.className = "pm1-ai-grade" + (g ? " has" : "");
     });
@@ -1065,7 +1101,7 @@
       var ansText = trimStr(answers[fp.idx]);
       var g = grades[fp.idx] || "";
       html += '<div class="card">' +
-        '<div class="group-head"><h3>' + escapeHtml(fp.part.label || "") + '</h3>' +
+        '<div class="group-head"><h3>' + escapeHtml(fp.part.label || "") + '<span class="pm1-pt">' + state.points[fp.idx] + '点</span></h3>' +
           (hintsUsed[fp.idx] ? '<span class="pm1x-hint-badge">ヒント' + hintsUsed[fp.idx] + 'まで使用</span>' : '') + '</div>' +
         comparePartQuestionHtml(fp) +
         '<div class="pm1-compare-box pm1-compare-mine">' +
@@ -1082,6 +1118,7 @@
             return '<button type="button" class="pm1-grade-btn' + (g === sym ? ' active' : '') +
               '" data-idx="' + fp.idx + '" data-g="' + sym + '">' + sym + '</button>';
           }).join("") +
+          '<span class="pm1-pt-got" id="pm1-pt-got-' + fp.idx + '"></span>' +
           '<span class="pm1-ai-grade" id="pm1-ai-g-' + fp.idx + '"></span>' +
         '</div>' +
       '</div>';
@@ -1165,7 +1202,9 @@
       var hintN = Object.keys(state.doc.hints || {}).filter(function (k) { return state.doc.hints[k] > 0; }).length;
       if (hintN) rec.h = hintN; // ヒントを使った解答欄の数（一覧に「ヒント使用」と表示）
       var ca = gradeCounts(aiGradesFrom(state.doc.ai));
-      if (ca.n) rec.ai = countsText(ca).replace(/ /g, ""); // AI採点の集計（一覧に表示）
+      var sm = scoreOf(state.doc.grades || {});
+      if (sm.n) rec.pt = sm.got; // 独自配点での自己採点の得点（50点満点）
+      if (ca.n) rec.ai = countsText(ca).replace(/ /g, "") + " " + scoreOf(aiGradesFrom(state.doc.ai)).got + "点"; // AI採点の集計（一覧に表示）
       saveExerciseRecord(recKey, rec);
       flashText($("#pm1-record-status"), "演習記録に保存しました");
     });

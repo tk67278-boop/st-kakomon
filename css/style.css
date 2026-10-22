@@ -1194,3 +1194,13 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 /* 午後I 対比・採点: 欄ごとの設問文 */
 .pm1-compare-q { white-space: pre-wrap; font-size: 14.5px; line-height: 1.7; margin: 6px 0 10px; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--chip); border-radius: 0 8px 8px 0; }
 .pm1-compare-q-lead { font-size: 12.5px; color: var(--muted); margin-bottom: 2px; }
+
+/* 午後I: 欄ごとの設問文（演習）と独自配点 */
+.pm1x-setumon-lead { font-size: 12.5px; color: var(--muted); margin: 14px 0 2px; white-space: pre-wrap; }
+.pm1x-part-q { white-space: pre-wrap; font-size: 14px; line-height: 1.65; margin: 4px 0 6px; padding: 6px 10px; border-left: 3px solid var(--accent); background: var(--chip); border-radius: 0 8px 8px 0; }
+.pm1-pt { display: inline-block; margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0 8px; vertical-align: middle; }
+.pm1-pt-got { margin-left: auto; margin-right: 10px; font-size: 13px; font-weight: 700; }
+.pm1-gs-score { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; margin-bottom: 8px; font-size: 15px; }
+.pm1-gs-score b { font-size: 24px; }
+.pm1-gs-score .ai b { color: var(--accent); }
+.pm1-pt-got + .pm1-ai-grade { margin-left: 0; }
