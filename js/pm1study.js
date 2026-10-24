@@ -1195,7 +1195,8 @@
       var rec = {
         s: "done",
         g: state.doc.overall || "",
-        m: Math.round(exElapsedSec() / 60),
+        // 確認終了時に記録した所要時間を優先（開き直した後はタイマーが45分に戻っているため）
+        m: Math.round((exSubmitted() && state.doc.ans.versions[0].sec ? state.doc.ans.versions[0].sec : exElapsedSec()) / 60),
         note: trimStr(state.doc.memo).slice(0, 50),
         t: Date.now()
       };
