@@ -133,6 +133,9 @@
       // 解き方ガイド（summary/ の1ページ資料）へのリンクを午後I・IIで切り替える
       var caseLink = $("#pm-case-link");
       if (caseLink) caseLink.hidden = mode !== "pm2"; // 午後IIだけ事例設定シートを表示
+      var paraLink = $("#pm-para-link");
+      if (paraLink) paraLink.hidden = mode !== "pm2"; // 午後IIだけ段落練習（js/pm2para.js）を表示
+      if (window.PmPara) window.PmPara.close();
       var guide = $("#pm-guide-link");
       if (guide) {
         guide.setAttribute("href", mode === "pm1" ? "summary/pm1_guide.html" : "summary/pm2_guide.html");
@@ -530,6 +533,13 @@
   if ($("#pm-open-all")) {
     $("#pm-open-all").addEventListener("click", function () { setAllOpen(true); });
     $("#pm-close-all").addEventListener("click", function () { setAllOpen(false); });
+  }
+
+  if ($("#pm-para-link")) {
+    $("#pm-para-link").addEventListener("click", function (e) {
+      e.preventDefault();
+      if (window.PmPara) window.PmPara.open();
+    });
   }
 
   /* ---------- 起動 ---------- */
