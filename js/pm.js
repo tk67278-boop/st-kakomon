@@ -335,8 +335,9 @@
       (tg.industry ? '<span class="pm-tag">' + escapeHtml(tg.industry) + "</span>" : "") +
       (tg.theme ? '<span class="pm-tag">' + escapeHtml(tg.theme) + "</span>" : "") +
       "</div>" +
-      (rec && rec.next && rec.next.length ? '<div class="pm-row-next" title="' + escapeAttr(rec.next.join("\n")) + '"><b>次に向けて</b>' +
-        rec.next.map(function (t) { return "<span>" + escapeHtml(t) + "</span>"; }).join("") + "</div>" : "") +
+      // 次に向けたポイントは折りたたんで件数だけ出す（行の高さを揃えて一覧を見やすく保つ）
+      (rec && rec.next && rec.next.length ? '<details class="pm-row-next"><summary>次に向けたポイント（' + rec.next.length + '）</summary><ol>' +
+        rec.next.map(function (t) { return "<li>" + escapeHtml(t) + "</li>"; }).join("") + "</ol></details>" : "") +
       "</div>" +
       '<div class="pm-row-actions">' +
       '<span class="pm-status ' + status + '">' + STATUS_LABEL[status] + (rec && rec.g ? " " + escapeHtml(rec.g) : "") + (rec && rec.pt != null ? "・" + escapeHtml(String(rec.pt)) + "/50点" : "") + (rec && rec.h ? "・ヒント" : "") + (rec && rec.ai ? "・AI " + escapeHtml(rec.ai) : "") + "</span>" +
