@@ -1247,3 +1247,7 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pm-row-next > summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: 12px; width: fit-content; }
 .pm-row-next ol { margin: 6px 0 2px; padding: 8px 12px 8px 2em; background: var(--chip); border-radius: 8px; line-height: 1.65; color: var(--text); }
 .pm-row-next li + li { margin-top: 4px; }
+
+/* CBT画面: 検索キーを押したときの案内 */
+.cbt-find-toast { position: fixed; left: 50%; bottom: 72px; transform: translateX(-50%); z-index: 9999; max-width: min(92vw, 560px); padding: 10px 16px; border-radius: 10px; background: #1f2937; color: #fff; font-size: 14px; line-height: 1.6; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+.cbt-find-toast[hidden] { display: none; }

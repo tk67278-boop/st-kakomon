@@ -319,6 +319,26 @@
 
   window.CBT = { mount: mount, markerToolsHtml: markerToolsHtml };
 
+  // CBT形式の画面（body.cbt-mode）では，本番に合わせてブラウザのページ内検索（Ctrl+F / ⌘F / F3）を止める
+  var findToast = null, findToastTimer = null;
+  document.addEventListener("keydown", function (e) {
+    if (!document.body.classList.contains("cbt-mode")) return;
+    var k = (e.key || "").toLowerCase();
+    if (!(((e.ctrlKey || e.metaKey) && (k === "f" || k === "g")) || k === "f3")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (!findToast) {
+      findToast = document.createElement("div");
+      findToast.className = "cbt-find-toast";
+      findToast.setAttribute("role", "status");
+      findToast.textContent = "本番と同じく，演習画面では検索（Ctrl+F）は使えません。マーカーと〔 〕の見出しで根拠を探しましょう。";
+      document.body.appendChild(findToast);
+    }
+    findToast.hidden = false;
+    clearTimeout(findToastTimer);
+    findToastTimer = setTimeout(function () { findToast.hidden = true; }, 3000);
+  }, true);
+
   // 午前IIの模試画面（index.html の #screen-mock）
   var mockRoot = document.getElementById("screen-mock");
   if (mockRoot && mockRoot.classList.contains("cbt")) {
