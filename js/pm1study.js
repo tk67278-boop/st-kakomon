@@ -972,6 +972,8 @@
     lines.push("3. 公式解答例との差分（趣旨のズレ・不足している要素）");
     lines.push("4. 改善答案例");
     lines.push("");
+    lines.push("全体のまとめとして，見出し「次に向けたポイント」の下に，次の演習で意識すべきことを3つ，箇条書き（1行1項目）で出力してください。");
+    lines.push("");
     lines.push("最後に、次の形式で判定一覧を1行で出力してください（アプリが読み取ります。設問名は下の表記のまま）:");
     lines.push("判定一覧: " + state.flat.map(function (fp) { return (fp.part.label || "") + "=○"; }).join(", "));
     return lines.join("\n");
@@ -1067,6 +1069,8 @@
       '<div class="pm1-gs-row"><span class="pm1-gs-who">自分の採点</span><span>' + countsText(cm) + '</span><span class="pm1-gs-n">（' + cm.n + ' / ' + state.flat.length + ' 欄）</span></div>' +
       '<div class="pm1-gs-row"><span class="pm1-gs-who ai">AI採点</span><span>' + (ca.n ? countsText(ca) : '未読み取り') + '</span><span class="pm1-gs-n">' + (ca.n ? '（' + ca.n + ' / ' + state.flat.length + ' 欄）' : '（下の欄にAI採点の結果を貼り付けると表示）') + '</span></div>' +
       (both ? '<div class="pm1-gs-row"><span class="pm1-gs-who">一致</span><span>' + same + ' / ' + both + ' 欄</span><span class="pm1-gs-n">判定が違う欄は、解答例とAIの指摘を読み比べる</span></div>' : '');
+    var nx = $("#pm1-next");
+    if (nx && window.PmNext) nx.innerHTML = window.PmNext.html(window.PmNext.from(state.doc.ai), "「演習記録に保存」を押すと，午後Iの一覧にも表示されます。");
     state.flat.forEach(function (fp) {
       var b = $("#pm1-ai-g-" + fp.idx);
       if (!b) return;
@@ -1132,6 +1136,7 @@
     html += '<div class="card">' +
       '<div class="group-head"><h2>総合評価</h2></div>' +
       '<div class="pm1-grade-summary" id="pm1-grade-summary"></div>' +
+      '<h3 class="pm-next-head">次に向けたポイント（AI採点から）</h3><div id="pm1-next"></div>' +
       '<label class="opt">評価 <select id="pm1-overall">' +
         '<option value="">未評価</option><option value="A">A</option><option value="B">B</option><option value="C">C</option>' +
       '</select></label>' +
@@ -1203,6 +1208,8 @@
       var hintN = Object.keys(state.doc.hints || {}).filter(function (k) { return state.doc.hints[k] > 0; }).length;
       if (hintN) rec.h = hintN; // ヒントを使った解答欄の数（一覧に「ヒント使用」と表示）
       var ca = gradeCounts(aiGradesFrom(state.doc.ai));
+      var nextPts = window.PmNext ? window.PmNext.from(state.doc.ai) : [];
+      if (nextPts.length) rec.next = nextPts.slice(0, 3); // 次に向けたポイント（一覧に表示）
       var sm = scoreOf(state.doc.grades || {});
       if (sm.n) rec.pt = sm.got; // 独自配点での自己採点の得点（50点満点）
       if (ca.n) rec.ai = countsText(ca).replace(/ /g, "") + " " + scoreOf(aiGradesFrom(state.doc.ai)).got + "点"; // AI採点の集計（一覧に表示）

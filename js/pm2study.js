@@ -842,6 +842,8 @@
     lines.push("3. 改善点（具体的に）");
     lines.push("4. 設問イの改善リライト例");
     lines.push("");
+    lines.push("全体のまとめとして，見出し「次に向けたポイント」の下に，次の論文で意識すべきことを3つ，箇条書き（1行1項目）で出力してください。");
+    lines.push("");
     lines.push("最後に、次の形式で評価一覧を1行で出力してください（アプリが読み取ります）:");
     lines.push("評価一覧: 設問ア=B, 設問イ=B, 設問ウ=B, 総合=B");
     return lines.join("\n");
@@ -899,6 +901,11 @@
     if (!box) return;
     box.innerHTML = evalTableHtml();
     bindEvalSelects();
+    updateNextBox();
+  }
+  function updateNextBox() {
+    var nx = $("#pm2-next");
+    if (nx && window.PmNext) nx.innerHTML = window.PmNext.html(window.PmNext.from(state.doc.check.ai), "「演習記録に保存」を押すと，午後IIの一覧にも表示されます。");
   }
   function bindEvalSelects() {
     $all($("#pm2-eval-box"), ".pm2-self-eval").forEach(function (sel) {
@@ -920,6 +927,7 @@
         '<div class="group-head"><h2>評価（自分とAI）</h2></div>' +
         '<p class="stats-note">IPAの評価はA（合格水準）〜Dの4段階です。自分の評価を付け，AI採点の結果を下に貼り付けると，AIの評価が並んで表示されます。自分の評価はAIで上書きされません。</p>' +
         '<div id="pm2-eval-box">' + evalTableHtml() + '</div>' +
+        '<h3 class="pm-next-head">次に向けたポイント（AI採点から）</h3><div id="pm2-next"></div>' +
         '<div class="pm-panel-actions"><span class="pm2-save-status" id="pm2-record-status"></span>' +
           '<button type="button" class="primary" id="pm2-btn-save-record">演習記録に保存</button></div>' +
       '</div>' +
@@ -952,6 +960,7 @@
     });
 
     bindEvalSelects();
+    updateNextBox();
     $("#pm2-btn-save-record").addEventListener("click", function () {
       var self = selfEval(), ai = aiEvalFrom(state.doc.check.ai);
       var v = (state.doc.essay.versions || [])[0];
@@ -959,6 +968,8 @@
       if (ai.total || ai.a || ai.i || ai.u) {
         rec.ai = (ai.total ? "総合" + ai.total : "") + "(" + ["a", "i", "u"].map(function (k) { return ({ a: "ア", i: "イ", u: "ウ" })[k] + (ai[k] || "-"); }).join("") + ")";
       }
+      var nextPts = window.PmNext ? window.PmNext.from(state.doc.check.ai) : [];
+      if (nextPts.length) rec.next = nextPts.slice(0, 3); // 次に向けたポイント（一覧に表示）
       var key = state.examId + "#pm2#" + state.no;
       if (window.STSync && window.STSync.active() && window.STSync.setPmRecord) window.STSync.setPmRecord(key, rec);
       else {

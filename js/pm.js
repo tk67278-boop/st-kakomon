@@ -283,6 +283,32 @@
     renderProgress();
   }
 
+  // AI採点の結果から「次に向けたポイント」の箇条書きを取り出す（午後I・IIの学習画面と一覧で共用）
+  var NEXT_HEAD = /次(回)?に向け|次への|次に(生か|活か)す|今後に向け/;
+  function nextPointsFrom(text) {
+    var lines = String(text || "").split(/\r?\n/), out = [], i, start = -1;
+    for (i = 0; i < lines.length; i++) { if (NEXT_HEAD.test(lines[i])) { start = i; break; } }
+    if (start < 0) return out;
+    var head = lines[start].replace(/\*\*/g, "");
+    var rest = head.split(/[:：]/).slice(1).join("：").trim();
+    if (rest) out.push(rest);
+    for (i = start + 1; i < lines.length && out.length < 6; i++) {
+      var ln = lines[i].trim();
+      if (!ln) { if (out.length && !(lines[i + 1] || "").trim()) break; continue; }
+      if (/^(判定一覧|評価一覧)/.test(ln.replace(/[*#\s]/g, "")) || /^(#|■|---|___|【)/.test(ln)) break;
+      if (out.length && /^\*\*[^*]+\*\*[:：]?$/.test(ln)) break; // 次の太字見出し
+      ln = ln.replace(/\*\*/g, "").replace(/^([-・*•●◆]|\d+[.)．、]|[①-⑩])\s*/, "").trim();
+      if (ln) out.push(ln.length > 160 ? ln.slice(0, 160) + "…" : ln);
+    }
+    return out;
+  }
+  function nextPointsHtml(items, note) {
+    if (!items.length) return '<p class="stats-note">AI採点の結果を貼り付けると，「次に向けたポイント」をここに表示します。' + (note || "") + '</p>';
+    return '<ol class="pm-next-list">' + items.map(function (t) { return "<li>" + escapeHtml(t) + "</li>"; }).join("") + "</ol>" +
+      (note ? '<p class="stats-note">' + note + "</p>" : "");
+  }
+  window.PmNext = { from: nextPointsFrom, html: nextPointsHtml };
+
   function renderRow(it, records) {
     var q = it.q;
     var rec = records[it.key];
@@ -309,6 +335,8 @@
       (tg.industry ? '<span class="pm-tag">' + escapeHtml(tg.industry) + "</span>" : "") +
       (tg.theme ? '<span class="pm-tag">' + escapeHtml(tg.theme) + "</span>" : "") +
       "</div>" +
+      (rec && rec.next && rec.next.length ? '<div class="pm-row-next" title="' + escapeAttr(rec.next.join("\n")) + '"><b>次に向けて</b>' +
+        rec.next.map(function (t) { return "<span>" + escapeHtml(t) + "</span>"; }).join("") + "</div>" : "") +
       "</div>" +
       '<div class="pm-row-actions">' +
       '<span class="pm-status ' + status + '">' + STATUS_LABEL[status] + (rec && rec.g ? " " + escapeHtml(rec.g) : "") + (rec && rec.pt != null ? "・" + escapeHtml(String(rec.pt)) + "/50点" : "") + (rec && rec.h ? "・ヒント" : "") + (rec && rec.ai ? "・AI " + escapeHtml(rec.ai) : "") + "</span>" +

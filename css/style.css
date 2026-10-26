@@ -1238,3 +1238,12 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
   .pp-item-stat { width: 100%; text-align: left; padding-left: 34px; }
   .pp-hist-row { grid-template-columns: 1fr 1fr 1fr; }
 }
+
+/* AI採点の「次に向けたポイント」（午後I・II） */
+.pm-next-head { font-size: 14px; margin: 14px 0 4px; }
+.pm-next-list { margin: 0; padding-left: 1.5em; line-height: 1.75; font-size: 14.5px; }
+.pm-next-list li + li { margin-top: 2px; }
+.pm-row-next { margin-top: 4px; font-size: 12.5px; line-height: 1.6; color: var(--text); display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.pm-row-next b { color: var(--accent); font-size: 11.5px; }
+.pm-row-next span { position: relative; padding-left: 10px; }
+.pm-row-next span::before { content: "・"; position: absolute; left: 0; color: var(--muted); }
