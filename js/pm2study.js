@@ -1323,7 +1323,8 @@
   }
 
   /* ---------- 起動・終了 ---------- */
-  function open(examId, no) {
+  // tab: 最初に開くタブ（練習スケジュールの「開く」から段階学習・骨子・執筆へ直接移るため。省略時は問題文）
+  function open(examId, no, tab) {
     var exam = findExam(examId);
     var q = findThemeQuestion(examId, no);
     if (!exam || !q) return; // データが無い場合は何もしない（学習ボタンはpm.js側で該当時のみ表示）
@@ -1331,6 +1332,7 @@
     if (state) teardownTabResources(state.activeTab);
 
     state = newState(examId, no, exam, q);
+    if (tab && TABS.some(function (t) { return t.id === tab; })) state.activeTab = tab;
     var themeKey = state.themeKey;
 
     pmMain.hidden = true;
