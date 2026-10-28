@@ -28,6 +28,7 @@
   var TABS = [
     { id: "problem", label: "問題文" },
     { id: "drill", label: "ドリル" },
+    { id: "steps", label: "段階学習" },
     { id: "outline", label: "骨子" },
     { id: "write", label: "執筆" },
     { id: "review", label: "振り返り" },
@@ -116,7 +117,8 @@
     return {
       outline: { versions: [] },
       essay: { draft: null, versions: [] },
-      check: { items: {}, ai: "", t: 0 }
+      check: { items: {}, ai: "", t: 0 },
+      steps: { fill: {}, write: {} } // 段階学習: 穴埋め・見出しごとに書いた文（段落idごと）
     };
   }
   function normalizeDoc(data) {
@@ -126,6 +128,10 @@
     if (data.essay) {
       if (data.essay.draft && typeof data.essay.draft === "object") d.essay.draft = data.essay.draft;
       if (Array.isArray(data.essay.versions)) d.essay.versions = data.essay.versions;
+    }
+    if (data.steps && typeof data.steps === "object") {
+      if (data.steps.fill && typeof data.steps.fill === "object") d.steps.fill = data.steps.fill;
+      if (data.steps.write && typeof data.steps.write === "object") d.steps.write = data.steps.write;
     }
     if (data.check) {
       if (data.check.items && typeof data.check.items === "object") d.check.items = data.check.items;
@@ -284,6 +290,203 @@
   /* =====================================================================
      ドリルタブ
      ===================================================================== */
+  /* =====================================================================
+     段階学習タブ（js/data/pm2_steps.js）
+     1 見本を読む → 2 選んで組み立てる → 3 穴埋めで書く → 4 見出しごとに書く → 5 骨子だけで書く
+     ===================================================================== */
+  var STEP_STAGES = [
+    { n: 1, label: "1 見本を読む", desc: "A社の模範論文を，骨子の見出しごとに読みます。黄色の文が各段落の「要の1文」です。使った部品と組み立て方（文型）も確認します。" },
+    { n: 2, label: "2 選んで組み立てる", desc: "各段落の要の1文や考え方を，選択肢から選びます。間違いの選択肢は，採点講評で指摘されたよくある失敗です。" },
+    { n: 3, label: "3 穴埋めで書く", desc: "模範論文の要の1文だけが空欄になっています。前後の文を読んで，空欄の1文を自分で書き，答え合わせをします。" },
+    { n: 4, label: "4 見出しごとに書く", desc: "見出しを1つずつ，組み立て方（文型）と部品を見ながら自分で書きます。書いたら見本と比べます。" },
+    { n: 5, label: "5 骨子だけで書く", desc: "補助なしで書く本番形式です。骨子タブで見出しを作り，執筆タブで120分で書きます。" }
+  ];
+  var PREF_STEP = "st_pm2_step_stage";
+  function loadPref(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function savePref(key, v) { try { localStorage.setItem(key, v); } catch (e) { /* ignore */ } }
+  var PART_KEY = { "ア": "a", "イ": "i", "ウ": "u" };
+
+  function stepsData() { return (window.PM2_STEPS || {})[state.examId + "-" + state.no] || null; }
+  function stepsAvailableText() {
+    var all = window.PM2_STEPS || {};
+    return Object.keys(all).map(function (k) { return all[k].title; }).join("／");
+  }
+  function findPartText(label) {
+    var groups = window.PM2_PARTS || [];
+    for (var g = 0; g < groups.length; g++) {
+      for (var i = 0; i < groups[g].items.length; i++) {
+        if (groups[g].items[i].label.indexOf(label) === 0) return groups[g].items[i].text;
+      }
+    }
+    return "";
+  }
+  function stepChars(t) { return String(t || "").replace(/\r?\n/g, "").length; }
+  function patternHtml(key) {
+    var pt = (window.PM2_PATTERNS || {})[key];
+    if (!pt) return "";
+    return '<div class="pm2s-pattern"><b>組み立て方：' + escapeHtml(pt.name) + '</b><ol>' +
+      pt.steps.map(function (x) { return "<li>" + escapeHtml(x) + "</li>"; }).join("") + '</ol></div>';
+  }
+  function partsChipsHtml(sec) {
+    return '<div class="pm2s-parts">使った部品：' + sec.parts.map(function (x) { return '<span>' + escapeHtml(x) + '</span>'; }).join("") + '</div>';
+  }
+  // 設問ア・イ・ウごとに段落をまとめ，見出しの前に設問文を出す
+  function eachPartGroup(data, fn) {
+    var html = "";
+    ["ア", "イ", "ウ"].forEach(function (part) {
+      var secs = data.sections.filter(function (x) { return x.part === part; });
+      if (!secs.length) return;
+      var total = secs.reduce(function (a, x) { return a + stepChars(x.text); }, 0);
+      html += '<div class="card"><div class="group-head"><h2>設問' + part + '</h2><span class="spacer"></span><span class="pm2s-total">見本 ' + total + '字</span></div>' +
+        '<div class="pm2-setumon-inline">' + escapeHtml((state.q.q || {})[PART_KEY[part]] || "") + '</div>' +
+        secs.map(fn).join("") + '</div>';
+    });
+    return html;
+  }
+
+  function renderStepsTab(body) {
+    var data = stepsData();
+    if (!data) {
+      body.innerHTML = '<div class="card"><div class="group-head"><h2>段階学習</h2></div>' +
+        '<p class="stats-note">このテーマの段階学習はまだありません。現在あるのは「' + escapeHtml(stepsAvailableText()) + '」です。</p></div>';
+      return;
+    }
+    var stage = Number(state.stepStage || loadPref(PREF_STEP) || 1);
+    if (!(stage >= 1 && stage <= 5)) stage = 1;
+    state.stepStage = stage;
+    var info = STEP_STAGES[stage - 1];
+    body.innerHTML =
+      '<div class="card pm2s-head">' +
+        '<div class="pm2s-stages" role="tablist">' + STEP_STAGES.map(function (st) {
+          return '<button type="button" class="pm2s-stage' + (st.n === stage ? ' active' : '') + '" data-n="' + st.n + '">' + escapeHtml(st.label) + '</button>';
+        }).join("") + '</div>' +
+        '<p class="stats-note">' + escapeHtml(info.desc) + '</p>' +
+      '</div>' +
+      '<div id="pm2s-body"></div>';
+    $all(body, ".pm2s-stage").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (state.drillEngine) { state.drillEngine.destroy(); state.drillEngine = null; }
+        state.stepStage = Number(b.dataset.n);
+        savePref(PREF_STEP, String(state.stepStage));
+        renderStepsTab(body);
+      });
+    });
+    var box = $("#pm2s-body");
+    if (stage === 1) renderStepRead(box, data);
+    else if (stage === 2) renderStepSelect(box, data);
+    else if (stage === 3) renderStepFill(box, data);
+    else if (stage === 4) renderStepWrite(box, data);
+    else renderStepFinal(box);
+  }
+
+  // 段階1: 見本を読む（要の1文を黄色で示す）
+  function renderStepRead(box, data) {
+    box.innerHTML = eachPartGroup(data, function (sec) {
+      var t = escapeHtml(sec.text), k = escapeHtml(sec.key);
+      t = t.replace(k, '<mark class="pm2s-key">' + k + '</mark>');
+      return '<div class="pm2s-sec">' +
+        '<h3>' + escapeHtml(sec.id + " " + sec.head) + '<small>' + stepChars(sec.text) + '字</small></h3>' +
+        '<div class="pm2s-text">' + t + '</div>' +
+        partsChipsHtml(sec) + patternHtml(sec.pattern) +
+        '<p class="pm2s-note">' + escapeHtml(sec.note) + '</p>' +
+      '</div>';
+    });
+  }
+
+  // 段階2: 選んで組み立てる（ドリルエンジンを利用）
+  function renderStepSelect(box, data) {
+    if (!(window.DrillUI && window.DrillUI.mountSet)) {
+      box.innerHTML = '<p class="pm-empty">ドリル機能を読み込めませんでした。</p>';
+      return;
+    }
+    box.innerHTML = '<div id="pm2s-drill"></div>';
+    state.drillEngine = window.DrillUI.mountSet($("#pm2s-drill"), {
+      setId: "pm2step#" + state.examId + "#" + state.no,
+      title: "選んで組み立てる",
+      description: "各段落の要の1文や考え方を選びます。解説で，ほかの選択肢がなぜ不適切か（採点講評のよくある失敗）を確認しましょう。",
+      questions: data.drills || []
+    });
+  }
+
+  // 段階3: 穴埋めで書く
+  function renderStepFill(box, data) {
+    var fill = state.doc.steps.fill;
+    box.innerHTML = eachPartGroup(data, function (sec) {
+      var i = sec.text.indexOf(sec.key);
+      var before = sec.text.slice(0, i), after = sec.text.slice(i + sec.key.length);
+      return '<div class="pm2s-sec" data-id="' + escapeAttr(sec.id) + '">' +
+        '<h3>' + escapeHtml(sec.id + " " + sec.head) + '</h3>' +
+        '<div class="pm2s-text">' + escapeHtml(before) +
+          '<span class="pm2s-blank"><span class="pm2s-blank-hint">空欄：' + escapeHtml(sec.keyHint) + '</span>' +
+          '<textarea class="pm2s-fill" rows="2" data-id="' + escapeAttr(sec.id) + '">' + escapeHtml(fill[sec.id] || "") + '</textarea></span>' +
+          escapeHtml(after) + '</div>' +
+        '<div class="pm-panel-actions"><button type="button" class="pm2s-check" data-id="' + escapeAttr(sec.id) + '">答え合わせ</button></div>' +
+        '<div class="pm2s-answer" hidden><b>見本の1文：</b>' + escapeHtml(sec.key) + '<p class="pm2s-note">' + escapeHtml(sec.note) + '</p></div>' +
+      '</div>';
+    });
+    $all(box, ".pm2s-fill").forEach(function (ta) {
+      ta.addEventListener("change", function () {
+        state.doc.steps.fill[ta.dataset.id] = ta.value;
+        saveDoc();
+      });
+    });
+    $all(box, ".pm2s-check").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var sec = btn.closest(".pm2s-sec");
+        var ans = sec.querySelector(".pm2s-answer");
+        ans.hidden = !ans.hidden;
+        btn.textContent = ans.hidden ? "答え合わせ" : "見本を隠す";
+      });
+    });
+  }
+
+  // 段階4: 見出しごとに書く
+  function renderStepWrite(box, data) {
+    var wr = state.doc.steps.write;
+    box.innerHTML = eachPartGroup(data, function (sec) {
+      var n = stepChars(sec.text);
+      return '<div class="pm2s-sec">' +
+        '<h3>' + escapeHtml(sec.id + " " + sec.head) + '<small>目安 ' + Math.round(n / 50) * 50 + '字前後</small></h3>' +
+        patternHtml(sec.pattern) +
+        '<div class="pm2s-partlist"><b>使える部品</b><ul>' + sec.parts.map(function (x) {
+          var t = findPartText(x);
+          return '<li>' + escapeHtml(t || x) + '</li>';
+        }).join("") + '</ul></div>' +
+        '<textarea class="pm2s-write" rows="7" data-id="' + escapeAttr(sec.id) + '" data-target="' + n + '" placeholder="組み立て方の順に書きます">' + escapeHtml(wr[sec.id] || "") + '</textarea>' +
+        '<div class="pm2-count muted" data-count="' + escapeAttr(sec.id) + '"></div>' +
+        '<details class="pm2s-model"><summary>見本を見る</summary><div class="pm2s-text">' + escapeHtml(sec.text) + '</div></details>' +
+      '</div>';
+    });
+    $all(box, ".pm2s-write").forEach(function (ta) {
+      var cnt = box.querySelector('[data-count="' + ta.dataset.id + '"]');
+      function upd() {
+        var c = stepChars(ta.value), tg = Number(ta.dataset.target);
+        cnt.textContent = c + " 字（見本 " + tg + " 字）";
+        cnt.className = "pm2-count " + (c === 0 ? "muted" : c >= tg * 0.8 ? "ok" : "ng");
+      }
+      ta.addEventListener("input", upd);
+      ta.addEventListener("change", function () {
+        state.doc.steps.write[ta.dataset.id] = ta.value;
+        saveDoc();
+      });
+      upd();
+    });
+  }
+
+  // 段階5: 骨子だけで書く（骨子タブ・執筆タブへ）
+  function renderStepFinal(box) {
+    box.innerHTML = '<div class="card"><div class="group-head"><h2>骨子だけで書く</h2></div>' +
+      '<ol class="pm2s-final">' +
+        '<li>骨子タブで，設問の言葉から見出しを作り，部品を入れる（20分）</li>' +
+        '<li>執筆タブで，骨子だけを見て120分で書く（段階1〜4の見本は見ない）</li>' +
+        '<li>振り返りタブでAI採点し，「次に向けたポイント」を確認する</li>' +
+      '</ol>' +
+      '<div class="pm-panel-actions"><button type="button" id="pm2s-go-outline">骨子タブへ</button>' +
+        '<button type="button" class="primary" id="pm2s-go-write">執筆タブへ</button></div></div>';
+    $("#pm2s-go-outline").addEventListener("click", function () { switchTab("outline"); });
+    $("#pm2s-go-write").addEventListener("click", function () { switchTab("write"); });
+  }
+
   function renderDrillTab(body) {
     if (!(window.DrillUI && window.DrillUI.mountSet)) {
       body.innerHTML = '<p class="pm-empty">ドリル機能を読み込めませんでした。</p>';
@@ -1057,7 +1260,7 @@
       closeWriteCbt();
       stopAutosave();
       stopWriteTimerDisplayLoop();
-    } else if (tab === "drill" && state.drillEngine) {
+    } else if ((tab === "drill" || tab === "steps") && state.drillEngine) {
       state.drillEngine.destroy();
       state.drillEngine = null;
     }
@@ -1068,6 +1271,7 @@
     if (!body) return;
     if (state.activeTab === "problem") renderProblemTab(body);
     else if (state.activeTab === "drill") renderDrillTab(body);
+    else if (state.activeTab === "steps") renderStepsTab(body);
     else if (state.activeTab === "outline") renderOutlineTab(body);
     else if (state.activeTab === "write") renderWriteTab(body);
     else if (state.activeTab === "review") renderReviewTab(body);

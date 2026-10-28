@@ -1256,3 +1256,31 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pm2-parts-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0; }
 .pm2-parts-sel { max-width: 100%; font-size: 14px; padding: 5px 8px; border: 1px solid var(--accent); border-radius: 8px; color: var(--accent); background: var(--card); font-weight: 700; }
 .pm2-parts-help { font-size: 12px; color: var(--muted); }
+
+/* 午後II 段階学習タブ */
+.pm2s-stages { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.pm2s-stage { font-size: 13.5px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+.pm2s-stage.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.pm2s-total { font-size: 12.5px; color: var(--muted); }
+.pm2s-sec { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.pm2s-sec h3 { font-size: 16px; margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; }
+.pm2s-sec h3 small { font-size: 12px; color: var(--muted); font-weight: 400; }
+.pm2s-text { white-space: pre-wrap; font-size: 15px; line-height: 1.9; }
+mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-radius: 3px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark.pm2s-key { background: #5c4d00; } }
+:root[data-theme="dark"] mark.pm2s-key { background: #5c4d00; }
+.pm2s-parts { margin-top: 8px; font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+.pm2s-parts span { background: var(--chip); color: var(--text); border-radius: 999px; padding: 1px 9px; }
+.pm2s-pattern { margin-top: 8px; font-size: 13.5px; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--chip); border-radius: 0 8px 8px 0; }
+.pm2s-pattern ol { margin: 4px 0 0; padding-left: 1.4em; line-height: 1.65; }
+.pm2s-note { font-size: 13px; color: var(--muted); margin: 8px 0 0; line-height: 1.7; }
+.pm2s-blank { display: block; margin: 6px 0; padding: 8px 10px; border: 2px dashed var(--accent); border-radius: 8px; white-space: normal; }
+.pm2s-blank-hint { display: block; font-size: 12.5px; color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+.pm2s-fill, .pm2s-write { width: 100%; box-sizing: border-box; font-size: 15px; line-height: 1.8; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); resize: vertical; }
+.pm2s-answer { margin-top: 8px; padding: 10px 12px; background: var(--ok-soft); border-radius: 8px; font-size: 14.5px; line-height: 1.8; }
+.pm2s-partlist { margin: 8px 0; font-size: 13.5px; }
+.pm2s-partlist ul { margin: 4px 0 0; padding-left: 1.3em; line-height: 1.65; }
+.pm2s-model { margin-top: 8px; }
+.pm2s-model summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: 13.5px; }
+.pm2s-model .pm2s-text { margin-top: 6px; padding: 10px 12px; background: var(--ok-soft); border-radius: 8px; }
+.pm2s-final { line-height: 1.9; padding-left: 1.4em; }
