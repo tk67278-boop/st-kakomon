@@ -325,6 +325,36 @@
     u: "3-1 施策の評価\n3-2 今後の改善点"
   };
 
+  // A社の部品（js/data/pm2_parts.js）を選ぶプルダウン。選ぶとカーソル位置に「・部品」を1行で挿入する
+  function partsSelectHtml(k) {
+    var groups = window.PM2_PARTS || [];
+    if (!groups.length) return "";
+    return '<div class="pm2-parts-row"><select class="pm2-parts-sel" data-k="' + k + '" aria-label="A社の部品を挿入">' +
+      '<option value="">＋ A社の部品を挿入…</option>' +
+      groups.map(function (g, gi) {
+        return '<optgroup label="' + escapeAttr(g.group) + '">' +
+          g.items.map(function (it, ii) { return '<option value="' + gi + '-' + ii + '">' + escapeHtml(it.label) + '</option>'; }).join("") +
+          '</optgroup>';
+      }).join("") +
+      '</select><span class="pm2-parts-help">見出しの下にカーソルを置いて選ぶと，その位置に入ります</span></div>';
+  }
+  function insertPart(ta, text) {
+    var v = ta.value;
+    var pos = typeof ta.selectionStart === "number" ? ta.selectionStart : v.length;
+    var lineStart = v.lastIndexOf("\n", pos - 1) + 1;
+    var lineEnd = v.indexOf("\n", pos);
+    if (lineEnd < 0) lineEnd = v.length;
+    var line = v.slice(lineStart, lineEnd);
+    // 空行ならその行に，文字のある行ならその行の下に挿入する
+    var filled = !!line.trim();
+    var at = filled ? lineEnd : lineStart;
+    var ins = (filled ? "\n" : "") + " ・" + text;
+    ta.value = filled ? v.slice(0, at) + ins + v.slice(at) : v.slice(0, lineStart) + ins + v.slice(lineEnd);
+    var caret = at + ins.length;
+    ta.focus();
+    ta.setSelectionRange(caret, caret);
+  }
+
   function renderOutlineTab(body) {
     if (!state.outlineLive) state.outlineLive = { a: "", i: "", u: "" };
 
@@ -336,7 +366,8 @@
           return '<div class="pm2-field">' +
             '<label class="pm2-field-label">' + KANA_LABEL[k] + 'の章立て</label>' +
             setumonInlineHtml(k) +
-            '<textarea class="pm2-outline-ta" id="pm2-outline-' + k + '" rows="5" placeholder="' + escapeAttr(OUTLINE_PLACEHOLDER[k]) + '"></textarea>' +
+            partsSelectHtml(k) +
+            '<textarea class="pm2-outline-ta" id="pm2-outline-' + k + '" rows="8" placeholder="' + escapeAttr(OUTLINE_PLACEHOLDER[k]) + '"></textarea>' +
           '</div>';
         }).join("") +
         '<div class="pm-panel-actions"><button type="button" class="primary" id="pm2-btn-outline-save">骨子を保存</button></div>' +
@@ -350,6 +381,19 @@
       var ta = $("#pm2-outline-" + k);
       ta.value = state.outlineLive[k];
       ta.addEventListener("input", function () { state.outlineLive[k] = ta.value; });
+    });
+    $all(body, ".pm2-parts-sel").forEach(function (sel) {
+      sel.addEventListener("change", function () {
+        if (!sel.value) return;
+        var ix = sel.value.split("-");
+        var it = (window.PM2_PARTS[Number(ix[0])] || { items: [] }).items[Number(ix[1])];
+        var ta = $("#pm2-outline-" + sel.dataset.k);
+        if (it && ta) {
+          insertPart(ta, it.text);
+          state.outlineLive[sel.dataset.k] = ta.value;
+        }
+        sel.value = "";
+      });
     });
 
     $("#pm2-btn-outline-save").addEventListener("click", function () {

@@ -1251,3 +1251,8 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 /* CBT画面: 検索キーを押したときの案内 */
 .cbt-find-toast { position: fixed; left: 50%; bottom: 72px; transform: translateX(-50%); z-index: 9999; max-width: min(92vw, 560px); padding: 10px 16px; border-radius: 10px; background: #1f2937; color: #fff; font-size: 14px; line-height: 1.6; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
 .cbt-find-toast[hidden] { display: none; }
+
+/* 午後II 骨子タブ: A社の部品の挿入 */
+.pm2-parts-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0; }
+.pm2-parts-sel { max-width: 100%; font-size: 14px; padding: 5px 8px; border: 1px solid var(--accent); border-radius: 8px; color: var(--accent); background: var(--card); font-weight: 700; }
+.pm2-parts-help { font-size: 12px; color: var(--muted); }
