@@ -91,8 +91,8 @@
       '<div class="card pm2-head-card">' +
         '<div class="group-head"><button type="button" class="linkbtn" id="pp-back">&larr; 午後IIの一覧へ戻る</button></div>' +
         '<h2 class="pm2-title">段落練習（1段落を15〜20分）</h2>' +
-        '<p class="stats-note">論文の1段落（約400字）だけを時間を計って書きます。書き終えたら必須要素を自己チェックし，A社の模範例と見比べます。' +
-          '120分の通し執筆の前に，型を体に入れるための練習です。使う設定は<a href="summary/pm2_case.html" target="_blank" rel="noopener">A社の事例設定シート</a>です。</p>' +
+        '<p class="stats-note">論文の1段落（約400字）だけを時間を計って書きます。書き終えたら必須要素を自己チェックし、A社の模範例と見比べます。' +
+          '120分の通し執筆の前に、型を体に入れるための練習です。使う設定は<a href="summary/pm2_case.html" target="_blank" rel="noopener">A社の事例設定シート</a>です。</p>' +
       '</div>';
     ["ア", "イ", "ウ"].forEach(function (part) {
       html += '<div class="card"><div class="group-head"><h2>設問' + part + 'の段落</h2></div><div class="pp-list">';
@@ -249,7 +249,7 @@
       '<div class="card">' +
         '<div class="group-head"><h2>自己チェック</h2><span class="spacer"></span><span class="pp-check-n" id="pp-check-n"></span></div>' +
         (idx > 0 ? '<p class="stats-note">' + esc(fmtDate(at.t)) + 'の練習（' + countChars(at.text) + '字・所要 ' + fmtClock(at.sec) + '）を表示しています。</p><div class="pp-old">' + esc(at.text) + '</div>' : '') +
-        '<p class="stats-note">書いた段落を読み返し，満たしている要素にチェックを付けます。</p>' +
+        '<p class="stats-note">書いた段落を読み返し、満たしている要素にチェックを付けます。</p>' +
         '<div class="pp-checks">' + d.must.map(function (m, i) {
           return '<label><input type="checkbox" data-i="' + i + '"' + (at.checks && at.checks[i] ? ' checked' : '') + '> ' + esc(m) + '</label>';
         }).join("") + '</div>' +
@@ -257,13 +257,13 @@
       '<div class="card">' +
         '<div class="group-head"><h2>模範例（A社）</h2><span class="spacer"></span><span class="pp-check-n">' + countChars(d.model) + '字</span></div>' +
         '<div class="pp-model">' + esc(d.model) + '</div>' +
-        '<p class="stats-note"><b>見比べ方：</b>型（' + esc(d.form) + '）の順になっているか，数字と固有の事情（A社ならでは）が入っているかを確認します。模範例の言い回しで使えるものは，事例設定シートの余白にメモしておきます。</p>' +
+        '<p class="stats-note"><b>見比べ方：</b>型（' + esc(d.form) + '）の順になっているか、数字と固有の事情（A社ならでは）が入っているかを確認します。模範例の言い回しで使えるものは、事例設定シートの余白にメモしておきます。</p>' +
       '</div>' +
       '<div class="card">' +
         '<div class="group-head"><h2>AI採点</h2></div>' +
         '<div class="pm2-ai-actions"><button type="button" class="primary" id="pp-copy">AI採点用にコピー</button><span class="pm2-copy-status" id="pp-copy-status"></span></div>' +
         '<label class="pm2-field-label" for="pp-ai">AI採点結果の貼り付け欄</label>' +
-        '<textarea class="pm2-ai-result" id="pp-ai" rows="6" placeholder="AIから返ってきた結果を貼り付けると，この練習の記録に保存されます">' + esc(at.ai || "") + '</textarea>' +
+        '<textarea class="pm2-ai-result" id="pp-ai" rows="6" placeholder="AIから返ってきた結果を貼り付けると、この練習の記録に保存されます">' + esc(at.ai || "") + '</textarea>' +
       '</div>';
     updateCheckN(at);
     $all(box, ".pp-checks input").forEach(function (cb) {
@@ -286,7 +286,7 @@
   }
   function buildPrompt(d, at) {
     return [
-      "あなたはITストラテジスト試験（午後II・論述式）の採点者です。次の段落を，論文の一部として厳しめに採点してください。",
+      "あなたはITストラテジスト試験（午後II・論述式）の採点者です。次の段落を、論文の一部として厳しめに採点してください。",
       "",
       "【お題】" + d.task,
       "【目安】" + d.chars + "字程度（実際は" + countChars(at.text) + "字）",
@@ -299,7 +299,7 @@
       "",
       "次の形式で答えてください。",
       "1. 必須要素ごとの判定（○・△・×）と一言の理由",
-      "2. 設問に答えているか，一般論になっていないか，具体性（数字・固有の事情）の指摘",
+      "2. 設問に答えているか、一般論になっていないか、具体性（数字・固有の事情）の指摘",
       "3. この段落を論文に使ったときの評価の目安（A〜D）",
       "4. 字数を保ったまま改善したリライト例"
     ].join("\n");

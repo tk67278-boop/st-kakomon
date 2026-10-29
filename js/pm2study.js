@@ -296,11 +296,11 @@
      1 見本を読む → 2 選んで組み立てる → 3 穴埋めで書く → 4 見出しごとに書く → 5 骨子だけで書く
      ===================================================================== */
   var STEP_STAGES = [
-    { n: 1, label: "1 見本を読む", desc: "A社の模範論文を，骨子の見出しごとに読みます。黄色の文が各段落の「要の1文」です。使った部品と組み立て方（文型）も確認します。" },
-    { n: 2, label: "2 選んで組み立てる", desc: "各段落の要の1文や考え方を，選択肢から選びます。間違いの選択肢は，採点講評で指摘されたよくある失敗です。" },
-    { n: 3, label: "3 穴埋めで書く", desc: "模範論文の要の1文だけが空欄になっています。前後の文を読んで，空欄の1文を自分で書き，答え合わせをします。" },
-    { n: 4, label: "4 見出しごとに書く", desc: "見出しを1つずつ，組み立て方（文型）と部品を見ながら自分で書きます。書いたら見本と比べます。" },
-    { n: 5, label: "5 骨子だけで書く", desc: "補助なしで書く本番形式です。骨子タブで見出しを作り，執筆タブで120分で書きます。" }
+    { n: 1, label: "1 見本を読む", desc: "A社の模範論文を、骨子の見出しごとに読みます。黄色の文が各段落の「要の1文」です。使った部品と組み立て方（文型）も確認します。" },
+    { n: 2, label: "2 選んで組み立てる", desc: "各段落の要の1文や考え方を、選択肢から選びます。間違いの選択肢は、採点講評で指摘されたよくある失敗です。" },
+    { n: 3, label: "3 穴埋めで書く", desc: "模範論文の要の1文だけが空欄になっています。前後の文を読んで、空欄の1文を自分で書き、答え合わせをします。" },
+    { n: 4, label: "4 見出しごとに書く", desc: "見出しを1つずつ、組み立て方（文型）と部品を見ながら自分で書きます。書いたら見本と比べます。" },
+    { n: 5, label: "5 骨子だけで書く", desc: "補助なしで書く本番形式です。骨子タブで見出しを作り、執筆タブで120分で書きます。" }
   ];
   var PREF_STEP = "st_pm2_step_stage";
   function loadPref(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
@@ -331,7 +331,7 @@
   function partsChipsHtml(sec) {
     return '<div class="pm2s-parts">使った部品：' + sec.parts.map(function (x) { return '<span>' + escapeHtml(x) + '</span>'; }).join("") + '</div>';
   }
-  // 設問ア・イ・ウごとに段落をまとめ，見出しの前に設問文を出す
+  // 設問ア・イ・ウごとに段落をまとめ、見出しの前に設問文を出す
   function eachPartGroup(data, fn) {
     var html = "";
     ["ア", "イ", "ウ"].forEach(function (part) {
@@ -380,7 +380,7 @@
     else renderStepFinal(box);
   }
 
-  // 段階1: 見本を読む（要の1文を黄色で示す）。隣の欄に見本を打ち込んで，文の流れを手で覚える
+  // 段階1: 見本を読む（要の1文を黄色で示す）。隣の欄に見本を打ち込んで、文の流れを手で覚える
   function renderStepRead(box, data) {
     var copy = state.doc.steps.copy;
     box.innerHTML = eachPartGroup(data, function (sec) {
@@ -433,7 +433,7 @@
     state.drillEngine = window.DrillUI.mountSet($("#pm2s-drill"), {
       setId: "pm2step#" + state.examId + "#" + state.no,
       title: "選んで組み立てる",
-      description: "各段落の要の1文や考え方を選びます。解説で，ほかの選択肢がなぜ不適切か（採点講評のよくある失敗）を確認しましょう。",
+      description: "各段落の要の1文や考え方を選びます。解説で、ほかの選択肢がなぜ不適切か（採点講評のよくある失敗）を確認しましょう。",
       questions: data.drills || []
     });
   }
@@ -507,9 +507,9 @@
   function renderStepFinal(box) {
     box.innerHTML = '<div class="card"><div class="group-head"><h2>骨子だけで書く</h2></div>' +
       '<ol class="pm2s-final">' +
-        '<li>骨子タブで，設問の言葉から見出しを作り，部品を入れる（20分）</li>' +
-        '<li>執筆タブで，骨子だけを見て120分で書く（段階1〜4の見本は見ない）</li>' +
-        '<li>振り返りタブでAI採点し，「次に向けたポイント」を確認する</li>' +
+        '<li>骨子タブで、設問の言葉から見出しを作り、部品を入れる（20分）</li>' +
+        '<li>執筆タブで、骨子だけを見て120分で書く（段階1〜4の見本は見ない）</li>' +
+        '<li>振り返りタブでAI採点し、「次に向けたポイント」を確認する</li>' +
       '</ol>' +
       '<div class="pm-panel-actions"><button type="button" id="pm2s-go-outline">骨子タブへ</button>' +
         '<button type="button" class="primary" id="pm2s-go-write">執筆タブへ</button></div></div>';
@@ -569,7 +569,7 @@
           g.items.map(function (it, ii) { return '<option value="' + gi + '-' + ii + '">' + escapeHtml(it.label) + '</option>'; }).join("") +
           '</optgroup>';
       }).join("") +
-      '</select><span class="pm2-parts-help">見出しの下にカーソルを置いて選ぶと，その位置に入ります</span></div>';
+      '</select><span class="pm2-parts-help">見出しの下にカーソルを置いて選ぶと、その位置に入ります</span></div>';
   }
   function insertPart(ta, text) {
     var v = ta.value;
@@ -578,7 +578,7 @@
     var lineEnd = v.indexOf("\n", pos);
     if (lineEnd < 0) lineEnd = v.length;
     var line = v.slice(lineStart, lineEnd);
-    // 空行ならその行に，文字のある行ならその行の下に挿入する
+    // 空行ならその行に、文字のある行ならその行の下に挿入する
     var filled = !!line.trim();
     var at = filled ? lineEnd : lineStart;
     var ins = (filled ? "\n" : "") + " ・" + text;
@@ -866,12 +866,12 @@
         '</div>' +
         '<div class="card">' +
           '<div class="group-head"><h2>保存した版（最新5件）</h2></div>' +
-          '<p class="stats-note">「開く」で過去の版を読み込み，続きから書き直せます（タイマーは120分に戻ります）。</p>' +
+          '<p class="stats-note">「開く」で過去の版を読み込み、続きから書き直せます（タイマーは120分に戻ります）。</p>' +
           '<div id="pm2-essay-versions"></div>' +
         '</div>';
       $("#pm2-to-review").addEventListener("click", function () { switchTab("review"); });
       $("#pm2-restart").addEventListener("click", function () {
-        if (!confirm("入力欄を空にして，120分のタイマーで書き直します。脱稿した論文は保存済みの版として残ります。よろしいですか？")) return;
+        if (!confirm("入力欄を空にして、120分のタイマーで書き直します。脱稿した論文は保存済みの版として残ります。よろしいですか？")) return;
         restartWrite(null);
         renderTabBody();
         openWriteCbt();
@@ -890,9 +890,9 @@
     body.innerHTML =
       '<div class="card">' +
         '<div class="group-head"><h2>執筆（CBT形式・120分）</h2></div>' +
-        '<p class="stats-note">本番のCBTと同じく，左に問題文，右に設問ア・イ・ウの入力欄を並べた全画面で論述します。' +
-          '問題文へのマーカー，メモ，電卓，白黒反転，拡大・縮小が使えます。</p>' +
-        '<p class="stats-note">入力中の論文は30秒ごとに自動で下書き保存されます。「確認終了」で脱稿として保存し，振り返りに進みます。</p>' +
+        '<p class="stats-note">本番のCBTと同じく、左に問題文、右に設問ア・イ・ウの入力欄を並べた全画面で論述します。' +
+          '問題文へのマーカー、メモ、電卓、白黒反転、拡大・縮小が使えます。</p>' +
+        '<p class="stats-note">入力中の論文は30秒ごとに自動で下書き保存されます。「確認終了」で脱稿として保存し、振り返りに進みます。</p>' +
         '<div class="pm-panel-actions">' +
           '<span class="pm2-save-status">現在 計' + total + '字' +
             (wt.started ? '・残り ' + (wt.finished ? '0:00' : fmtClock(wtRemainingSec())) : '') + '</span>' +
@@ -901,7 +901,7 @@
       '</div>' +
       '<div class="card">' +
         '<div class="group-head"><h2>保存した版（最新5件）</h2></div>' +
-        '<p class="stats-note">「開く」で過去の版を入力欄に読み込み，続きから書き直せます。</p>' +
+        '<p class="stats-note">「開く」で過去の版を入力欄に読み込み、続きから書き直せます。</p>' +
         '<div id="pm2-essay-versions"></div>' +
       '</div>';
     $("#pm2-cbt-open").addEventListener("click", openWriteCbt);
@@ -923,7 +923,7 @@
             '<input type="checkbox" role="switch"><span class="cbt-switch" aria-hidden="true"></span></label>' +
           '<button type="button" class="cbt-btn cbt-blue" data-cbt-open="memo">メモ</button>' +
           '<button type="button" class="cbt-btn cbt-gray" id="pm2-cbt-close" title="下書きを保存して執筆画面を閉じます">中断</button>' +
-          '<button type="button" class="cbt-btn cbt-red" id="pm2-btn-final-save" title="脱稿として保存し，振り返りに進みます">確認終了</button>' +
+          '<button type="button" class="cbt-btn cbt-red" id="pm2-btn-final-save" title="脱稿として保存し、振り返りに進みます">確認終了</button>' +
         '</div>' +
         '<div class="cbt-time">残り時間 <b id="pm2-write-timer-display"></b>' +
           '<span class="cbt-timer-ctl">' +
@@ -984,7 +984,7 @@
       flashText($("#pm2-draft-status"), "下書きを保存しました");
     });
     $("#pm2-btn-final-save").addEventListener("click", function () {
-      if (!confirm("脱稿として保存し，振り返りに進みます。よろしいですか？")) return;
+      if (!confirm("脱稿として保存し、振り返りに進みます。よろしいですか？")) return;
       saveFinalVersion(); // 下書きは消える（脱稿済み）
       stopWriteTimerAtFinish();
       state.writeRestarted = false;
@@ -1119,7 +1119,7 @@
     lines.push("3. 改善点（具体的に）");
     lines.push("4. 設問イの改善リライト例");
     lines.push("");
-    lines.push("全体のまとめとして，見出し「次に向けたポイント」の下に，次の論文で意識すべきことを3つ，箇条書き（1行1項目）で出力してください。");
+    lines.push("全体のまとめとして、見出し「次に向けたポイント」の下に、次の論文で意識すべきことを3つ、箇条書き（1行1項目）で出力してください。");
     lines.push("");
     lines.push("最後に、次の形式で評価一覧を1行で出力してください（アプリが読み取ります）:");
     lines.push("評価一覧: 設問ア=B, 設問イ=B, 設問ウ=B, 総合=B");
@@ -1182,7 +1182,7 @@
   }
   function updateNextBox() {
     var nx = $("#pm2-next");
-    if (nx && window.PmNext) nx.innerHTML = window.PmNext.html(window.PmNext.from(state.doc.check.ai), "「演習記録に保存」を押すと，午後IIの一覧にも表示されます。");
+    if (nx && window.PmNext) nx.innerHTML = window.PmNext.html(window.PmNext.from(state.doc.check.ai), "「演習記録に保存」を押すと、午後IIの一覧にも表示されます。");
   }
   function bindEvalSelects() {
     $all($("#pm2-eval-box"), ".pm2-self-eval").forEach(function (sel) {
@@ -1202,7 +1202,7 @@
     body.innerHTML =
       '<div class="card">' +
         '<div class="group-head"><h2>評価（自分とAI）</h2></div>' +
-        '<p class="stats-note">IPAの評価はA（合格水準）〜Dの4段階です。自分の評価を付け，AI採点の結果を下に貼り付けると，AIの評価が並んで表示されます。自分の評価はAIで上書きされません。</p>' +
+        '<p class="stats-note">IPAの評価はA（合格水準）〜Dの4段階です。自分の評価を付け、AI採点の結果を下に貼り付けると、AIの評価が並んで表示されます。自分の評価はAIで上書きされません。</p>' +
         '<div id="pm2-eval-box">' + evalTableHtml() + '</div>' +
         '<h3 class="pm-next-head">次に向けたポイント（AI採点から）</h3><div id="pm2-next"></div>' +
         '<div class="pm-panel-actions"><span class="pm2-save-status" id="pm2-record-status"></span>' +
