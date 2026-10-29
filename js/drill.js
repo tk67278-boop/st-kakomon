@@ -40,6 +40,24 @@
     }
   }
 
+  // 解説文の「アは」「イ・ウは」などの選択肢記号は元の並び順で書かれているので，
+  // 画面上でシャッフルした並び順の記号に置き換える（perm[表示位置] = 元の位置）。
+  // 「設問ア」のように直前が文字の場合は選択肢記号とみなさない。
+  function remapKana(text, perm) {
+    if (!perm) return text;
+    // 「設問ア・イ・ウ」「設問イ・ウ」は選択肢ではないので一時的に退避する
+    var kept = [];
+    var t = String(text).replace(/設問[アイウエ](?:[・、][アイウエ])*/g, function (m) {
+      kept.push(m);
+      return "\u0000" + (kept.length - 1) + "\u0000";
+    });
+    t = t.replace(/(^|[。、，,・\s「（(])([アイウエ])(?=[はとがのもや・、])/g, function (m, pre, k) {
+      var disp = perm.indexOf(KANA.indexOf(k));
+      return pre + (disp >= 0 ? KANA[disp] : k);
+    });
+    return t.replace(/\u0000(\d+)\u0000/g, function (m, i) { return kept[Number(i)]; });
+  }
+
   /* =====================================================================
      汎用ドリルエンジン
      ===================================================================== */
@@ -235,7 +253,7 @@
       $c("#drill-fb-result").textContent = result.correct ? "正解！" : "不正解";
       var dispPos = session.perms[session.idx].indexOf(q.answer);
       $c("#drill-fb-answer").textContent = "正解は「" + KANA[dispPos >= 0 ? dispPos : q.answer] + "」";
-      $c("#drill-fb-explanation").textContent = q.explanation || "";
+      $c("#drill-fb-explanation").textContent = remapKana(q.explanation || "", session.perms[session.idx]);
 
       var nextBtn = $c("#drill-btn-next");
       nextBtn.textContent = (session.idx + 1 >= session.questions.length) ? "結果を見る" : "次の問題へ";
