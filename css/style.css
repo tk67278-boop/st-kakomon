@@ -1291,3 +1291,22 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-copy-ta { flex: 1; min-height: 160px; width: 100%; box-sizing: border-box; font-size: 15px; line-height: 1.9; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); resize: vertical; }
 @media (max-width: 760px) { .pm2s-copy-grid { grid-template-columns: 1fr; } }
 .pm2s-head-line { font-weight: 700; }
+
+/* 段階学習 段階3: 書き出しのヒント・自己判定・解き直し */
+.pm2s-fill-sum { font-weight: 700; margin-bottom: 8px; }
+.pm2s-fill-mode { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.pm2s-mode { font-size: 13.5px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+.pm2s-mode.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.pm2s-mode:disabled { opacity: .5; cursor: default; }
+.pm2s-opener-btn { margin-top: 4px; font-size: 13px; }
+.pm2s-opener { display: block; margin-top: 4px; font-size: 13.5px; font-weight: 700; color: var(--accent); }
+.pm2s-grade { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pm2s-grade-btn { font-size: 13.5px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+.pm2s-grade-btn.g-o.active { background: var(--ok); border-color: var(--ok); color: #fff; }
+.pm2s-grade-btn.g-t.active { background: #d97706; border-color: #d97706; color: #fff; }
+.pm2s-grade-btn.g-x.active { background: var(--ng); border-color: var(--ng); color: #fff; }
+.pm2s-grade-tag { font-size: 13px; font-weight: 800; border-radius: 999px; padding: 0 9px; color: #fff; }
+.pm2s-grade-tag.g-o { background: var(--ok); }
+.pm2s-grade-tag.g-t { background: #d97706; }
+.pm2s-grade-tag.g-x { background: var(--ng); }
+.pm2s-opener[hidden] { display: none; }

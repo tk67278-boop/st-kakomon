@@ -118,7 +118,7 @@
       outline: { versions: [] },
       essay: { draft: null, versions: [] },
       check: { items: {}, ai: "", t: 0 },
-      steps: { fill: {}, write: {}, copy: {} } // 段階学習: 穴埋め・見出しごとに書いた文・見本の打ち込み（段落idごと）
+      steps: { fill: {}, write: {}, copy: {}, grade: {} } // 段階学習: 穴埋め・見出しごとに書いた文・見本の打ち込み・穴埋めの自己判定（段落idごと）
     };
   }
   function normalizeDoc(data) {
@@ -133,6 +133,7 @@
       if (data.steps.fill && typeof data.steps.fill === "object") d.steps.fill = data.steps.fill;
       if (data.steps.write && typeof data.steps.write === "object") d.steps.write = data.steps.write;
       if (data.steps.copy && typeof data.steps.copy === "object") d.steps.copy = data.steps.copy;
+      if (data.steps.grade && typeof data.steps.grade === "object") d.steps.grade = data.steps.grade;
     }
     if (data.check) {
       if (data.check.items && typeof data.check.items === "object") d.check.items = data.check.items;
@@ -332,10 +333,10 @@
     return '<div class="pm2s-parts">使った部品：' + sec.parts.map(function (x) { return '<span>' + escapeHtml(x) + '</span>'; }).join("") + '</div>';
   }
   // 設問ア・イ・ウごとに段落をまとめ、見出しの前に設問文を出す
-  function eachPartGroup(data, fn) {
+  function eachPartGroup(data, fn, keep) {
     var html = "";
     ["ア", "イ", "ウ"].forEach(function (part) {
-      var secs = data.sections.filter(function (x) { return x.part === part; });
+      var secs = data.sections.filter(function (x) { return x.part === part && (!keep || keep(x)); });
       if (!secs.length) return;
       var total = secs.reduce(function (a, x) { return a + stepChars(x.text); }, 0);
       html += '<div class="card"><div class="group-head"><h2>設問' + part + '</h2><span class="spacer"></span><span class="pm2s-total">見本 ' + total + '字</span></div>' +
@@ -439,33 +440,112 @@
   }
 
   // 段階3: 穴埋めで書く
+  // 書き出しのヒント（空欄の最初の読点まで）と，その型。型はよく使う書き出しの言葉で判定する
+  var OPENER_TYPES = [
+    [/^このため、/, "つなぐ文（事業特性・現状 → 経営への影響）"],
+    [/^この結果、/, "つなぐ文（課題 → 経営課題への影響）"],
+    [/^そこで/, "言い切る文（自分の判断・工夫・改善）"],
+    [/^(その結果|協議の結果|これにより|これらの分析から)、/, "結果を示す文（協力・合意・効果）"],
+    [/^第[一二三四]に、/, "並べる文（2つ目以降の要素）"],
+    [/[0-9０-９]/, "数字で示す文"]
+  ];
+  function keyOpener(key) {
+    var i = key.indexOf("、");
+    var head = i > 0 && i <= 12 ? key.slice(0, i + 1) : key.slice(0, 8) + "…";
+    var type = "";
+    for (var t = 0; t < OPENER_TYPES.length; t++) {
+      if (OPENER_TYPES[t][0].test(t === 5 ? key : head)) { type = OPENER_TYPES[t][1]; break; }
+    }
+    return { head: head, type: type };
+  }
+  var FILL_GRADES = [["o", "◯ 役割も要点も合っている"], ["t", "△ 役割は合っている"], ["x", "× 違う"]];
+
   function renderStepFill(box, data) {
-    var fill = state.doc.steps.fill;
-    box.innerHTML = eachPartGroup(data, function (sec) {
+    var fill = state.doc.steps.fill, grade = state.doc.steps.grade;
+    var retry = !!state.stepFillRetry;
+    var cnt = { o: 0, t: 0, x: 0, none: 0 };
+    data.sections.forEach(function (x) { cnt[grade[x.id] || "none"]++; });
+    var retryN = cnt.t + cnt.x;
+    if (retry && !retryN) retry = state.stepFillRetry = false;
+    var keep = retry ? function (x) { return grade[x.id] === "t" || grade[x.id] === "x"; } : null;
+
+    var head = '<div class="card pm2s-fill-head">' +
+      '<div class="pm2s-fill-sum">自己判定：◯ ' + cnt.o + '・△ ' + cnt.t + '・× ' + cnt.x + '・未判定 ' + cnt.none + '</div>' +
+      '<div class="pm2s-fill-mode" role="group">' +
+        '<button type="button" class="pm2s-mode' + (!retry ? ' active' : '') + '" data-retry="0">すべての空欄</button>' +
+        '<button type="button" class="pm2s-mode' + (retry ? ' active' : '') + '" data-retry="1"' + (retryN ? '' : ' disabled') + '>×と△だけ解き直す（' + retryN + '）</button>' +
+      '</div>' +
+      '<p class="stats-note">答え合わせの後に自己判定を付けます。判定は言葉ではなく，書き出しの型（役割）と要点が合っているかで付けます。×と△は「解き直す」で，その空欄だけを白紙から書き直せます。</p>' +
+    '</div>';
+
+    box.innerHTML = head + eachPartGroup(data, function (sec) {
       var i = sec.text.indexOf(sec.key);
       var before = sec.text.slice(0, i), after = sec.text.slice(i + sec.key.length);
+      var op = keyOpener(sec.key), g = grade[sec.id] || "";
+      // 解き直しでは前回の答えを隠して白紙から書く（今回書き直した欄は表示する）
+      var mine = retry && !(state.stepFillFresh || {})[sec.id] ? "" : (fill[sec.id] || "");
       return '<div class="pm2s-sec" data-id="' + escapeAttr(sec.id) + '">' +
-        '<h3>' + escapeHtml(sec.id + " " + sec.head) + '</h3>' +
+        '<h3>' + escapeHtml(sec.id + " " + sec.head) + (g ? '<span class="pm2s-grade-tag g-' + g + '">' + ({ o: "◯", t: "△", x: "×" })[g] + '</span>' : '') + '</h3>' +
         '<div class="pm2s-text">' + escapeHtml(before) +
           '<span class="pm2s-blank"><span class="pm2s-blank-hint">空欄：' + escapeHtml(sec.keyHint) + '</span>' +
-          '<textarea class="pm2s-fill" rows="2" data-id="' + escapeAttr(sec.id) + '">' + escapeHtml(fill[sec.id] || "") + '</textarea></span>' +
+          '<textarea class="pm2s-fill" rows="2" data-id="' + escapeAttr(sec.id) + '">' + escapeHtml(mine) + '</textarea>' +
+          '<button type="button" class="linkbtn pm2s-opener-btn">書き出しのヒント</button>' +
+          '<span class="pm2s-opener" hidden>書き出し：「' + escapeHtml(op.head) + '」' + (op.type ? '　型：' + escapeHtml(op.type) : '') + '</span>' +
+          '</span>' +
           escapeHtml(after) + '</div>' +
-        '<div class="pm-panel-actions"><button type="button" class="pm2s-check" data-id="' + escapeAttr(sec.id) + '">答え合わせ</button></div>' +
-        '<div class="pm2s-answer" hidden><b>見本の1文：</b>' + escapeHtml(sec.key) + '<p class="pm2s-note">' + escapeHtml(sec.note) + '</p></div>' +
+        '<div class="pm-panel-actions"><button type="button" class="pm2s-check">答え合わせ</button></div>' +
+        '<div class="pm2s-answer" hidden><b>見本の1文：</b>' + escapeHtml(sec.key) +
+          (op.type ? '<div class="pm2s-note">型：' + escapeHtml(op.type) + '</div>' : '') +
+          '<p class="pm2s-note">' + escapeHtml(sec.note) + '</p>' +
+          '<div class="pm2s-grade" role="group" aria-label="自己判定">' + FILL_GRADES.map(function (x) {
+            return '<button type="button" class="pm2s-grade-btn g-' + x[0] + (g === x[0] ? ' active' : '') + '" data-g="' + x[0] + '">' + escapeHtml(x[1]) + '</button>';
+          }).join("") + '</div>' +
+        '</div>' +
       '</div>';
+    }, keep);
+
+    $all(box, ".pm2s-mode").forEach(function (b) {
+      b.addEventListener("click", function () {
+        state.stepFillRetry = b.dataset.retry === "1";
+        state.stepFillFresh = {};
+        renderStepFill(box, data);
+      });
     });
     $all(box, ".pm2s-fill").forEach(function (ta) {
+      ta.addEventListener("input", function () {
+        if (!state.stepFillFresh) state.stepFillFresh = {};
+        state.stepFillFresh[ta.dataset.id] = true;
+      });
       ta.addEventListener("change", function () {
         state.doc.steps.fill[ta.dataset.id] = ta.value;
         saveDoc();
       });
     });
+    $all(box, ".pm2s-opener-btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var o = b.nextElementSibling;
+        o.hidden = !o.hidden;
+        b.textContent = o.hidden ? "書き出しのヒント" : "ヒントを隠す";
+      });
+    });
     $all(box, ".pm2s-check").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var sec = btn.closest(".pm2s-sec");
-        var ans = sec.querySelector(".pm2s-answer");
+        var ans = btn.closest(".pm2s-sec").querySelector(".pm2s-answer");
         ans.hidden = !ans.hidden;
         btn.textContent = ans.hidden ? "答え合わせ" : "見本を隠す";
+      });
+    });
+    $all(box, ".pm2s-grade-btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var id = b.closest(".pm2s-sec").dataset.id;
+        var ta = b.closest(".pm2s-sec").querySelector(".pm2s-fill");
+        state.doc.steps.fill[id] = ta.value; // 判定と一緒に，今書いた文を保存する
+        if (state.doc.steps.grade[id] === b.dataset.g) delete state.doc.steps.grade[id];
+        else state.doc.steps.grade[id] = b.dataset.g;
+        saveDoc();
+        var y = window.scrollY;
+        renderStepFill(box, data);
+        window.scrollTo(0, y);
       });
     });
   }
