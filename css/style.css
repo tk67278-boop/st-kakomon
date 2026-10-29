@@ -1310,3 +1310,5 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-grade-tag.g-t { background: #d97706; }
 .pm2s-grade-tag.g-x { background: var(--ng); }
 .pm2s-opener[hidden] { display: none; }
+.pm2s-prev { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--chip); font-size: 14px; line-height: 1.75; white-space: pre-wrap; }
+.pm2s-answer .pm2s-text { margin: 4px 0 6px; }

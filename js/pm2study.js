@@ -118,7 +118,7 @@
       outline: { versions: [] },
       essay: { draft: null, versions: [] },
       check: { items: {}, ai: "", t: 0 },
-      steps: { fill: {}, write: {}, copy: {}, grade: {} } // 段階学習: 穴埋め・見出しごとに書いた文・見本の打ち込み・穴埋めの自己判定（段落idごと）
+      steps: { fill: {}, write: {}, copy: {}, grade: {}, wgrade: {} } // 段階学習: 穴埋め・見出しごとに書いた文・見本の打ち込み・段階3と段階4の自己判定（段落idごと）
     };
   }
   function normalizeDoc(data) {
@@ -134,6 +134,7 @@
       if (data.steps.write && typeof data.steps.write === "object") d.steps.write = data.steps.write;
       if (data.steps.copy && typeof data.steps.copy === "object") d.steps.copy = data.steps.copy;
       if (data.steps.grade && typeof data.steps.grade === "object") d.steps.grade = data.steps.grade;
+      if (data.steps.wgrade && typeof data.steps.wgrade === "object") d.steps.wgrade = data.steps.wgrade;
     }
     if (data.check) {
       if (data.check.items && typeof data.check.items === "object") d.check.items = data.check.items;
@@ -458,69 +459,129 @@
     }
     return { head: head, type: type };
   }
-  var FILL_GRADES = [["o", "◯ 役割も要点も合っている"], ["t", "△ 役割は合っている"], ["x", "× 違う"]];
-
-  function renderStepFill(box, data) {
-    var fill = state.doc.steps.fill, grade = state.doc.steps.grade;
-    var retry = !!state.stepFillRetry;
+  // 段階3・4 共通: 白紙から書く・自己判定（◯△×）・×と△だけ解き直す
+  // 開いたときは入力欄を空にし，前回の答えは答え合わせのときに見せる。開いている間に書いた欄はそのまま表示する
+  var STEP_GRADE_MARK = { o: "◯", t: "△", x: "×" };
+  var STEP_KINDS = {
+    fill: { store: "fill", grade: "grade", what: "空欄",
+      labels: [["o", "◯ 役割も要点も合っている"], ["t", "△ 役割は合っている"], ["x", "× 違う"]],
+      note: "判定は言葉ではなく，書き出しの型（役割）と要点が合っているかで付けます。" },
+    write: { store: "write", grade: "wgrade", what: "見出し",
+      labels: [["o", "◯ 組み立て方どおりに書けた"], ["t", "△ 一部の要素が抜けた"], ["x", "× 書けなかった"]],
+      note: "判定は見本と同じ言葉かではなく，組み立て方の要素がそろい，A社の数字や事情が入っているかで付けます。" }
+  };
+  function stepSess(kind) {
+    if (!state.stepSess) state.stepSess = {};
+    if (!state.stepSess[kind]) state.stepSess[kind] = { retry: false, fresh: {}, prev: {} };
+    return state.stepSess[kind];
+  }
+  function stepGradeHeadHtml(kind, data) {
+    var k = STEP_KINDS[kind], ss = stepSess(kind), g = state.doc.steps[k.grade];
     var cnt = { o: 0, t: 0, x: 0, none: 0 };
-    data.sections.forEach(function (x) { cnt[grade[x.id] || "none"]++; });
+    data.sections.forEach(function (x) { cnt[g[x.id] || "none"]++; });
     var retryN = cnt.t + cnt.x;
-    if (retry && !retryN) retry = state.stepFillRetry = false;
-    var keep = retry ? function (x) { return grade[x.id] === "t" || grade[x.id] === "x"; } : null;
-
-    var head = '<div class="card pm2s-fill-head">' +
+    if (ss.retry && !retryN) ss.retry = false;
+    return '<div class="card pm2s-fill-head">' +
       '<div class="pm2s-fill-sum">自己判定：◯ ' + cnt.o + '・△ ' + cnt.t + '・× ' + cnt.x + '・未判定 ' + cnt.none + '</div>' +
       '<div class="pm2s-fill-mode" role="group">' +
-        '<button type="button" class="pm2s-mode' + (!retry ? ' active' : '') + '" data-retry="0">すべての空欄</button>' +
-        '<button type="button" class="pm2s-mode' + (retry ? ' active' : '') + '" data-retry="1"' + (retryN ? '' : ' disabled') + '>×と△だけ解き直す（' + retryN + '）</button>' +
+        '<button type="button" class="pm2s-mode' + (!ss.retry ? ' active' : '') + '" data-retry="0">すべての' + k.what + 'を白紙から</button>' +
+        '<button type="button" class="pm2s-mode' + (ss.retry ? ' active' : '') + '" data-retry="1"' + (retryN ? '' : ' disabled') + '>×と△だけ解き直す（' + retryN + '）</button>' +
       '</div>' +
-      '<p class="stats-note">答え合わせの後に自己判定を付けます。判定は言葉ではなく，書き出しの型（役割）と要点が合っているかで付けます。×と△は「解き直す」で，その空欄だけを白紙から書き直せます。</p>' +
+      '<p class="stats-note">開くたびに入力欄は空になります。前回の答えは「答え合わせ」で見本と一緒に表示されます。' + k.note + '</p>' +
     '</div>';
+  }
+  function stepKeep(kind) {
+    var k = STEP_KINDS[kind], g = state.doc.steps[k.grade];
+    return stepSess(kind).retry ? function (x) { return g[x.id] === "t" || g[x.id] === "x"; } : null;
+  }
+  function stepMine(kind, id) {
+    var ss = stepSess(kind);
+    return ss.fresh[id] ? (state.doc.steps[STEP_KINDS[kind].store][id] || "") : "";
+  }
+  function stepPrev(kind, id) {
+    var ss = stepSess(kind);
+    if (ss.prev.hasOwnProperty(id)) return ss.prev[id];
+    return ss.fresh[id] ? "" : (state.doc.steps[STEP_KINDS[kind].store][id] || "");
+  }
+  function stepGradeTag(kind, id) {
+    var g = state.doc.steps[STEP_KINDS[kind].grade][id];
+    return g ? '<span class="pm2s-grade-tag g-' + g + '">' + STEP_GRADE_MARK[g] + '</span>' : '';
+  }
+  function stepAnswerExtrasHtml(kind, id) {
+    var k = STEP_KINDS[kind], g = state.doc.steps[k.grade][id] || "", prev = stepPrev(kind, id);
+    return (prev ? '<div class="pm2s-prev"><b>前回の答え：</b>' + escapeHtml(prev) + '</div>' : '') +
+      '<div class="pm2s-grade" role="group" aria-label="自己判定">' + k.labels.map(function (x) {
+        return '<button type="button" class="pm2s-grade-btn g-' + x[0] + (g === x[0] ? ' active' : '') + '" data-g="' + x[0] + '">' + escapeHtml(x[1]) + '</button>';
+      }).join("") + '</div>';
+  }
+  function bindStepCommon(kind, box, taSel, rerender) {
+    var k = STEP_KINDS[kind], ss = stepSess(kind);
+    $all(box, ".pm2s-mode").forEach(function (b) {
+      b.addEventListener("click", function () {
+        ss.retry = b.dataset.retry === "1";
+        ss.fresh = {};
+        ss.prev = {};
+        rerender();
+      });
+    });
+    $all(box, taSel).forEach(function (ta) {
+      var id = ta.dataset.id;
+      ta.addEventListener("input", function () {
+        if (!ss.fresh[id]) {
+          if (!ss.prev.hasOwnProperty(id)) ss.prev[id] = state.doc.steps[k.store][id] || "";
+          ss.fresh[id] = true;
+        }
+      });
+      ta.addEventListener("change", function () {
+        state.doc.steps[k.store][id] = ta.value;
+        saveDoc();
+      });
+    });
+    $all(box, ".pm2s-check").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var ans = btn.closest(".pm2s-sec").querySelector(".pm2s-answer");
+        ans.hidden = !ans.hidden;
+        btn.textContent = ans.hidden ? btn.dataset.label : "見本を隠す";
+      });
+    });
+    $all(box, ".pm2s-grade-btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var sec = b.closest(".pm2s-sec"), id = sec.dataset.id, ta = sec.querySelector(taSel);
+        if (ta && ss.fresh[id]) state.doc.steps[k.store][id] = ta.value; // 判定と一緒に，今書いた文を保存する
+        var gm = state.doc.steps[k.grade];
+        if (gm[id] === b.dataset.g) delete gm[id]; else gm[id] = b.dataset.g;
+        saveDoc();
+        var y = window.scrollY;
+        rerender();
+        window.scrollTo(0, y);
+      });
+    });
+  }
 
+  function renderStepFill(box, data) {
+    var head = stepGradeHeadHtml("fill", data);
     box.innerHTML = head + eachPartGroup(data, function (sec) {
       var i = sec.text.indexOf(sec.key);
       var before = sec.text.slice(0, i), after = sec.text.slice(i + sec.key.length);
-      var op = keyOpener(sec.key), g = grade[sec.id] || "";
-      // 解き直しでは前回の答えを隠して白紙から書く（今回書き直した欄は表示する）
-      var mine = retry && !(state.stepFillFresh || {})[sec.id] ? "" : (fill[sec.id] || "");
+      var op = keyOpener(sec.key);
       return '<div class="pm2s-sec" data-id="' + escapeAttr(sec.id) + '">' +
-        '<h3>' + escapeHtml(sec.id + " " + sec.head) + (g ? '<span class="pm2s-grade-tag g-' + g + '">' + ({ o: "◯", t: "△", x: "×" })[g] + '</span>' : '') + '</h3>' +
+        '<h3>' + escapeHtml(sec.id + " " + sec.head) + stepGradeTag("fill", sec.id) + '</h3>' +
         '<div class="pm2s-text">' + escapeHtml(before) +
           '<span class="pm2s-blank"><span class="pm2s-blank-hint">空欄：' + escapeHtml(sec.keyHint) + '</span>' +
-          '<textarea class="pm2s-fill" rows="2" data-id="' + escapeAttr(sec.id) + '">' + escapeHtml(mine) + '</textarea>' +
+          '<textarea class="pm2s-fill" rows="2" data-id="' + escapeAttr(sec.id) + '">' + escapeHtml(stepMine("fill", sec.id)) + '</textarea>' +
           '<button type="button" class="linkbtn pm2s-opener-btn">書き出しのヒント</button>' +
           '<span class="pm2s-opener" hidden>書き出し：「' + escapeHtml(op.head) + '」' + (op.type ? '　型：' + escapeHtml(op.type) : '') + '</span>' +
           '</span>' +
           escapeHtml(after) + '</div>' +
-        '<div class="pm-panel-actions"><button type="button" class="pm2s-check">答え合わせ</button></div>' +
+        '<div class="pm-panel-actions"><button type="button" class="pm2s-check" data-label="答え合わせ">答え合わせ</button></div>' +
         '<div class="pm2s-answer" hidden><b>見本の1文：</b>' + escapeHtml(sec.key) +
           (op.type ? '<div class="pm2s-note">型：' + escapeHtml(op.type) + '</div>' : '') +
           '<p class="pm2s-note">' + escapeHtml(sec.note) + '</p>' +
-          '<div class="pm2s-grade" role="group" aria-label="自己判定">' + FILL_GRADES.map(function (x) {
-            return '<button type="button" class="pm2s-grade-btn g-' + x[0] + (g === x[0] ? ' active' : '') + '" data-g="' + x[0] + '">' + escapeHtml(x[1]) + '</button>';
-          }).join("") + '</div>' +
+          stepAnswerExtrasHtml("fill", sec.id) +
         '</div>' +
       '</div>';
-    }, keep);
-
-    $all(box, ".pm2s-mode").forEach(function (b) {
-      b.addEventListener("click", function () {
-        state.stepFillRetry = b.dataset.retry === "1";
-        state.stepFillFresh = {};
-        renderStepFill(box, data);
-      });
-    });
-    $all(box, ".pm2s-fill").forEach(function (ta) {
-      ta.addEventListener("input", function () {
-        if (!state.stepFillFresh) state.stepFillFresh = {};
-        state.stepFillFresh[ta.dataset.id] = true;
-      });
-      ta.addEventListener("change", function () {
-        state.doc.steps.fill[ta.dataset.id] = ta.value;
-        saveDoc();
-      });
-    });
+    }, stepKeep("fill"));
+    bindStepCommon("fill", box, ".pm2s-fill", function () { renderStepFill(box, data); });
     $all(box, ".pm2s-opener-btn").forEach(function (b) {
       b.addEventListener("click", function () {
         var o = b.nextElementSibling;
@@ -528,45 +589,29 @@
         b.textContent = o.hidden ? "書き出しのヒント" : "ヒントを隠す";
       });
     });
-    $all(box, ".pm2s-check").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var ans = btn.closest(".pm2s-sec").querySelector(".pm2s-answer");
-        ans.hidden = !ans.hidden;
-        btn.textContent = ans.hidden ? "答え合わせ" : "見本を隠す";
-      });
-    });
-    $all(box, ".pm2s-grade-btn").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var id = b.closest(".pm2s-sec").dataset.id;
-        var ta = b.closest(".pm2s-sec").querySelector(".pm2s-fill");
-        state.doc.steps.fill[id] = ta.value; // 判定と一緒に，今書いた文を保存する
-        if (state.doc.steps.grade[id] === b.dataset.g) delete state.doc.steps.grade[id];
-        else state.doc.steps.grade[id] = b.dataset.g;
-        saveDoc();
-        var y = window.scrollY;
-        renderStepFill(box, data);
-        window.scrollTo(0, y);
-      });
-    });
   }
 
   // 段階4: 見出しごとに書く
   function renderStepWrite(box, data) {
-    var wr = state.doc.steps.write;
-    box.innerHTML = eachPartGroup(data, function (sec) {
+    var head = stepGradeHeadHtml("write", data);
+    box.innerHTML = head + eachPartGroup(data, function (sec) {
       var n = stepChars(sec.text);
-      return '<div class="pm2s-sec">' +
-        '<h3>' + escapeHtml(sec.id + " " + sec.head) + '<small>目安 ' + Math.round(n / 50) * 50 + '字前後</small></h3>' +
+      return '<div class="pm2s-sec" data-id="' + escapeAttr(sec.id) + '">' +
+        '<h3>' + escapeHtml(sec.id + " " + sec.head) + stepGradeTag("write", sec.id) + '<small>目安 ' + Math.round(n / 50) * 50 + '字前後</small></h3>' +
         patternHtml(sec.pattern) +
         '<div class="pm2s-partlist"><b>使える部品</b><ul>' + sec.parts.map(function (x) {
           var t = findPartText(x);
           return '<li>' + escapeHtml(t || x) + '</li>';
         }).join("") + '</ul></div>' +
-        '<textarea class="pm2s-write" rows="7" data-id="' + escapeAttr(sec.id) + '" data-target="' + n + '" placeholder="組み立て方の順に書きます">' + escapeHtml(wr[sec.id] || "") + '</textarea>' +
+        '<textarea class="pm2s-write" rows="7" data-id="' + escapeAttr(sec.id) + '" data-target="' + n + '" placeholder="組み立て方の順に書きます">' + escapeHtml(stepMine("write", sec.id)) + '</textarea>' +
         '<div class="pm2-count muted" data-count="' + escapeAttr(sec.id) + '"></div>' +
-        '<details class="pm2s-model"><summary>見本を見る</summary><div class="pm2s-text">' + escapeHtml(sec.text) + '</div></details>' +
+        '<div class="pm-panel-actions"><button type="button" class="pm2s-check" data-label="見本と比べる">見本と比べる</button></div>' +
+        '<div class="pm2s-answer" hidden><b>見本：</b><div class="pm2s-text">' + escapeHtml(sec.text) + '</div>' +
+          stepAnswerExtrasHtml("write", sec.id) +
+        '</div>' +
       '</div>';
-    });
+    }, stepKeep("write"));
+    bindStepCommon("write", box, ".pm2s-write", function () { renderStepWrite(box, data); });
     $all(box, ".pm2s-write").forEach(function (ta) {
       var cnt = box.querySelector('[data-count="' + ta.dataset.id + '"]');
       function upd() {
@@ -575,10 +620,6 @@
         cnt.className = "pm2-count " + (c === 0 ? "muted" : c >= tg * 0.8 ? "ok" : "ng");
       }
       ta.addEventListener("input", upd);
-      ta.addEventListener("change", function () {
-        state.doc.steps.write[ta.dataset.id] = ta.value;
-        saveDoc();
-      });
       upd();
     });
   }
@@ -1442,6 +1483,7 @@
     if (state) teardownTabResources(state.activeTab);
 
     state = newState(examId, no, exam, q);
+    state.stepSess = null;
     if (tab && TABS.some(function (t) { return t.id === tab; })) state.activeTab = tab;
     var themeKey = state.themeKey;
 
