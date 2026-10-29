@@ -148,6 +148,11 @@
       renderFilters(mode);
       renderList();
       if (window.PmSchedule) window.PmSchedule.render(mode); // 週ごとの練習スケジュール（js/pm_schedule.js）
+      var rv = $("#pm-review");
+      if (rv) {
+        rv.hidden = mode !== "pm2";
+        if (mode === "pm2" && window.PM2Study && window.PM2Study.renderReview) window.PM2Study.renderReview(rv); // 今日の復習（段階学習の×・△）
+      }
       if (window.DrillUI) window.DrillUI.onPmModeShown(mode);
     }
   }

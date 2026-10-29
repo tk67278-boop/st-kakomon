@@ -301,6 +301,7 @@
      ===================================================================== */
   var STEP_STAGES = [
     { n: 1, label: "1 見本を読む", desc: "A社の模範論文を、骨子の見出しごとに読みます。黄色の文が各段落の「要の1文」です。使った部品と組み立て方（文型）も確認します。" },
+    { n: 6, label: "暗唱：要の1文", desc: "要の1文だけを見出しの順に並べています。見出しを見て1文を声に出してから押すと答えが出ます。8〜9文で論文の筋がつながっていることを確認します。" },
     { n: 2, label: "2 選んで組み立てる", desc: "各段落の要の1文や考え方を、選択肢から選びます。間違いの選択肢は、採点講評で指摘されたよくある失敗です。" },
     { n: 3, label: "3 穴埋めで書く", desc: "模範論文の要の1文だけが空欄になっています。前後の文を読んで、空欄の1文を自分で書き、答え合わせをします。" },
     { n: 4, label: "4 見出しごとに書く", desc: "見出しを1つずつ、組み立て方（文型）と部品を見ながら自分で書きます。書いたら見本と比べます。" },
@@ -357,7 +358,7 @@
       return;
     }
     var stage = Number(state.stepStage || loadPref(PREF_STEP) || 1);
-    if (!(stage >= 1 && stage <= 5)) stage = 1;
+    if (!(stage >= 1 && stage <= 6)) stage = 1;
     state.stepStage = stage;
     var info = STEP_STAGES[stage - 1];
     body.innerHTML =
@@ -381,6 +382,7 @@
     else if (stage === 2) renderStepSelect(box, data);
     else if (stage === 3) renderStepFill(box, data);
     else if (stage === 4) renderStepWrite(box, data);
+    else if (stage === 6) renderStepRecite(box, data);
     else renderStepFinal(box);
   }
 
@@ -425,6 +427,39 @@
       });
       upd();
     });
+  }
+
+  // 暗唱: 要の1文だけを見出しの順に並べ，押すと答えが出る
+  function renderStepRecite(box, data) {
+    var html = '<div class="card"><div class="pm2s-recite-bar">' +
+      '<span class="pm2s-recite-n" id="pm2s-recite-n"></span><span class="spacer"></span>' +
+      '<button type="button" class="linkbtn" id="pm2s-recite-all">すべて表示</button>' +
+      '<button type="button" class="linkbtn" id="pm2s-recite-none">すべて隠す</button></div>' +
+      '<ol class="pm2s-recite">';
+    data.sections.forEach(function (sec) {
+      var op = keyOpener(sec.key);
+      html += '<li><div class="pm2s-recite-head"><span class="badge pm-no">設問' + sec.part + '</span>' + escapeHtml(sec.id + " " + sec.head) + '</div>' +
+        '<button type="button" class="pm2s-recite-card"><span class="pm2s-recite-q">押して答えを表示' +
+          '<small>書き出し：「' + escapeHtml(op.head) + '」' + (op.type ? '（' + escapeHtml(op.type.replace(/（.*$/, "")) + '）' : '') + '</small></span>' +
+          '<span class="pm2s-recite-a" hidden>' + escapeHtml(sec.key) + '</span></button></li>';
+    });
+    box.innerHTML = html + '</ol></div>';
+    var cards = $all(box, ".pm2s-recite-card");
+    function paint() {
+      var shown = cards.filter(function (c) { return !c.querySelector(".pm2s-recite-a").hidden; }).length;
+      $("#pm2s-recite-n").textContent = "表示 " + shown + " / " + cards.length;
+    }
+    function setShown(c, on) {
+      c.querySelector(".pm2s-recite-a").hidden = !on;
+      c.querySelector(".pm2s-recite-q").hidden = on;
+      c.classList.toggle("open", on);
+    }
+    cards.forEach(function (c) {
+      c.addEventListener("click", function () { setShown(c, c.querySelector(".pm2s-recite-a").hidden); paint(); });
+    });
+    $("#pm2s-recite-all").addEventListener("click", function () { cards.forEach(function (c) { setShown(c, true); }); paint(); });
+    $("#pm2s-recite-none").addEventListener("click", function () { cards.forEach(function (c) { setShown(c, false); }); paint(); });
+    paint();
   }
 
   // 段階2: 選んで組み立てる（ドリルエンジンを利用）
@@ -1526,7 +1561,8 @@
 
   /* ---------- 起動・終了 ---------- */
   // tab: 最初に開くタブ（練習スケジュールの「開く」から段階学習・骨子・執筆へ直接移るため。省略時は問題文）
-  function open(examId, no, tab) {
+  // opts: { stage: 段階学習の段階, retry: ×と△だけ解き直す }（今日の復習から開くとき）
+  function open(examId, no, tab, opts) {
     var exam = findExam(examId);
     var q = findThemeQuestion(examId, no);
     if (!exam || !q) return; // データが無い場合は何もしない（学習ボタンはpm.js側で該当時のみ表示）
@@ -1535,6 +1571,12 @@
 
     state = newState(examId, no, exam, q);
     state.stepSess = null;
+    if (opts && opts.stage) {
+      state.stepStage = opts.stage;
+      var kind = opts.stage === 4 ? "write" : "fill";
+      state.stepSess = {};
+      state.stepSess[kind] = { retry: !!opts.retry, fresh: {} };
+    }
     if (tab && TABS.some(function (t) { return t.id === tab; })) state.activeTab = tab;
     var themeKey = state.themeKey;
 
@@ -1550,6 +1592,85 @@
     });
   }
 
+  /* =====================================================================
+     今日の復習（午後IIトップ）
+     段階3・4で×や△を付けた段落を，最後に解いた日から 1日後 → 2日後（計3日）→ 4日後（計7日）の間隔で出す
+     ===================================================================== */
+  var REVIEW_GAPS = [1, 2, 4];
+  function dayNo(t) { var d = new Date(t); return Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 86400000); }
+  function reviewItemsFrom(doc, themeKey, title) {
+    var out = [], today = dayNo(Date.now());
+    [["fill", "穴埋め"], ["write", "見出しごとに書く"]].forEach(function (kv) {
+      var k = STEP_KINDS[kv[0]], grades = doc.steps[k.grade] || {}, hists = doc.steps[k.hist] || {};
+      Object.keys(grades).forEach(function (id) {
+        var g = grades[id];
+        if (g !== "x" && g !== "t") return;
+        var h = (hists[id] || []).filter(function (x) { return x.g; });
+        var streak = 0;
+        for (var i = 0; i < h.length && (h[i].g === "x" || h[i].g === "t"); i++) streak++;
+        var last = h[0] ? h[0].t : 0;
+        var gap = REVIEW_GAPS[Math.min(Math.max(streak, 1), REVIEW_GAPS.length) - 1];
+        var due = last ? dayNo(last) + gap : today;
+        if (due <= today) out.push({ themeKey: themeKey, title: title, kind: kv[0], kindLabel: kv[1], id: id, g: g, last: last, late: today - due });
+      });
+    });
+    return out;
+  }
+  function loadDocFor(themeKey) {
+    if (syncActive()) {
+      return window.STSync.loadPm2Doc(themeKey).then(function (data) {
+        return data && data.__error ? loadLocalDoc(themeKey) : normalizeDoc(data);
+      });
+    }
+    return Promise.resolve(loadLocalDoc(themeKey));
+  }
+  var reviewSeq = 0;
+  function renderReview(el) {
+    el = el || document.getElementById("pm-review");
+    if (!el) return;
+    var all = window.PM2_STEPS || {}, keys = Object.keys(all), seq = ++reviewSeq;
+    if (!keys.length) { el.innerHTML = ""; return; }
+    Promise.all(keys.map(function (k) {
+      var m = /^(.+)-(\d+)$/.exec(k);
+      var themeKey = m[1] + "#pm2#" + m[2];
+      return loadDocFor(themeKey).then(function (doc) {
+        return reviewItemsFrom(doc, themeKey, all[k].title).map(function (x) { x.examId = m[1]; x.no = Number(m[2]); x.head = ((all[k].sections.filter(function (s2) { return s2.id === x.id; })[0]) || {}).head || ""; return x; });
+      }, function () { return []; });
+    })).then(function (lists) {
+      if (seq !== reviewSeq) return;
+      var items = [].concat.apply([], lists).sort(function (a, b) { return b.late - a.late; });
+      if (!items.length) {
+        el.innerHTML = '<div class="card pm2r-card"><div class="group-head"><h2>今日の復習</h2></div>' +
+          '<p class="stats-note">今日解き直す段落はありません。段階学習の段階3・4で×や△を付けると、1日後・3日後・7日後にここに出ます。</p></div>';
+        return;
+      }
+      var groups = {};
+      items.forEach(function (x) { (groups[x.themeKey] = groups[x.themeKey] || []).push(x); });
+      var html = '<div class="card pm2r-card"><div class="group-head"><h2>今日の復習</h2><span class="spacer"></span><span class="pm2r-n">' + items.length + '件</span></div>' +
+        '<p class="stats-note">×や△を付けた段落を、間隔を空けて解き直します（1日後→3日後→7日後）。「解き直す」で×と△だけが白紙で開きます。</p>';
+      Object.keys(groups).forEach(function (tk) {
+        var g = groups[tk], f = g[0];
+        var kinds = {};
+        g.forEach(function (x) { kinds[x.kind] = true; });
+        html += '<div class="pm2r-theme"><div class="pm2r-title">' + escapeHtml(f.title) + '</div><ul>' +
+          g.map(function (x) {
+            return '<li><span class="pm2s-grade-tag g-' + x.g + '">' + STEP_GRADE_MARK[x.g] + '</span>' +
+              escapeHtml(x.kindLabel + "：" + x.id + " " + x.head) +
+              '<small>' + (x.last ? Math.max(0, dayNo(Date.now()) - dayNo(x.last)) + '日前に解いた' : '') + '</small></li>';
+          }).join("") + '</ul><div class="pm2r-btns">' +
+          (kinds.fill ? '<button type="button" class="pm2r-go" data-exam="' + escapeAttr(f.examId) + '" data-no="' + f.no + '" data-stage="3">穴埋めを解き直す</button>' : '') +
+          (kinds.write ? '<button type="button" class="pm2r-go" data-exam="' + escapeAttr(f.examId) + '" data-no="' + f.no + '" data-stage="4">見出しを書き直す</button>' : '') +
+        '</div></div>';
+      });
+      el.innerHTML = html + '</div>';
+      $all(el, ".pm2r-go").forEach(function (b) {
+        b.addEventListener("click", function () {
+          open(b.dataset.exam, Number(b.dataset.no), "steps", { stage: Number(b.dataset.stage), retry: true });
+        });
+      });
+    });
+  }
+
   function closeStudy() {
     if (state) teardownTabResources(state.activeTab);
     state = null;
@@ -1557,7 +1678,19 @@
     root.innerHTML = "";
     pmMain.hidden = false;
     if (window.PmUI && window.PmUI.refreshList) window.PmUI.refreshList();
+    renderReview(); // 解き直した結果を「今日の復習」に反映
   }
 
-  window.PM2Study = { open: open };
+  window.PM2Study = { open: open, renderReview: renderReview };
+  // 起動時に午後IIが表示されていた場合（pm.js が先に読み込まれる）と，同期の読み込み後に「今日の復習」を描く
+  var lastReviewAt = 0;
+  function refreshReviewIfShown() {
+    var rv = document.getElementById("pm-review");
+    if (!rv || rv.hidden || pmMain.hidden) return;
+    if (Date.now() - lastReviewAt < 10000) return; // 同期の更新は頻繁なので10秒に1回まで
+    lastReviewAt = Date.now();
+    renderReview(rv);
+  }
+  refreshReviewIfShown();
+  if (window.STSync && window.STSync.setOnChange) window.STSync.setOnChange(refreshReviewIfShown);
 })();
