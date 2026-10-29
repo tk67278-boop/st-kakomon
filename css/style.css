@@ -1312,3 +1312,6 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-opener[hidden] { display: none; }
 .pm2s-prev { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--chip); font-size: 14px; line-height: 1.75; white-space: pre-wrap; }
 .pm2s-answer .pm2s-text { margin: 4px 0 6px; }
+.pm2s-keycopy { margin-top: 10px; }
+.pm2s-keycopy label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+.pm2s-keycopy-ta { width: 100%; box-sizing: border-box; font-size: 15px; line-height: 1.8; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); resize: vertical; }

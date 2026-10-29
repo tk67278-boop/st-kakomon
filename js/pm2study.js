@@ -577,11 +577,30 @@
         '<div class="pm2s-answer" hidden><b>見本の1文：</b>' + escapeHtml(sec.key) +
           (op.type ? '<div class="pm2s-note">型：' + escapeHtml(op.type) + '</div>' : '') +
           '<p class="pm2s-note">' + escapeHtml(sec.note) + '</p>' +
+          '<div class="pm2s-keycopy"><label>見本の1文を打ち込む（正しい文を手で覚える）</label>' +
+            '<textarea class="pm2s-keycopy-ta" rows="2" data-id="' + escapeAttr(sec.id) + '"></textarea>' +
+            '<div class="pm2-count muted" data-keycount="' + escapeAttr(sec.id) + '"></div></div>' +
           stepAnswerExtrasHtml("fill", sec.id) +
         '</div>' +
       '</div>';
     }, stepKeep("fill"));
     bindStepCommon("fill", box, ".pm2s-fill", function () { renderStepFill(box, data); });
+    // 見本の1文の打ち込み欄（保存はしない。見本と同じになったかだけを表示）
+    var keyById = {};
+    data.sections.forEach(function (x) { keyById[x.id] = x.key; });
+    $all(box, ".pm2s-keycopy-ta").forEach(function (ta) {
+      var key = keyById[ta.dataset.id], cnt = box.querySelector('[data-keycount="' + ta.dataset.id + '"]');
+      function upd() {
+        var mine = ta.value.replace(/\r?\n/g, ""), same = 0;
+        while (same < mine.length && same < key.length && mine.charAt(same) === key.charAt(same)) same++;
+        var done = mine === key;
+        cnt.textContent = done ? "見本と同じ文になりました" :
+          mine.length + " / " + key.length + " 字" + (mine.length && same < mine.length ? "（" + (same + 1) + "字目から見本と違います）" : "");
+        cnt.className = "pm2-count " + (done ? "ok" : mine.length && same < mine.length ? "ng" : "muted");
+      }
+      ta.addEventListener("input", upd);
+      upd();
+    });
     $all(box, ".pm2s-opener-btn").forEach(function (b) {
       b.addEventListener("click", function () {
         var o = b.nextElementSibling;
