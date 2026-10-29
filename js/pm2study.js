@@ -118,7 +118,7 @@
       outline: { versions: [] },
       essay: { draft: null, versions: [] },
       check: { items: {}, ai: "", t: 0 },
-      steps: { fill: {}, write: {}, copy: {}, grade: {}, wgrade: {} } // 段階学習: 穴埋め・見出しごとに書いた文・見本の打ち込み・段階3と段階4の自己判定（段落idごと）
+      steps: { fill: {}, write: {}, copy: {}, grade: {}, wgrade: {}, fillHist: {}, writeHist: {} } // 段階学習: 穴埋め・見出しごとに書いた文・見本の打ち込み・段階3と段階4の自己判定・入力の履歴（段落idごと）
     };
   }
   function normalizeDoc(data) {
@@ -135,6 +135,8 @@
       if (data.steps.copy && typeof data.steps.copy === "object") d.steps.copy = data.steps.copy;
       if (data.steps.grade && typeof data.steps.grade === "object") d.steps.grade = data.steps.grade;
       if (data.steps.wgrade && typeof data.steps.wgrade === "object") d.steps.wgrade = data.steps.wgrade;
+      if (data.steps.fillHist && typeof data.steps.fillHist === "object") d.steps.fillHist = data.steps.fillHist;
+      if (data.steps.writeHist && typeof data.steps.writeHist === "object") d.steps.writeHist = data.steps.writeHist;
     }
     if (data.check) {
       if (data.check.items && typeof data.check.items === "object") d.check.items = data.check.items;
@@ -460,19 +462,19 @@
     return { head: head, type: type };
   }
   // 段階3・4 共通: 白紙から書く・自己判定（◯△×）・×と△だけ解き直す
-  // 開いたときは入力欄を空にし，前回の答えは答え合わせのときに見せる。開いている間に書いた欄はそのまま表示する
+  // 開いたときは入力欄を空にし，これまでの答え（履歴）は答え合わせのときに見せる。開いている間に書いた欄はそのまま表示する
   var STEP_GRADE_MARK = { o: "◯", t: "△", x: "×" };
   var STEP_KINDS = {
-    fill: { store: "fill", grade: "grade", what: "空欄",
+    fill: { store: "fill", grade: "grade", hist: "fillHist", what: "空欄",
       labels: [["o", "◯ 役割も要点も合っている"], ["t", "△ 役割は合っている"], ["x", "× 違う"]],
       note: "判定は言葉ではなく，書き出しの型（役割）と要点が合っているかで付けます。" },
-    write: { store: "write", grade: "wgrade", what: "見出し",
+    write: { store: "write", grade: "wgrade", hist: "writeHist", what: "見出し",
       labels: [["o", "◯ 組み立て方どおりに書けた"], ["t", "△ 一部の要素が抜けた"], ["x", "× 書けなかった"]],
       note: "判定は見本と同じ言葉かではなく，組み立て方の要素がそろい，A社の数字や事情が入っているかで付けます。" }
   };
   function stepSess(kind) {
     if (!state.stepSess) state.stepSess = {};
-    if (!state.stepSess[kind]) state.stepSess[kind] = { retry: false, fresh: {}, prev: {} };
+    if (!state.stepSess[kind]) state.stepSess[kind] = { retry: false, fresh: {} };
     return state.stepSess[kind];
   }
   function stepGradeHeadHtml(kind, data) {
@@ -487,7 +489,7 @@
         '<button type="button" class="pm2s-mode' + (!ss.retry ? ' active' : '') + '" data-retry="0">すべての' + k.what + 'を白紙から</button>' +
         '<button type="button" class="pm2s-mode' + (ss.retry ? ' active' : '') + '" data-retry="1"' + (retryN ? '' : ' disabled') + '>×と△だけ解き直す（' + retryN + '）</button>' +
       '</div>' +
-      '<p class="stats-note">開くたびに入力欄は空になります。前回の答えは「答え合わせ」で見本と一緒に表示されます。' + k.note + '</p>' +
+      '<p class="stats-note">開くたびに入力欄は空になります。これまでの答え（最新10件）は「答え合わせ」で見本と一緒に表示されます。' + k.note + '</p>' +
     '</div>';
   }
   function stepKeep(kind) {
@@ -498,18 +500,45 @@
     var ss = stepSess(kind);
     return ss.fresh[id] ? (state.doc.steps[STEP_KINDS[kind].store][id] || "") : "";
   }
-  function stepPrev(kind, id) {
-    var ss = stepSess(kind);
-    if (ss.prev.hasOwnProperty(id)) return ss.prev[id];
-    return ss.fresh[id] ? "" : (state.doc.steps[STEP_KINDS[kind].store][id] || "");
+  // 入力の履歴（段落ごとに新しい順で最大10件。{t: 日時, text: 文, g: 自己判定}）
+  var STEP_HIST_MAX = 10;
+  function stepHist(kind, id) {
+    var h = state.doc.steps[STEP_KINDS[kind].hist];
+    if (!Array.isArray(h[id])) h[id] = [];
+    return h[id];
   }
+  function pushStepHist(kind, id, text) {
+    var t = String(text || "").trim();
+    if (!t) return false;
+    var h = stepHist(kind, id);
+    if (h[0] && h[0].text === t) return false;
+    h.unshift({ t: Date.now(), text: t });
+    if (h.length > STEP_HIST_MAX) h.length = STEP_HIST_MAX;
+    return true;
+  }
+  function fmtHistDate(t) {
+    var d = new Date(t);
+    return (d.getMonth() + 1) + "/" + d.getDate() + " " + d.getHours() + ":" + ("0" + d.getMinutes()).slice(-2);
+  }
+  function stepHistHtml(kind, id) {
+    var h = (state.doc.steps[STEP_KINDS[kind].hist] || {})[id] || [];
+    var old = state.doc.steps[STEP_KINDS[kind].store][id];
+    if (!h.length && old) h = [{ t: 0, text: old }]; // 履歴を始める前に書いた答え
+    if (!h.length) return "";
+    return '<div class="pm2s-hist"><b>これまでの答え（新しい順・' + h.length + '件）</b><ol>' + h.map(function (x) {
+      return '<li><span class="pm2s-hist-meta">' + (x.t ? fmtHistDate(x.t) : "日時不明") +
+        (x.g ? '<span class="pm2s-grade-tag g-' + x.g + '">' + STEP_GRADE_MARK[x.g] + '</span>' : '') + '</span>' +
+        '<span class="pm2s-hist-text">' + escapeHtml(x.text) + '</span></li>';
+    }).join("") + '</ol></div>';
+  }
+
   function stepGradeTag(kind, id) {
     var g = state.doc.steps[STEP_KINDS[kind].grade][id];
     return g ? '<span class="pm2s-grade-tag g-' + g + '">' + STEP_GRADE_MARK[g] + '</span>' : '';
   }
   function stepAnswerExtrasHtml(kind, id) {
-    var k = STEP_KINDS[kind], g = state.doc.steps[k.grade][id] || "", prev = stepPrev(kind, id);
-    return (prev ? '<div class="pm2s-prev"><b>前回の答え：</b>' + escapeHtml(prev) + '</div>' : '') +
+    var k = STEP_KINDS[kind], g = state.doc.steps[k.grade][id] || "";
+    return '<div class="pm2s-hist-wrap">' + stepHistHtml(kind, id) + '</div>' +
       '<div class="pm2s-grade" role="group" aria-label="自己判定">' + k.labels.map(function (x) {
         return '<button type="button" class="pm2s-grade-btn g-' + x[0] + (g === x[0] ? ' active' : '') + '" data-g="' + x[0] + '">' + escapeHtml(x[1]) + '</button>';
       }).join("") + '</div>';
@@ -520,36 +549,39 @@
       b.addEventListener("click", function () {
         ss.retry = b.dataset.retry === "1";
         ss.fresh = {};
-        ss.prev = {};
         rerender();
       });
     });
     $all(box, taSel).forEach(function (ta) {
       var id = ta.dataset.id;
       ta.addEventListener("input", function () {
-        if (!ss.fresh[id]) {
-          if (!ss.prev.hasOwnProperty(id)) ss.prev[id] = state.doc.steps[k.store][id] || "";
-          ss.fresh[id] = true;
-        }
+        ss.fresh[id] = true;
       });
       ta.addEventListener("change", function () {
         state.doc.steps[k.store][id] = ta.value;
+        pushStepHist(kind, id, ta.value);
         saveDoc();
       });
     });
     $all(box, ".pm2s-check").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var ans = btn.closest(".pm2s-sec").querySelector(".pm2s-answer");
+        var sec = btn.closest(".pm2s-sec"), ans = sec.querySelector(".pm2s-answer");
         ans.hidden = !ans.hidden;
+        if (!ans.hidden) ans.querySelector(".pm2s-hist-wrap").innerHTML = stepHistHtml(kind, sec.dataset.id); // 開いた時点の履歴を表示
         btn.textContent = ans.hidden ? btn.dataset.label : "見本を隠す";
       });
     });
     $all(box, ".pm2s-grade-btn").forEach(function (b) {
       b.addEventListener("click", function () {
         var sec = b.closest(".pm2s-sec"), id = sec.dataset.id, ta = sec.querySelector(taSel);
-        if (ta && ss.fresh[id]) state.doc.steps[k.store][id] = ta.value; // 判定と一緒に，今書いた文を保存する
+        if (ta && ss.fresh[id]) { // 判定と一緒に，今書いた文を保存する
+          state.doc.steps[k.store][id] = ta.value;
+          pushStepHist(kind, id, ta.value);
+        }
         var gm = state.doc.steps[k.grade];
         if (gm[id] === b.dataset.g) delete gm[id]; else gm[id] = b.dataset.g;
+        var h = stepHist(kind, id);
+        if (h[0] && ss.fresh[id]) { if (gm[id]) h[0].g = gm[id]; else delete h[0].g; }
         saveDoc();
         var y = window.scrollY;
         rerender();

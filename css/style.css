@@ -1315,3 +1315,9 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-keycopy { margin-top: 10px; }
 .pm2s-keycopy label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
 .pm2s-keycopy-ta { width: 100%; box-sizing: border-box; font-size: 15px; line-height: 1.8; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); resize: vertical; }
+.pm2s-hist { margin-top: 10px; font-size: 14px; }
+.pm2s-hist ol { margin: 4px 0 0; padding-left: 1.4em; }
+.pm2s-hist li { margin-top: 6px; }
+.pm2s-hist-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.pm2s-hist-meta .pm2s-grade-tag { font-size: 11px; padding: 0 7px; }
+.pm2s-hist-text { display: block; padding: 6px 10px; border-radius: 8px; background: var(--chip); line-height: 1.75; white-space: pre-wrap; }
