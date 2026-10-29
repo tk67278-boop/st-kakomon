@@ -389,7 +389,7 @@
       return '<div class="pm2s-sec">' +
         '<h3>' + escapeHtml(sec.id + " " + sec.head) + '<small>' + stepChars(sec.text) + '字</small></h3>' +
         '<div class="pm2s-copy-grid">' +
-          '<div class="pm2s-text">' + t + '</div>' +
+          '<div class="pm2s-text"><span class="pm2s-head-line">' + escapeHtml(sec.id + " " + sec.head) + '</span>\n' + t + '</div>' +
           '<div class="pm2s-copy">' +
             '<textarea class="pm2s-copy-ta" data-id="' + escapeAttr(sec.id) + '" placeholder="見本を打ち込みます（意味を考えながら）">' + escapeHtml(copy[sec.id] || "") + '</textarea>' +
             '<div class="pm2-count muted" data-copycount="' + escapeAttr(sec.id) + '"></div>' +
@@ -405,7 +405,8 @@
       var sec = byId[ta.dataset.id];
       var cnt = box.querySelector('[data-copycount="' + ta.dataset.id + '"]');
       function upd() {
-        var mine = ta.value.replace(/\r?\n/g, ""), model = sec.text.replace(/\n/g, "");
+        // 見出しの行も含めて見本と比べる（論文では見出しも書くため）
+        var mine = ta.value.replace(/\r?\n/g, ""), model = (sec.id + " " + sec.head + sec.text).replace(/\n/g, "");
         var same = 0;
         while (same < mine.length && same < model.length && mine.charAt(same) === model.charAt(same)) same++;
         var done = mine === model;

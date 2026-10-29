@@ -1290,3 +1290,4 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-copy { display: flex; flex-direction: column; }
 .pm2s-copy-ta { flex: 1; min-height: 160px; width: 100%; box-sizing: border-box; font-size: 15px; line-height: 1.9; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); resize: vertical; }
 @media (max-width: 760px) { .pm2s-copy-grid { grid-template-columns: 1fr; } }
+.pm2s-head-line { font-weight: 700; }
