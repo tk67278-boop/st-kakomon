@@ -118,7 +118,7 @@
       outline: { versions: [] },
       essay: { draft: null, versions: [] },
       check: { items: {}, ai: "", t: 0 },
-      steps: { fill: {}, write: {} } // 段階学習: 穴埋め・見出しごとに書いた文（段落idごと）
+      steps: { fill: {}, write: {}, copy: {} } // 段階学習: 穴埋め・見出しごとに書いた文・見本の打ち込み（段落idごと）
     };
   }
   function normalizeDoc(data) {
@@ -132,6 +132,7 @@
     if (data.steps && typeof data.steps === "object") {
       if (data.steps.fill && typeof data.steps.fill === "object") d.steps.fill = data.steps.fill;
       if (data.steps.write && typeof data.steps.write === "object") d.steps.write = data.steps.write;
+      if (data.steps.copy && typeof data.steps.copy === "object") d.steps.copy = data.steps.copy;
     }
     if (data.check) {
       if (data.check.items && typeof data.check.items === "object") d.check.items = data.check.items;
@@ -379,17 +380,45 @@
     else renderStepFinal(box);
   }
 
-  // 段階1: 見本を読む（要の1文を黄色で示す）
+  // 段階1: 見本を読む（要の1文を黄色で示す）。隣の欄に見本を打ち込んで，文の流れを手で覚える
   function renderStepRead(box, data) {
+    var copy = state.doc.steps.copy;
     box.innerHTML = eachPartGroup(data, function (sec) {
       var t = escapeHtml(sec.text), k = escapeHtml(sec.key);
       t = t.replace(k, '<mark class="pm2s-key">' + k + '</mark>');
       return '<div class="pm2s-sec">' +
         '<h3>' + escapeHtml(sec.id + " " + sec.head) + '<small>' + stepChars(sec.text) + '字</small></h3>' +
-        '<div class="pm2s-text">' + t + '</div>' +
+        '<div class="pm2s-copy-grid">' +
+          '<div class="pm2s-text">' + t + '</div>' +
+          '<div class="pm2s-copy">' +
+            '<textarea class="pm2s-copy-ta" data-id="' + escapeAttr(sec.id) + '" placeholder="見本を打ち込みます（意味を考えながら）">' + escapeHtml(copy[sec.id] || "") + '</textarea>' +
+            '<div class="pm2-count muted" data-copycount="' + escapeAttr(sec.id) + '"></div>' +
+          '</div>' +
+        '</div>' +
         partsChipsHtml(sec) + patternHtml(sec.pattern) +
         '<p class="pm2s-note">' + escapeHtml(sec.note) + '</p>' +
       '</div>';
+    });
+    var byId = {};
+    data.sections.forEach(function (x) { byId[x.id] = x; });
+    $all(box, ".pm2s-copy-ta").forEach(function (ta) {
+      var sec = byId[ta.dataset.id];
+      var cnt = box.querySelector('[data-copycount="' + ta.dataset.id + '"]');
+      function upd() {
+        var mine = ta.value.replace(/\r?\n/g, ""), model = sec.text.replace(/\n/g, "");
+        var same = 0;
+        while (same < mine.length && same < model.length && mine.charAt(same) === model.charAt(same)) same++;
+        var done = mine === model;
+        cnt.textContent = done ? "見本と同じ文になりました（" + model.length + "字）" :
+          stepChars(ta.value) + " / " + model.length + " 字" + (mine.length && same < mine.length ? "（" + (same + 1) + "字目から見本と違います）" : "");
+        cnt.className = "pm2-count " + (done ? "ok" : mine.length && same < mine.length ? "ng" : "muted");
+      }
+      ta.addEventListener("input", upd);
+      ta.addEventListener("change", function () {
+        state.doc.steps.copy[ta.dataset.id] = ta.value;
+        saveDoc();
+      });
+      upd();
     });
   }
 

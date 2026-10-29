@@ -1284,3 +1284,9 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-model summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: 13.5px; }
 .pm2s-model .pm2s-text { margin-top: 6px; padding: 10px 12px; background: var(--ok-soft); border-radius: 8px; }
 .pm2s-final { line-height: 1.9; padding-left: 1.4em; }
+
+/* 段階学習 段階1: 見本の隣の打ち込み欄 */
+.pm2s-copy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; }
+.pm2s-copy { display: flex; flex-direction: column; }
+.pm2s-copy-ta { flex: 1; min-height: 160px; width: 100%; box-sizing: border-box; font-size: 15px; line-height: 1.9; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); resize: vertical; }
+@media (max-width: 760px) { .pm2s-copy-grid { grid-template-columns: 1fr; } }
