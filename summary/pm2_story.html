@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>漫画で覚えるA社</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd;
+    --bubble: #ffffff; --bubble-line: #1d2733; --narr: #fff7d6; --narr-line: #e3c75a;
+    --panel: #fbfcfe; --ok: #15803d; --ok-soft: #e7f6ec; --warn: #b91c1c; --warn-soft: #fdecec;
+    --skin: #f6d2b5; --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50;
+      --bubble: #222d3a; --bubble-line: #c9d4e1; --narr: #3a3214; --narr-line: #8a7426;
+      --panel: #141c26; --ok: #4ade80; --ok-soft: #14301e; --warn: #f87171; --warn-soft: #3a1a1c;
+      --skin: #e9c2a3; --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50;
+    --bubble: #222d3a; --bubble-line: #c9d4e1; --narr: #3a3214; --narr-line: #8a7426;
+    --panel: #141c26; --ok: #4ade80; --ok-soft: #14301e; --warn: #f87171; --warn-soft: #3a1a1c;
+    --skin: #e9c2a3; --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 16px; line-height: 1.75; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px 60px; }
+  header.hero { padding: 32px 0 10px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 28px; line-height: 1.4; margin: 6px 0 8px; }
+  .lead { color: var(--muted); margin: 0 0 10px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+  nav.toc a { font-size: 13.5px; text-decoration: none; color: var(--accent); background: var(--accent-soft); padding: 3px 11px; border-radius: 999px; }
+
+  .cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+  .cast div { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; font-size: 13px; line-height: 1.4; }
+  .cast svg { flex: none; width: 44px; height: 44px; }
+
+  .ep { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 18px 16px; margin: 22px 0; box-shadow: var(--shadow); }
+  .ep-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ep-no { font-size: 13px; font-weight: 800; color: #fff; background: var(--accent); border-radius: 6px; padding: 1px 9px; }
+  .ep-head h2 { font-size: 21px; margin: 0; }
+  .ep-head small { color: var(--muted); font-size: 13px; }
+
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .panel { position: relative; border: 3px solid var(--bubble-line); border-radius: 6px; background: var(--panel); padding: 12px; min-height: 170px; display: flex; flex-direction: column; gap: 8px; }
+  .panel .pno { position: absolute; top: 4px; right: 8px; font-size: 11px; color: var(--muted); font-weight: 700; }
+  .narr { align-self: flex-start; background: var(--narr); border: 1px solid var(--narr-line); font-size: 13.5px; line-height: 1.6; padding: 4px 10px; border-radius: 3px; }
+  .line { display: flex; gap: 10px; align-items: flex-start; }
+  .line.right { flex-direction: row-reverse; }
+  .who { flex: none; width: 64px; text-align: center; font-size: 10.5px; line-height: 1.3; color: var(--muted); }
+  .who svg { width: 58px; height: 58px; display: block; margin: 0 auto 2px; }
+  .bubble { position: relative; background: var(--bubble); border: 2px solid var(--bubble-line); border-radius: 16px; padding: 8px 12px; font-size: 14.5px; line-height: 1.65; margin-top: 8px; }
+  .bubble::before { content: ""; position: absolute; left: -9px; top: 16px; border: 8px solid transparent; border-right-color: var(--bubble-line); border-left: 0; }
+  .bubble::after { content: ""; position: absolute; left: -6px; top: 17px; border: 7px solid transparent; border-right-color: var(--bubble); border-left: 0; }
+  .line.right .bubble::before { left: auto; right: -9px; border-right-color: transparent; border-left: 8px solid var(--bubble-line); border-right: 0; }
+  .line.right .bubble::after { left: auto; right: -6px; border-right-color: transparent; border-left: 7px solid var(--bubble); border-right: 0; }
+  .bubble.think { border-style: dashed; border-radius: 24px; }
+  .bubble.shout { border-width: 3px; font-weight: 700; }
+  .big { font-size: 26px; font-weight: 900; color: var(--accent); line-height: 1.3; text-align: center; margin: auto 0; }
+  .big small { display: block; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .bubble b, .narr b { color: var(--warn); }
+
+  .memo { margin-top: 14px; background: var(--ok-soft); border-radius: 10px; padding: 10px 14px; font-size: 14.5px; }
+  .memo strong { color: var(--ok); display: block; font-size: 13px; margin-bottom: 2px; }
+  .memo ul { margin: 0; padding-left: 1.3em; }
+  .memo .use { display: block; margin-top: 4px; font-size: 12.5px; color: var(--muted); }
+
+  .quiz { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .quiz button { text-align: left; font: inherit; font-size: 14.5px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+  .quiz button .a { display: none; margin-top: 4px; color: var(--ok); font-weight: 700; }
+  .quiz button.open .a { display: block; }
+  .quiz button.open { border-color: var(--ok); }
+  .score { font-weight: 800; color: var(--accent); }
+  footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
+  @media (max-width: 640px) {
+    .panels, .quiz { grid-template-columns: 1fr; }
+    h1 { font-size: 23px; }
+    .panel { min-height: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">ITストラテジスト 午後II（科目B-2）</div>
+    <h1>漫画で覚えるA社 ― 地方の食品スーパーを変える物語</h1>
+    <p class="lead">事例設定シートのA社を、9話の物語にしました。数字・事業特性・経営課題・施策・工夫・反対の声が、登場人物のせりふで出てきます。各話の最後の「ここで覚える」と、論文のどこで使うかを確認しながら読んでください。</p>
+    <nav class="toc" id="toc"></nav>
+  </header>
+
+  <section>
+    <h2 style="font-size:19px;margin:6px 0 0">登場人物</h2>
+    <div class="cast" id="cast"></div>
+  </section>
+
+  <div id="story"></div>
+
+  <section class="ep" id="quiz">
+    <div class="ep-head"><span class="ep-no">確認</span><h2>覚えたかチェック</h2><small>答えを言ってから押す</small><span class="score" id="score"></span></div>
+    <div class="quiz" id="quizBox"></div>
+  </section>
+
+  <footer>A社と登場人物は練習用の架空の会社・人物です。内容は事例設定シート（pm2_case.html）と段階学習の模範論文に合わせています。</footer>
+</div>
+
+<script>
+// ---------- 登場人物（SVGの顔） ----------
+var CAST = {
+  me:     { name: "私", role: "情報システム部 システム企画担当課長", hair: "#26324a", style: "short", acc: "#2563eb" },
+  ceo:    { name: "社長", role: "中期経営計画で変革を掲げる", hair: "#9aa3ad", style: "side", acc: "#6b7280", glasses: true },
+  store:  { name: "店舗運営部長", role: "店舗と店長を束ねる", hair: "#3b2f2a", style: "short", acc: "#15803d" },
+  buyer:  { name: "商品部長", role: "仕入れと特売を担う", hair: "#5a3a1e", style: "long", acc: "#c2410c" },
+  tencho: { name: "山田店長", role: "勤続25年のベテラン店長", hair: "#2a2a2a", style: "band", acc: "#b91c1c" },
+  part:   { name: "佐藤さん", role: "パート（週4日・1日5時間）", hair: "#6b3d2e", style: "bun", acc: "#db2777" },
+  tanaka: { name: "田中さん", role: "情報システム部・基幹を知る2人の1人", hair: "#c9ced4", style: "bald", acc: "#6b7280", glasses: true },
+  suzuki: { name: "鈴木さん", role: "常連客（82歳・徒歩10分）", hair: "#eceff3", style: "bun", acc: "#7c3aed", glasses: true }
+};
+function face(id, mood) {
+  var c = CAST[id], m = mood || "smile";
+  var hair = {
+    short: '<path d="M14 30 Q14 10 32 10 Q50 10 50 30 Q46 20 32 19 Q18 20 14 30Z" fill="' + c.hair + '"/>',
+    side: '<path d="M14 30 Q15 11 33 11 Q50 12 50 28 Q40 18 22 22 Q17 25 14 30Z" fill="' + c.hair + '"/>',
+    long: '<path d="M13 40 Q11 10 32 10 Q53 10 51 40 L48 40 Q48 21 32 19 Q16 21 16 40Z" fill="' + c.hair + '"/>',
+    band: '<path d="M14 30 Q14 10 32 10 Q50 10 50 30 Q46 20 32 19 Q18 20 14 30Z" fill="' + c.hair + '"/><rect x="13" y="20" width="38" height="6" rx="3" fill="' + c.acc + '"/>',
+    bun: '<circle cx="32" cy="9" r="7" fill="' + c.hair + '"/><path d="M14 31 Q14 12 32 12 Q50 12 50 31 Q45 21 32 20 Q19 21 14 31Z" fill="' + c.hair + '"/>',
+    bald: '<path d="M14 32 Q14 26 18 24 L18 34Z M50 32 Q50 26 46 24 L46 34Z" fill="' + c.hair + '"/>'
+  }[c.style];
+  var mouth = {
+    smile: '<path d="M26 40 Q32 45 38 40" stroke="#5b3b2a" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    worry: '<path d="M26 43 Q32 39 38 43" stroke="#5b3b2a" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    surprise: '<ellipse cx="32" cy="42" rx="3" ry="4" fill="#5b3b2a"/>',
+    serious: '<path d="M27 42 L37 42" stroke="#5b3b2a" stroke-width="2" stroke-linecap="round"/>'
+  }[m];
+  var brow = m === "worry" ? '<path d="M21 26 L27 28 M43 26 L37 28" stroke="#5b3b2a" stroke-width="1.6" stroke-linecap="round"/>' :
+    m === "serious" ? '<path d="M21 27 L27 26 M43 27 L37 26" stroke="#5b3b2a" stroke-width="1.6" stroke-linecap="round"/>' : "";
+  var glasses = c.glasses ? '<circle cx="25" cy="32" r="5" fill="none" stroke="#333" stroke-width="1.5"/><circle cx="39" cy="32" r="5" fill="none" stroke="#333" stroke-width="1.5"/><path d="M30 32 L34 32" stroke="#333" stroke-width="1.5"/>' : "";
+  return '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+    '<path d="M10 64 Q12 50 32 50 Q52 50 54 64Z" fill="' + c.acc + '"/>' +
+    '<circle cx="32" cy="30" r="18" fill="var(--skin)"/>' + hair + brow +
+    '<circle cx="25" cy="32" r="2.2" fill="#2b2b2b"/><circle cx="39" cy="32" r="2.2" fill="#2b2b2b"/>' + glasses + mouth + '</svg>';
+}
+
+// ---------- 物語（各話4コマ） ----------
+// コマ: { n: ナレーション, s: [[話者, せりふ, 表情, 種類]], big: 大きな文字 }  種類: think（心の声）/ shout
+var STORY = [
+  { id: "ep1", title: "A社ってどんな会社？", sub: "覚える数字5つ", panels: [
+    { n: "地方都市圏のスーパー「A社」。情報システム部の課長の<b>私</b>は、新人研修で会社紹介を任された。", s: [["me", "A社は食品スーパーを<b>40店舗</b>、年間売上は<b>800億円</b>です！", "smile"]] },
+    { s: [["me", "従業員は<b>4,000人</b>。そのうち<b>3,000人</b>がパート・アルバイトさんです。", "smile"], ["part", "私もその一人です〜", "smile", "", true]] },
+    { s: [["me", "売上の<b>4割</b>が、青果・鮮魚・精肉・総菜の<b>生鮮食品</b>。ポイントカードの会員は<b>60万人</b>います。", "smile"]] },
+    { big: "40店・800億・4,000人<small>生鮮4割・会員60万 ―「4」が3回出てくる会社</small>" }
+  ], memo: ["40店舗・売上800億円・従業員4,000人（パート3,000人）", "生鮮が売上の4割・ポイントカード会員60万人"], use: "設問アの「事業概要」の最初の2文" },
+
+  { id: "ep2", title: "鮮・近・人", sub: "事業特性3つ", panels: [
+    { n: "朝6時の店舗。山田店長が空を見上げている。", s: [["tencho", "今日は雨か…。<b>総菜は減らして、鍋の具材を増やそう</b>。天気と行事で売れ方がまるで違うんだ。", "serious"]] },
+    { n: "【鮮】日持ちしない生鮮品は、発注が外れると<b>欠品</b>か<b>廃棄</b>になる。", s: [["me", "つまり、<b>発注の精度が利益に直結する</b>ってことか。", "think", "think"]] },
+    { n: "【近】昼。いつもの常連さんがやって来る。", s: [["suzuki", "山田さん、今日のお刺身はどれがいい？ここは歩いて10分だから毎日来るのよ。", "smile"], ["tencho", "鈴木さん、今日はブリがおすすめです！", "smile", "", true]] },
+    { n: "【人】夕方。人手が足りずレジに行列が…", s: [["part", "発注もレジも品出しも…人が足りません！", "worry", "shout"]] }
+  ], memo: ["鮮：生鮮4割・需要が天候や行事で変動 → 発注の精度が欠品と廃棄を左右し、利益に直結", "近：来店客の多くは半径2km以内の常連 → 顧客を知り、来店頻度を上げる施策が効く", "人：店舗業務の多くをパートが担う → 人手不足。誰でも使える簡単なITでないと定着しない"], use: "設問アの「事業特性」。テーマに合わせて2つ選ぶ" },
+
+  { id: "ep3", title: "3つのピンチ", sub: "経営課題", panels: [
+    { n: "月例の経営会議。社長が資料をめくる。", s: [["ceo", "ネット通販とドラッグストアのせいで、<b>客数は5年で1割減った</b>。", "worry"]] },
+    { s: [["store", "しかも生鮮の<b>廃棄が売上の2%、年16億円</b>です。利益が削られています。", "worry"]] },
+    { s: [["store", "店舗は人が集まらず、残業と採用費ばかり増えています。発注やレジが回りません。", "worry"]] },
+    { n: "3つのピンチは、事業特性からきている。", big: "客数減 ← 近<br>食品ロス ← 鮮<br>人手不足 ← 人" }
+  ], memo: ["客数の減少：5年で1割減（ネット通販・ドラッグストア）", "食品ロス：廃棄が売上の2%・年16億円", "人手不足：店舗の人員が集まらない"], use: "設問アの「経営課題」。課題は対応する事業特性とセットで書く" },
+
+  { id: "ep4", title: "20年前のシステム", sub: "ITの現状（守りのテーマ）", panels: [
+    { n: "情報システム部。田中さんが古い仕様書の山を前にため息をつく。", s: [["tanaka", "この基幹システムは<b>20年前に自社で作った</b>んだ。改修を重ねて、もう迷路みたいだよ。", "worry"]] },
+    { s: [["tanaka", "仕組みが分かるのは<b>私ともう1人だけ</b>。2人とも<b>あと数年で定年</b>なんだ。", "worry"]], },
+    { s: [["me", "店舗からの改修要望も<b>年200件</b>を超えて、全然追いつかないですね…", "worry"], ["tanaka", "それにPOSのデータは本部で<b>週に1回</b>集計するだけ。毎日の状況なんて分からないよ。", "serious", "", true]] },
+    { n: "新しい施策を始めたくても、基幹とつなぐのに時間とお金がかかる。", s: [["me", "このままでは、<b>客数や食品ロスの対策がいつまでも遅れる</b>…", "serious", "think"]] }
+  ], memo: ["発注・在庫・会計の基幹は20年前に自社開発・改修で複雑化", "知る社員は2名、数年で定年（属人化）", "改修要望が年200件超・POSは週1回の集計", "→ 新施策に着手できず、経営課題への対応が遅れる"], use: "R7問1・R5問2・R4問2（守りのテーマ）の設問ア" },
+
+  { id: "ep5", title: "社長の決断", sub: "目指す変革（DX）", panels: [
+    { s: [["ceo", "問題の根っこは何だと思う？", "serious"]] },
+    { s: [["me", "発注も売場づくりも、<b>店長の勘と経験に頼っている</b>ことです。経験の浅い店長ほど発注が外れます。", "serious"]] },
+    { s: [["ceo", "よし。中期経営計画で決める。<b>勘と経験の店舗運営から、データで地域の需要を読む店舗運営へ</b>変わるんだ！", "smile", "shout"]] },
+    { n: "これは「AIを入れる」ことではなく、店舗運営そのものが変わること＝<b>変革</b>。", s: [["me", "AIは手段。設問アに書くのは<b>変革</b>、設問イに書くのが<b>施策</b>だな。", "smile", "think"]] }
+  ], memo: ["目指す変革：勘と経験の店舗運営 → データで地域の需要を読み、廃棄と欠品を同時に減らす店舗運営へ", "仕入れ先とも予測を共有し、売れる分だけ仕入れて作る", "変革（ア）と施策（イ）を分けて書く"], use: "R7問2・R3問1・R6問1（DXのテーマ）の設問ア" },
+
+  { id: "ep6", title: "需要予測AIと店長の知恵", sub: "攻め1・工夫1・工夫2", panels: [
+    { n: "私が企画したのは、需要予測AIによる発注提案。", s: [["me", "過去3年のPOSに、天気・曜日・チラシ・地域の行事を加えて、<b>翌日〜3日先の販売数を予測</b>します。店長は提案を確認して確定するだけ。", "smile"]] },
+    { s: [["tencho", "AIに俺の25年が分かるもんか！", "worry", "shout"]] },
+    { s: [["me", "だから山田さんの<b>コツを予測に入れたい</b>んです。「祭りの前日は総菜多め」「雨の日は鮮魚を減らす」。画面で<b>修正もできます</b>。", "smile"], ["tencho", "…それなら使ってやってもいい。", "serious", "", true]] },
+    { n: "全店で一斉に始めず、<b>3店舗で3か月</b>試した。比べる相手は立地の近い3店舗。", big: "廃棄率 2.1% → 1.4%<small>欠品率は変わらず ／ 発注作業 1日90分 → 40分</small>" }
+  ], memo: ["攻め1：需要予測AIで生鮮と総菜の発注数を提案、店長が確認して確定（食品ロス3割減・年5億円）", "工夫1：小さく試す（3店舗で3か月、比較店舗と比べる）", "工夫2：現場の知恵を取り込む（補正ルール・店長が修正できる）", "結果は「比較の相手と数字」で書く"], use: "R6問1・R7問2の設問イ、工夫の段落、設問ウの評価" },
+
+  { id: "ep7", title: "反対の声", sub: "設問ウの部品", panels: [
+    { s: [["store", "AIに発注を任せたら<b>欠品が増えて、お客様が離れる</b>んじゃないか？", "worry"], ["me", "試行店舗で欠品率は増えていません。<b>欠品率もKPIに</b>加えましょう。", "smile", "", true]] },
+    { s: [["buyer", "仕入れの判断は<b>商品部の仕事</b>だ。発注を店舗任せにされたら困る。", "serious"], ["me", "商品部も<b>同じ予測データ</b>を見て仕入れ計画に使えます。<b>週1回、一緒に予測と実績を確認</b>しませんか。", "smile", "", true]] },
+    { s: [["ceo", "<b>12億円に見合うのか？</b>刷新中に店舗が止まったらどうする？", "serious"]] },
+    { s: [["me", "年5億円の効果で<b>約3年で回収</b>です。そして一括ではなく、<b>効果を確かめながら3段階で投資</b>する計画に変えます。", "smile"], ["ceo", "それなら承認しよう。", "smile", "", true]] }
+  ], memo: ["店舗運営部「欠品が増える」→ 試行で示し、店長が修正できる仕組みに → 欠品率もKPIに追加", "商品部「仕入れは商品部の仕事」→ 同じ予測を共有 → 週1回、予測と実績を確認する場", "経営層「12億円に見合うのか」→ 年5億円・約3年で回収 → 3段階の投資に変更"], use: "設問ウ（誰から→どんな反対→私の対応→改善）。R6・R7の全4問" },
+
+  { id: "ep8", title: "発注画面の改修要望", sub: "R5問1 改修要望の分析", panels: [
+    { s: [["store", "発注画面に<b>前週の同じ曜日の販売数</b>を出してくれ。それと<b>締め時刻を30分遅らせて</b>ほしい。", "serious"]] },
+    { n: "私は要望をそのまま受けず、上流（商品部）・下流（総菜の加工場）・仕入れ先にも話を聞き、データを調べた。", big: "特売・行事の日の廃棄率<br>＝ 通常の日の約2倍" },
+    { s: [["buyer", "特売の情報？紙のチラシで<b>前日の夕方</b>に店に届けているよ。", "smile"], ["me", "それだ！真因は画面ではなく、<b>需要を左右する情報が店舗の発注に届いていない</b>ことだ。", "surprise", "", true]] },
+    { s: [["me", "締め時刻は変えずに、特売と行事の情報を<b>2日前に発注画面に出す</b>方針にしましょう。", "smile"], ["part", "これなら私でも発注できそう！", "smile", "", true]] }
+  ], memo: ["要望：前週同曜日の販売数を表示・締め時刻を30分遅らせる", "分析：特売・行事の日の廃棄率が通常の約2倍", "真因：特売・行事の情報が部門ごとに分かれ、発注の判断に届いていない（要望＝真因にしない）", "対応方針：情報を2日前に発注画面に表示、締め時刻は加工場のために変えない"], use: "R5問1の設問イ・ウ" },
+
+  { id: "ep9", title: "その先の物語", sub: "攻め2・攻め3・守り1・守り2", panels: [
+    { s: [["suzuki", "最近、足が悪くてね…重い荷物を持って来られないのよ。", "worry"]] },
+    { n: "【攻め3】店舗の在庫から当日届ける<b>ネットスーパー</b>。店舗が「売場」兼「出荷・受け取り拠点」に。", s: [["me", "いつもの店の鮮度を、そのまま自宅へ。配送料300円、月額会員500円です。", "smile"]] },
+    { n: "【攻め2】ポイントカードを<b>会員アプリ</b>に。購買履歴でおすすめとクーポン。", s: [["part", "来店が月4回から5回に増えるといいですね！", "smile"]] },
+    { n: "【守り1・2】基幹は<b>クラウド型パッケージ</b>へ、会計→発注・在庫→店舗の順に段階移行。変化の速い部分は<b>連携基盤</b>でつなぎ、<b>データ基盤</b>で全店の状況を翌朝に把握。", s: [["tanaka", "これで定年しても安心だ。", "smile"]] }
+  ], memo: ["攻め2 会員アプリ：来店頻度 月4回→5回", "攻め3 ネットスーパー：店舗を出荷・受け取り拠点に、3年で売上20億円（新規事業ではなく既存店舗運営の変革）", "守り1 基幹刷新：パッケージで標準化＋連携基盤で疎結合、段階移行、保守費3割減", "守り2 データ基盤：週次→日次、攻めの施策の土台"], use: "R6問2・R4問1・R3問1（攻め）、R7問1・R4問2（守り）" }
+];
+
+// ---------- 確認クイズ ----------
+var QUIZ = [
+  ["A社の店舗数・売上・従業員は？", "40店舗・800億円・4,000人（パート3,000人）"],
+  ["生鮮の比率と会員数は？", "売上の4割・ポイントカード会員60万人"],
+  ["事業特性の合言葉は？", "鮮・近・人（生鮮で需要が変動／近隣の常連／人手に依存）"],
+  ["経営課題を3つ、数字つきで", "客数5年で1割減・廃棄が売上の2%（年16億円）・人手不足"],
+  ["基幹システムの問題は？", "20年前に自社開発・知る社員2名が数年で定年・要望年200件超・POS週1回"],
+  ["目指す変革を一言で", "勘と経験の店舗運営から、データで地域の需要を読む店舗運営へ"],
+  ["需要予測AIの試行の結果は？", "3店舗で3か月。廃棄率2.1%→1.4%、欠品率は変わらず"],
+  ["山田店長を味方にした工夫は？", "店長のコツを補正ルールに取り込み、画面で修正できるようにした"],
+  ["社長の「12億円に見合うのか」への改善は？", "年5億円・約3年で回収を示し、3段階の投資に変更"],
+  ["R5問1の真因は？", "特売・行事の情報が部門ごとに分かれ、発注の判断に届いていないこと"]
+];
+
+// ---------- 描画 ----------
+function lineHtml(sp) {
+  var id = sp[0], text = sp[1], mood = sp[2], kind = sp[3] || "", right = sp[4];
+  return '<div class="line' + (right ? ' right' : '') + '"><div class="who">' + face(id, mood) + CAST[id].name + '</div>' +
+    '<div class="bubble ' + kind + '">' + text + '</div></div>';
+}
+var story = document.getElementById("story"), toc = document.getElementById("toc"), html = "";
+STORY.forEach(function (ep, i) {
+  toc.insertAdjacentHTML("beforeend", '<a href="#' + ep.id + '">第' + (i + 1) + '話 ' + ep.title + '</a>');
+  html += '<section class="ep" id="' + ep.id + '"><div class="ep-head"><span class="ep-no">第' + (i + 1) + '話</span><h2>' + ep.title + '</h2><small>' + ep.sub + '</small></div><div class="panels">';
+  ep.panels.forEach(function (p, j) {
+    html += '<div class="panel"><span class="pno">' + (j + 1) + '</span>' +
+      (p.n ? '<div class="narr">' + p.n + '</div>' : '') +
+      (p.big ? '<div class="big">' + p.big + '</div>' : '') +
+      (p.s || []).map(lineHtml).join("") + '</div>';
+  });
+  html += '</div><div class="memo"><strong>ここで覚える</strong><ul>' + ep.memo.map(function (m) { return "<li>" + m + "</li>"; }).join("") +
+    '</ul><span class="use">論文で使う場所：' + ep.use + '</span></div></section>';
+});
+story.innerHTML = html;
+toc.insertAdjacentHTML("beforeend", '<a href="#quiz">覚えたかチェック</a>');
+
+document.getElementById("cast").innerHTML = Object.keys(CAST).map(function (k) {
+  return '<div>' + face(k, "smile") + '<span><b>' + CAST[k].name + '</b><br>' + CAST[k].role + '</span></div>';
+}).join("");
+
+var qb = document.getElementById("quizBox"), opened = 0;
+qb.innerHTML = QUIZ.map(function (q) { return '<button type="button"><span>' + q[0] + '</span><span class="a">' + q[1] + '</span></button>'; }).join("");
+function paintScore() { document.getElementById("score").textContent = opened + " / " + QUIZ.length; }
+Array.prototype.forEach.call(qb.querySelectorAll("button"), function (b) {
+  b.addEventListener("click", function () {
+    b.classList.toggle("open");
+    opened += b.classList.contains("open") ? 1 : -1;
+    paintScore();
+  });
+});
+paintScore();
+</script>
+</body>
+</html>
