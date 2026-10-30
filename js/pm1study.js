@@ -275,9 +275,30 @@
     }
     return "";
   }
+  // 本文中の下線を目立たせる。対象は設問文が「下線①」のように参照している丸数字だけ
+  // （「指摘①を」のような参照や箇条番号は対象外）。データには下線の終わりがないため，
+  // 丸数字からその文の終わり（。）までを点線の下線で示す（範囲は目安）
+  function underlineNos(q) {
+    var t = (q.setsumon || []).map(function (st) { return st.text || ""; }).join(" ");
+    var out = "", m, re = /下線([\u2460-\u2473])/g;
+    while ((m = re.exec(t))) if (out.indexOf(m[1]) < 0) out += m[1];
+    return out;
+  }
+  function markUnderlines(escaped, nos) {
+    if (!nos) return escaped;
+    return escaped.split("\n").map(function (ln) {
+      return ln.replace(/(^|.)([\u2460-\u2473])([^。]*。?)/g, function (m, pre, num, rest) {
+        if (nos.indexOf(num) < 0 || /^[〜～]/.test(rest)) return m;
+        if (pre === "" && /^[\u2460-\u2473]\s/.test(ln)) return m; // 行頭の「①　」は箇条番号
+        return pre + '<span class="pm1x-ul" title="下線' + num + '（範囲は文末までの目安）"><b class="pm1x-ul-no">' + num + '</b>' + rest + '</span>';
+      });
+    }).join("\n");
+  }
+
   // 本文を行単位で走査し、空行区切りを段落として、"{{表1}}"等のマーカー単独行を
   // 図表の実体（figures[].html はエスケープせずそのまま挿入／imageは<img>化）に置換する。
   function renderBodyWithFigures(q) {
+    var nos = underlineNos(q);
     var text = String(q.body || "");
     var lines = text.split("\n");
     var html = "";
@@ -286,7 +307,7 @@
       if (!paraBuf.length) return;
       var block = paraBuf.join("\n");
       var trimmed = trimStr(block);
-      if (trimmed) html += "<p>" + escapeHtml(trimmed).replace(/\n/g, "<br>") + "</p>";
+      if (trimmed) html += "<p>" + markUnderlines(escapeHtml(trimmed), nos).replace(/\n/g, "<br>") + "</p>";
       paraBuf = [];
     }
     lines.forEach(function (line) {
@@ -576,6 +597,7 @@
 
   /* ---------- 演習用の本文（段落ごとに〔節〕・下線番号・図表を属性で持たせる） ---------- */
   function renderExerciseBody(q) {
+    var nos = underlineNos(q);
     var lines = String(q.body || "").split("\n");
     var html = "", buf = [], sec = "";
     function flush() {
@@ -592,7 +614,7 @@
         ln.slice(1).split("").forEach(function (c) { if (CIRCLED.indexOf(c) >= 0 && uls.indexOf(c) < 0) uls.push(c); });
       });
       html += '<p class="pm1x-p' + (head ? ' pm1x-head' : '') + '" data-sec="' + escapeAttr(sec) + '" data-ul="' + uls.join("") + '" data-li="' + lis.join("") + '">' +
-        escapeHtml(t).replace(/\n/g, "<br>") + '</p>';
+        markUnderlines(escapeHtml(t), nos).replace(/\n/g, "<br>") + '</p>';
     }
     lines.forEach(function (line) {
       var m = MARKER_RE.exec(trimStr(line));
