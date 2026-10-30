@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>午後II教科書 第3章</title><style>
+:root { --bg:#f4f6fa; --card:#fff; --text:#1d2733; --muted:#5f6e7d; --line:#dde3eb; --accent:#2563eb; --accent-soft:#e5edfd;
+  --ok:#15803d; --ok-soft:#e7f6ec; --ng:#b91c1c; --ng-soft:#fdecec; --warn:#b45309; --warn-soft:#fdf3e2; --chip:#eef2f7;
+  --shadow:0 1px 3px rgba(16,30,54,.08),0 6px 18px rgba(16,30,54,.06); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0f151d; --card:#18212c; --text:#e5ecf4; --muted:#96a4b3; --line:#2b3847;
+  --accent:#5b93ff; --accent-soft:#1c2f50; --ok:#4ade80; --ok-soft:#14301e; --ng:#f87171; --ng-soft:#3a1a1c; --warn:#fbbf24; --warn-soft:#3a2c12; --chip:#222d3a; --shadow:0 1px 3px rgba(0,0,0,.45); } }
+:root[data-theme="dark"] { --bg:#0f151d; --card:#18212c; --text:#e5ecf4; --muted:#96a4b3; --line:#2b3847;
+  --accent:#5b93ff; --accent-soft:#1c2f50; --ok:#4ade80; --ok-soft:#14301e; --ng:#f87171; --ng-soft:#3a1a1c; --warn:#fbbf24; --warn-soft:#3a2c12; --chip:#222d3a; --shadow:0 1px 3px rgba(0,0,0,.45); }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif; font-size:16px; line-height:1.85; }
+.wrap { max-width:880px; margin:0 auto; padding:0 16px 60px; }
+header.hero { padding:28px 0 8px; }
+.crumb { font-size:13px; } .crumb a { color:var(--accent); text-decoration:none; }
+.eyebrow { font-size:13px; font-weight:700; color:var(--accent); margin-top:10px; }
+h1 { font-size:27px; line-height:1.4; margin:4px 0 6px; }
+h2 { font-size:21px; margin:0 0 8px; line-height:1.45; }
+h3 { font-size:17px; margin:20px 0 6px; }
+p { margin:0 0 12px; }
+.lead { color:var(--muted); }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 20px 14px; margin:18px 0; box-shadow:var(--shadow); }
+.goal { background:var(--accent-soft); border-radius:12px; padding:12px 16px; margin:14px 0; }
+.goal b { color:var(--accent); display:block; font-size:13px; }
+.goal ul { margin:4px 0 0; padding-left:1.3em; }
+table { border-collapse:collapse; width:100%; font-size:14.5px; margin:8px 0 12px; }
+th, td { border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+thead th { background:var(--chip); font-size:13.5px; }
+.tbl { overflow-x:auto; }
+.ex { background:var(--chip); border-radius:10px; padding:10px 14px; margin:8px 0 12px; font-size:15px; }
+.ex b.lbl { display:block; font-size:12.5px; color:var(--muted); }
+.good { background:var(--ok-soft); border-left:4px solid var(--ok); border-radius:0 10px 10px 0; padding:8px 14px; margin:8px 0; }
+.bad { background:var(--ng-soft); border-left:4px solid var(--ng); border-radius:0 10px 10px 0; padding:8px 14px; margin:8px 0; }
+.good b, .bad b { font-size:12.5px; display:block; }
+.good b { color:var(--ok); } .bad b { color:var(--ng); }
+.pit { background:var(--warn-soft); border-radius:12px; padding:12px 16px; }
+.pit b.t { color:var(--warn); }
+.pit ul { margin:4px 0 0; padding-left:1.3em; }
+mark { background:#fff3b0; color:inherit; padding:0 2px; border-radius:3px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark { background:#5c4d00; } }
+:root[data-theme="dark"] mark { background:#5c4d00; }
+.q { border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin:10px 0; }
+.q summary { cursor:pointer; font-weight:700; color:var(--accent); margin-top:6px; }
+.q .a { margin-top:6px; background:var(--ok-soft); border-radius:8px; padding:8px 12px; }
+.app { display:flex; flex-wrap:wrap; gap:8px; }
+.app span { background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:2px 12px; font-size:13.5px; font-weight:700; }
+.nav { display:flex; justify-content:space-between; gap:10px; margin-top:24px; }
+.nav a { color:var(--accent); text-decoration:none; font-weight:700; }
+.toc li { margin:6px 0; }
+.toc .soon { color:var(--muted); }
+.steps { counter-reset:st; list-style:none; padding:0; }
+.steps li { counter-increment:st; position:relative; padding-left:34px; margin:8px 0; }
+.steps li::before { content:counter(st); position:absolute; left:0; top:2px; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:13px; font-weight:800; display:grid; place-items:center; }
+.chk li { list-style:none; } .chk { padding-left:0; }
+.chk label { display:flex; gap:8px; align-items:flex-start; }
+.chk input { margin-top:7px; }
+@media (max-width:600px) { h1 { font-size:23px; } .card { padding:16px 14px 10px; } }
+@media print { .nav, .crumb { display:none; } body { background:#fff; } .card { box-shadow:none; } }
+</style></head>
+<body><div class="wrap">
+<header class="hero"><div class="crumb"><a href="pm2_text.html">午後II 教科書（目次）</a></div>
+<div class="eyebrow">ITストラテジスト 午後II（科目B-2）教科書 第3章</div>
+<h1>段落を組み立てる</h1><p class="lead">要の1文・組み立て方の型・具体性</p></header>
+
+<div class="goal"><b>この章で分かること</b><ul><li>1つの段落の基本形</li><li>要の1文の5つの型</li><li>見出しの種類ごとの組み立て方（24種）</li><li>つなぎ言葉の使い分け</li><li>具体的に書く4つのコツ</li></ul></div>
+
+<div class="card"><h2>3.1 段落の基本形</h2>
+<p>1つの見出しの下は、300〜400字の段落1〜2つで書きます。1つの段落には<b>1つの役割</b>だけを持たせ、次の順で組み立てます。</p>
+<ol class="steps">
+<li><b>言い切る</b>：その段落で言いたいことを最初の1〜2文で書く（「私は〜という方針を策定した」）</li>
+<li><b>理由・背景</b>：なぜそうしたか（「〜だからである」）</li>
+<li><b>具体</b>：中身・数字・固有の事情</li>
+<li><b>結果・つなぎ</b>：その結果どうなったか、次の見出しへのつなぎ</li>
+</ol>
+<p>結論を最初に書くと、採点者が「この段落は設問の何に答えているか」をすぐ判断できます。</p>
+</div>
+
+<div class="card"><h2>3.2 要の1文の5つの型</h2>
+<p>段落の中で最も大事な1文（要の1文）は、ほとんどが次の5つの書き出しで始まります。<b>前の文を読んで、次にどの型が来るかを決めてから書く</b>と、迷わず書けます。</p>
+<div class="tbl"><table><thead><tr><th>書き出し</th><th>役割</th><th>例（A社）</th></tr></thead><tbody>
+<tr><td><b>このため、</b></td><td>事業特性や現状を、経営への影響につなぐ</td><td>このため、発注の精度が欠品と廃棄の量を左右し、利益に直結する。</td></tr>
+<tr><td><b>この結果、</b></td><td>課題を、経営課題（客数・食品ロス）につなぐ</td><td>この結果、…新しい施策に時間と費用が掛かり、経営課題への対応が遅れていた。</td></tr>
+<tr><td><b>そこで私は、</b></td><td>自分の判断・工夫・改善を言い切る</td><td>そこで私は、業務への影響が小さい順に段階的に移す計画とした。</td></tr>
+<tr><td><b>その結果、</b></td><td>調整や改善で得たもの（協力・合意・承認）を示す</td><td>その結果、店舗運営部は先行店舗の選定と手順書づくりに協力することになった。</td></tr>
+<tr><td><b>数字</b></td><td>効果や結果を、比較の相手とともに示す</td><td>試行した3店舗では、比較した3店舗に対して廃棄率が2.1%から1.4%に下がった。</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="card"><h2>3.3 見出しの種類ごとの組み立て方</h2>
+<p>見出しの種類によって、書く順番はほぼ決まっています。アプリの段階学習 段階4で横に表示される組み立て方と同じです。</p>
+<div class="tbl"><table><thead><tr><th style="width:30%">見出しの種類</th><th>組み立て方（この順に書く）</th></tr></thead><tbody><tr><td>事業概要と事業特性</td><td><ol style="margin:0;padding-left:1.3em"><li>会社の概要を数字で（業種・店舗数・売上・従業員）</li><li>「事業特性は、次の2点である」と予告する</li><li>第一に〜。このため〜（特性→経営上の意味）</li><li>第二に〜。このため〜</li></ol></td></tr><tr><td>現状と課題</td><td><ol style="margin:0;padding-left:1.3em"><li>現状（いつ・何が・どうなっている）</li><li>その結果起きている問題（数字）</li><li>経営・事業への影響（このままでは〜）</li></ol></td></tr><tr><td>方針・企画の内容</td><td><ol style="margin:0;padding-left:1.3em"><li>方針を一文で言い切る（私は〜という方針を策定した）</li><li>中身（新しい構造・技術・範囲・進め方）</li><li>検討した別案と、選んだ理由（事業特性と結び付ける）</li></ol></td></tr><tr><td>必要性と有効性</td><td><ol style="margin:0;padding-left:1.3em"><li>必要性：このままでは〜になる（だから今〜が必要）</li><li>有効性：〜することで〜できる（数字）</li><li>経営課題とのつながり（〜の解決に直結する）</li></ol></td></tr><tr><td>技術とデータ活用の具体化</td><td><ol style="margin:0;padding-left:1.3em"><li>何のデータで何をするか（技術）</li><li>どこで動かすか（自社開発／外部サービス）</li><li>業務の流れと人の役割</li><li>変革への貢献（効率化で止めない）</li></ol></td></tr><tr><td>特に重要と考えて工夫したこと</td><td><ol style="margin:0;padding-left:1.3em"><li>重要と考えたことと、その理由（懸念・困難）</li><li>工夫の中身（何を・どのように）</li><li>なぜそうしたか（ねらい）</li><li>結果（数字・関係者の反応）</li></ol></td></tr><tr><td>変革の阻害要因</td><td><ol style="margin:0;padding-left:1.3em"><li>阻害要因を2〜3点に絞る（第一に〜）</li><li>それぞれ、放置すると変革がどう止まるか</li><li>最も重視した要因と理由</li></ol></td></tr><tr><td>事業部門との交渉・調整</td><td><ol style="margin:0;padding-left:1.3em"><li>誰が・何を懸念・反対したか（理由も）</li><li>私の対応（データを示す・試行・役割分担）</li><li>合意・協力を得た内容</li></ol></td></tr><tr><td>経営層への説明</td><td><ol style="margin:0;padding-left:1.3em"><li>説明した論点（効果・費用・リスク）</li><li>根拠となる数字</li><li>経営層に求めた判断</li></ol></td></tr><tr><td>評価・意思を受けて改善したこと</td><td><ol style="margin:0;padding-left:1.3em"><li>経営層（事業部門）の評価・指摘・意思</li><li>それを受けて変えた内容（計画・体制・KPI）</li><li>結果（承認・その後の進み方）</li></ol></td></tr><tr><td>DXの狙いと施策</td><td><ol style="margin:0;padding-left:1.3em"><li>経営課題（数字）</li><li>DXの狙い（何をどう変えるか）</li><li>施策の内容（何をするか）</li></ol></td></tr><tr><td>新たな情報技術とその必要性</td><td><ol style="margin:0;padding-left:1.3em"><li>検討対象の技術（何か）</li><li>従来の技術・やり方では実現できなかったこと</li><li>だからこの技術が必要（事業特性と結び付ける）</li></ol></td></tr><tr><td>机上確認・技術検証</td><td><ol style="margin:0;padding-left:1.3em"><li>確認・検証の観点（何を確かめるか）</li><li>方法（資料・試行・比較の相手）</li><li>結果（数字）</li><li>経営・事業の観点での評価</li></ol></td></tr><tr><td>リスクとその対策</td><td><ol style="margin:0;padding-left:1.3em"><li>リスク（何が起きると、事業や経営にどう影響するか）</li><li>対策（予防と、起きたときの対応）</li><li>経営層が認識すべき点</li></ol></td></tr><tr><td>事業戦略</td><td><ol style="margin:0;padding-left:1.3em"><li>経営課題・環境変化</li><li>事業戦略（何を目指すか）</li><li>テーマ（ビジネスモデル等）が必要になった理由</li></ol></td></tr><tr><td>顧客と提供価値</td><td><ol style="margin:0;padding-left:1.3em"><li>対象顧客（誰か・どんな困りごとか）</li><li>提供価値（顧客から見た言葉で）</li><li>既存事業の強みとのつながり</li></ol></td></tr><tr><td>製品・サービスと収益の獲得方法</td><td><ol style="margin:0;padding-left:1.3em"><li>価値を具現化する製品・サービス</li><li>運営の仕組み（既存資源の活用）</li><li>収益の得方（何で・いくら）</li><li>実現可能性（目標と根拠）</li></ol></td></tr><tr><td>当初の要件とのかい離</td><td><ol style="margin:0;padding-left:1.3em"><li>当初の想定（数字）</li><li>想定したかい離（増える・減る・偏る）</li><li>放置した場合の影響</li></ol></td></tr><tr><td>分析の対象となる業務とITシステム</td><td><ol style="margin:0;padding-left:1.3em"><li>対象の業務（誰が・いつ・何をする）</li><li>対象のITシステム（機能と使われ方）</li><li>業務とシステムの関係（どこで判断に使うか）</li></ol></td></tr><tr><td>改修要望と利用部門の問題認識</td><td><ol style="margin:0;padding-left:1.3em"><li>改修要望の内容（具体的に）</li><li>利用部門の問題認識（何に困っていると考えているか）</li><li>要望が部分的である可能性（利用部門の視点だけ）</li></ol></td></tr><tr><td>収集した情報</td><td><ol style="margin:0;padding-left:1.3em"><li>何の情報を（要望・業務・システム・利用状況）</li><li>どこから・どうやって（データ・観察・ヒアリング）</li><li>利用部門以外のステークホルダからも集める</li></ol></td></tr><tr><td>分析の内容</td><td><ol style="margin:0;padding-left:1.3em"><li>全社視点の観点（他部門・上流下流・ステークホルダ）</li><li>分析した結果（数字）</li><li>利用部門の認識とのずれ</li></ol></td></tr><tr><td>特定した問題の真因</td><td><ol style="margin:0;padding-left:1.3em"><li>真因を一文で言い切る（要望＝真因にしない）</li><li>真因と、要望・問題との因果</li><li>要望どおり改修しても解決しない理由</li></ol></td></tr><tr><td>対応方針</td><td><ol style="margin:0;padding-left:1.3em"><li>解決手段（真因に効くもの）</li><li>スケジュールと実行体制（誰が何を）</li><li>投資と効果（数字）</li><li>当初の要望の扱い（採用・見送りと理由）</li></ol></td></tr></tbody></table></div>
+</div>
+
+<div class="card"><h2>3.4 つなぎ言葉の使い分け</h2>
+<div class="tbl"><table><thead><tr><th>役割</th><th>言葉</th><th>使いどころ</th></tr></thead><tbody>
+<tr><td>並べる</td><td>第一に、第二に、第三に</td><td>課題・理由・施策を2〜3個示すとき。数を先に予告する（「次の2点である」）</td></tr>
+<tr><td>原因→結果</td><td>このため、この結果、これにより</td><td>事業特性→課題、施策→効果</td></tr>
+<tr><td>自分の判断</td><td>そこで私は、私は〜と考えた</td><td>工夫・方針・改善の書き出し。ITストラテジストとしての判断を示す</td></tr>
+<tr><td>結果</td><td>その結果、協議の結果、</td><td>調整・試行・改善の後</td></tr>
+<tr><td>対比</td><td>一方、しかし</td><td>2案の比較、良い結果の後の課題</td></tr>
+<tr><td>追加</td><td>あわせて、さらに、また</td><td>同じ役割の内容を足すとき（使いすぎない）</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="card"><h2>3.5 具体的に書く4つのコツ</h2>
+<h3>① 数字を入れる</h3>
+<div class="bad"><b>悪い例</b>食品ロスが大きく、利益を圧迫していた。</div>
+<div class="good"><b>良い例</b>生鮮品の廃棄が売上の2%、年16億円に達し、利益を圧迫していた。</div>
+<h3>② 比較の相手を書く</h3>
+<div class="bad"><b>悪い例</b>試行の結果、廃棄率が大幅に改善した。</div>
+<div class="good"><b>良い例</b>試行した3店舗では、立地の近い3店舗と比べて、廃棄率が2.1%から1.4%に下がった。</div>
+<h3>③ A社ならではの事情を書く</h3>
+<div class="bad"><b>悪い例</b>一般に、長年改修を重ねたシステムは保守が難しい。</div>
+<div class="good"><b>良い例</b>仕組みを知る社員は2名だけで、数年で定年を迎える。</div>
+<h3>④ 主語を「私」にする</h3>
+<div class="bad"><b>悪い例</b>段階的に移行することとなった。</div>
+<div class="good"><b>良い例</b>そこで私は、業務への影響が小さい順に段階的に移す計画とした。</div>
+<p>午後IIは「あなたの経験と考え」を問う試験です。自分が判断したことは、主語を「私は」にして書きます。</p>
+</div>
+
+<div class="card"><h2>3.6 文の書き方</h2>
+<ul>
+<li>文末は「である」調にそろえる。「です・ます」と混ぜない。</li>
+<li>1文は60字前後までを目安にし、長くなったら2文に分ける。</li>
+<li>「〜と考える」「〜と思われる」を続けない。判断は言い切る。</li>
+<li>同じ言葉を1文の中で繰り返さない（「〜を行い、〜を行った」「〜であることである」）。</li>
+<li>読点は「、」で統一する。</li>
+</ul>
+</div>
+
+<div class="card pit"><b class="t">よくある失敗</b><ul><li>一般論で始め、A社の事情が出てこない（「一般に〜」「昨今〜」）</li><li>箇条書きのように短い文を並べ、つながりがない</li><li>「〜こととなった」と主語がなく、自分の判断に見えない</li><li>結果を「大幅に改善」「好評だった」で済ませる</li></ul></div>
+
+<div class="card"><h2>確認問題</h2><p class="lead">答えを考えてから「答え」を開いてください。</p><div class="q"><p style="margin:0"><b>問1</b>　次の空欄に入る書き出しはどれですか。「仕組みを知る社員は2名だけで、数年で定年を迎える。（　　）、障害の原因すら特定できなくなり、発注が止まるリスクが高まる。」</p><details><summary>答え</summary><div class="a">「このため、」（または「この結果、」）です。現状（2名・定年）から、事業への影響（発注が止まる）につなぐ文なので、原因→結果の言葉を使います。</div></details></div><div class="q"><p style="margin:0"><b>問2</b>　「経営層の評価を受けて改善したこと」の見出しで、最初に書く文はどれが適切ですか。<br>ア 経営層に丁寧に説明した。　イ 社長からは〜という評価を受けた。　ウ 一般に経営層は投資に慎重である。</p><details><summary>答え</summary><div class="a">イです。組み立て方は「評価・指摘 → 変えた内容 → 結果」の順です。アは改善になっておらず、ウは一般論です。</div></details></div><div class="q"><p style="margin:0"><b>問3</b>　「新しいシステムを導入し、業務が大幅に効率化された。」を具体的に直してください。</p><details><summary>答え</summary><div class="a">例：「需要予測の仕組みを導入した結果、発注作業時間は1店舗1日90分から40分に減り、その時間を売場づくりに充てられるようになった。」（何を・数字・比較・その後の効果）</div></details></div></div>
+
+<div class="card"><h2>アプリで練習する</h2><div class="app"><span>段落練習：1段落を15〜20分で書く</span><span>段階学習 段階3：要の1文の穴埋め（書き出しのヒント）</span><span>段階学習 暗唱：要の1文</span></div></div>
+
+<div class="nav"><span><a href="pm2_text_2.html">← 第2章 骨子を作る</a></span>
+<span><a href="pm2_text_appx.html">付録 早見表 →</a></span></div>
+<p class="lead" style="font-size:12.5px;margin-top:24px">A社は練習用の架空の会社です。設問文はIPA 情報処理技術者試験 ITストラテジスト試験 午後II（令和3〜7年度）から引用しています。</p>
+</div></body></html>

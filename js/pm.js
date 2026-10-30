@@ -137,6 +137,8 @@
       if (paraLink) paraLink.hidden = mode !== "pm2"; // 午後IIだけ段落練習（js/pm2para.js）を表示
       var storyLink = $("#pm-story-link");
       if (storyLink) storyLink.hidden = mode !== "pm2"; // 午後IIだけ「漫画で覚えるA社」を表示
+      var textLink = $("#pm-text-link");
+      if (textLink) textLink.hidden = mode !== "pm2"; // 午後IIだけ「午後II 教科書」を表示
       if (window.PmPara) window.PmPara.close();
       var guide = $("#pm-guide-link");
       if (guide) {

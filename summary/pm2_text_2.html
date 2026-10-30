@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>午後II教科書 第2章</title><style>
+:root { --bg:#f4f6fa; --card:#fff; --text:#1d2733; --muted:#5f6e7d; --line:#dde3eb; --accent:#2563eb; --accent-soft:#e5edfd;
+  --ok:#15803d; --ok-soft:#e7f6ec; --ng:#b91c1c; --ng-soft:#fdecec; --warn:#b45309; --warn-soft:#fdf3e2; --chip:#eef2f7;
+  --shadow:0 1px 3px rgba(16,30,54,.08),0 6px 18px rgba(16,30,54,.06); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0f151d; --card:#18212c; --text:#e5ecf4; --muted:#96a4b3; --line:#2b3847;
+  --accent:#5b93ff; --accent-soft:#1c2f50; --ok:#4ade80; --ok-soft:#14301e; --ng:#f87171; --ng-soft:#3a1a1c; --warn:#fbbf24; --warn-soft:#3a2c12; --chip:#222d3a; --shadow:0 1px 3px rgba(0,0,0,.45); } }
+:root[data-theme="dark"] { --bg:#0f151d; --card:#18212c; --text:#e5ecf4; --muted:#96a4b3; --line:#2b3847;
+  --accent:#5b93ff; --accent-soft:#1c2f50; --ok:#4ade80; --ok-soft:#14301e; --ng:#f87171; --ng-soft:#3a1a1c; --warn:#fbbf24; --warn-soft:#3a2c12; --chip:#222d3a; --shadow:0 1px 3px rgba(0,0,0,.45); }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif; font-size:16px; line-height:1.85; }
+.wrap { max-width:880px; margin:0 auto; padding:0 16px 60px; }
+header.hero { padding:28px 0 8px; }
+.crumb { font-size:13px; } .crumb a { color:var(--accent); text-decoration:none; }
+.eyebrow { font-size:13px; font-weight:700; color:var(--accent); margin-top:10px; }
+h1 { font-size:27px; line-height:1.4; margin:4px 0 6px; }
+h2 { font-size:21px; margin:0 0 8px; line-height:1.45; }
+h3 { font-size:17px; margin:20px 0 6px; }
+p { margin:0 0 12px; }
+.lead { color:var(--muted); }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 20px 14px; margin:18px 0; box-shadow:var(--shadow); }
+.goal { background:var(--accent-soft); border-radius:12px; padding:12px 16px; margin:14px 0; }
+.goal b { color:var(--accent); display:block; font-size:13px; }
+.goal ul { margin:4px 0 0; padding-left:1.3em; }
+table { border-collapse:collapse; width:100%; font-size:14.5px; margin:8px 0 12px; }
+th, td { border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+thead th { background:var(--chip); font-size:13.5px; }
+.tbl { overflow-x:auto; }
+.ex { background:var(--chip); border-radius:10px; padding:10px 14px; margin:8px 0 12px; font-size:15px; }
+.ex b.lbl { display:block; font-size:12.5px; color:var(--muted); }
+.good { background:var(--ok-soft); border-left:4px solid var(--ok); border-radius:0 10px 10px 0; padding:8px 14px; margin:8px 0; }
+.bad { background:var(--ng-soft); border-left:4px solid var(--ng); border-radius:0 10px 10px 0; padding:8px 14px; margin:8px 0; }
+.good b, .bad b { font-size:12.5px; display:block; }
+.good b { color:var(--ok); } .bad b { color:var(--ng); }
+.pit { background:var(--warn-soft); border-radius:12px; padding:12px 16px; }
+.pit b.t { color:var(--warn); }
+.pit ul { margin:4px 0 0; padding-left:1.3em; }
+mark { background:#fff3b0; color:inherit; padding:0 2px; border-radius:3px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark { background:#5c4d00; } }
+:root[data-theme="dark"] mark { background:#5c4d00; }
+.q { border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin:10px 0; }
+.q summary { cursor:pointer; font-weight:700; color:var(--accent); margin-top:6px; }
+.q .a { margin-top:6px; background:var(--ok-soft); border-radius:8px; padding:8px 12px; }
+.app { display:flex; flex-wrap:wrap; gap:8px; }
+.app span { background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:2px 12px; font-size:13.5px; font-weight:700; }
+.nav { display:flex; justify-content:space-between; gap:10px; margin-top:24px; }
+.nav a { color:var(--accent); text-decoration:none; font-weight:700; }
+.toc li { margin:6px 0; }
+.toc .soon { color:var(--muted); }
+.steps { counter-reset:st; list-style:none; padding:0; }
+.steps li { counter-increment:st; position:relative; padding-left:34px; margin:8px 0; }
+.steps li::before { content:counter(st); position:absolute; left:0; top:2px; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:13px; font-weight:800; display:grid; place-items:center; }
+.chk li { list-style:none; } .chk { padding-left:0; }
+.chk label { display:flex; gap:8px; align-items:flex-start; }
+.chk input { margin-top:7px; }
+@media (max-width:600px) { h1 { font-size:23px; } .card { padding:16px 14px 10px; } }
+@media print { .nav, .crumb { display:none; } body { background:#fff; } .card { box-shadow:none; } }
+</style></head>
+<body><div class="wrap">
+<header class="hero"><div class="crumb"><a href="pm2_text.html">午後II 教科書（目次）</a></div>
+<div class="eyebrow">ITストラテジスト 午後II（科目B-2）教科書 第2章</div>
+<h1>骨子を作る</h1><p class="lead">見出し・字数・部品を20分で決める</p></header>
+
+<div class="goal"><b>この章で分かること</b><ul><li>骨子に書く3つのこと（見出し・中身・字数）</li><li>見出しの付け方と数の目安</li><li>字数の配分</li><li>A社の部品で中身を埋める方法と、3テーマの実演</li></ul></div>
+
+<div class="card"><h2>2.1 骨子とは</h2>
+<p>骨子は、書き始める前に作る<b>論文の設計図</b>です。本番では最初の20分で作ります。骨子に書くのは次の3つだけで、文章にはしません。</p>
+<div class="tbl"><table><thead><tr><th>書くこと</th><th>例</th></tr></thead><tbody>
+<tr><td>見出し（設問の言葉）</td><td>2.2 刷新の必要性と経営上の有効性</td></tr>
+<tr><td>中身（キーワード・部品）</td><td>2名が定年→発注停止のリスク／保守費3割減→攻めに回す／食品ロスに早く着手</td></tr>
+<tr><td>予定字数</td><td>400字</td></tr>
+</tbody></table></div>
+<p>骨子ができれば、残りの100分は「骨子の行を文章にする作業」になります。書きながら考えると、途中で論点がずれたり、時間切れで設問ウが短くなったりします。</p>
+</div>
+
+<div class="card"><h2>2.2 見出しの付け方</h2>
+<ul>
+<li><b>設問の言葉をそのまま使う</b>：「刷新の必要性と経営上の有効性」のように、設問の名詞句を見出しにします。「はじめに」「本論」のような見出しは使いません。</li>
+<li><b>番号を付ける</b>：設問アは1.1・1.2…、イは2.1・2.2…、ウは3.1・3.2…とします。採点者が要素を探しやすくなります。</li>
+<li><b>1つの見出しに1つの要素</b>（近い要素はまとめてもよいが、両方の言葉を見出しに入れる）。</li>
+<li><b>見出しの数の目安</b>：アは2〜3、イは3〜4、ウは2〜3。</li>
+</ul>
+</div>
+
+<div class="card"><h2>2.3 字数の配分</h2>
+<div class="tbl"><table><thead><tr><th>設問</th><th>指定</th><th>目標</th><th>見出しの数と1つの量</th></tr></thead><tbody>
+<tr><td>ア</td><td>800字以内</td><td>600〜750字</td><td>2〜3見出し × 250〜350字</td></tr>
+<tr><td>イ</td><td>800字以上1,600字以内</td><td>1,200〜1,400字</td><td>3〜4見出し × 300〜450字</td></tr>
+<tr><td>ウ</td><td>600字以上1,200字以内</td><td>800〜1,000字</td><td>2〜3見出し × 300〜400字</td></tr>
+</tbody></table></div>
+<p>最低字数ぎりぎりは避けます。特にイは、<b>上限の7〜8割</b>を目標にすると、内容の具体性が足ります。1つの見出しを300〜400字（段落1〜2つ）と考えると、配分しやすくなります。</p>
+</div>
+
+<div class="card"><h2>2.4 中身を部品で埋める</h2>
+<p>見出しの下には、事例設定シートの<b>A社の部品</b>を割り当てます。アプリの骨子タブでは、プルダウンから部品を選んで挿入できます。</p>
+<ol class="steps">
+<li>見出しごとに、使う部品を1〜2個選ぶ（全部は入れない）</li>
+<li>部品と設問をつなぐ<b>一言の理由</b>を自分で書き足す（例：「→属人化の解消を重視したから」）</li>
+<li>数字や固有の事情が1つ以上入っているかを確かめる</li>
+</ol>
+<p>どのテーマにどの部品を使うかは、事例設定シートの「テーマ別の使い方」にまとめてあります。</p>
+</div>
+
+<div class="card"><h2>2.5 実演：3テーマの骨子</h2>
+<h3>令和7年度 問1 基幹システムの刷新方針（守り）</h3>
+<div class="ex">
+【ア】<br>1.1 事業概要と事業特性（300字）… 40店・800億・4,000人／鮮・人<br>
+1.2 基幹システムの概要と課題（350字）… 20年前・2名が定年・要望年200件・POS週1回 → 新施策に着手できない<br>
+【イ】<br>2.1 策定した刷新方針（450字）… パッケージで標準化＋連携基盤で疎結合／自社再開発案と比較<br>
+2.2 刷新の必要性と経営上の有効性（400字）… 2名定年で発注停止のリスク／保守費3割減・食品ロスに早く着手<br>
+2.3 特に重要と考えて工夫したこと（450字）… 発注を止めない→会計→発注・在庫→店舗の段階移行、並行稼働<br>
+【ウ】<br>3.1 事業部門との交渉・調整（350字）… 店舗運営部「混乱」→3店舗先行／商品部「例外ルール」→8割再現<br>
+3.2 経営層への説明（250字）… 12億・年5億・約3年回収・移行リスク<br>
+3.3 経営層の評価を受けて改善したこと（300字）… 一括→3段階の投資
+</div>
+<h3>令和6年度 問2 新しいビジネスモデル（攻め）</h3>
+<div class="ex">
+【ア】1.1 事業概要と事業特性（300字）… 近・鮮／1.2 事業戦略（300字）… 客数1割減・常連の高齢化 → 店舗を暮らしを支える拠点に<br>
+【イ】2.1 顧客と提供価値（350字）… 高齢者・子育て世帯／いつもの店の鮮度を当日自宅へ<br>
+2.2 製品・サービスと収益の獲得方法（450字）… 店舗在庫から出荷／配送料300円・月額500円／1日30件で黒字の根拠<br>
+2.3 ITで新たに実現したこと（400字）… 顧客接点（いつもの一覧）・新しい価値（在庫連動）・低コスト（ピッキング指示）<br>
+【ウ】3.1 想定したかい離（300字）… 1日30件→3倍／10件未満／3.2 提案と事業部門の評価（350字）… 従量課金のクラウド・3店舗から／3.3 改善（300字）… 時間帯ごとの受付上限
+</div>
+<h3>令和5年度 問1 改修要望の分析（分析・調整）</h3>
+<div class="ex">
+【ア】1.1 事業概要と事業特性（250字）／1.2 分析の対象となる業務とITシステム（200字）／1.3 改修要望と問題認識（250字）<br>
+【イ】2.1 収集した情報（300字）… 要望200件・同席・データ・上流下流のヒアリング／2.2 分析の内容（300字）… 特売日の廃棄率2倍<br>
+2.3 特定した問題の真因（200字）… 情報が店舗に届かない（要望＝真因にしない）／2.4 工夫したこと（250字）… 要望を「誰の・どの判断に・何の情報」で分類<br>
+【ウ】3.1 利用部門や関係部門との協議（400字）／3.2 立案した対応方針（400字）… 解決手段・スケジュール・体制・投資効果
+</div>
+<p>3つとも、<b>見出しが設問の言葉そのまま</b>で、中身はA社の部品の組み合わせです。テーマが変わっても、見出しの立て方と部品の割り当て方は同じです。</p>
+</div>
+
+<div class="card"><h2>2.6 骨子の自己チェック</h2>
+<ul class="chk">
+<li><label><input type="checkbox"> 設問の言葉（要素）がすべて見出しに入っている</label></li>
+<li><label><input type="checkbox"> 見出しの順番が設問の順になっている</label></li>
+<li><label><input type="checkbox"> 予定字数の合計が、ア600〜750・イ1,200〜1,400・ウ800〜1,000字になっている</label></li>
+<li><label><input type="checkbox"> 各見出しに、数字か固有の事情が1つ以上ある</label></li>
+<li><label><input type="checkbox"> アとイで同じ内容を書く予定になっていない（アは変革や課題、イは施策や方針）</label></li>
+</ul>
+</div>
+
+<div class="card pit"><b class="t">よくある失敗</b><ul><li>「はじめに」「本論」「おわりに」のような見出しにして、設問の要素が見つからない</li><li>部品を全部並べ、設問と関係ない内容が混ざる</li><li>骨子を作らずに書き始め、設問ウの字数が足りなくなる</li><li>見出しは立てたが中身のメモがなく、書きながら考えて時間切れになる</li></ul></div>
+
+<div class="card"><h2>確認問題</h2><p class="lead">答えを考えてから「答え」を開いてください。</p><div class="q"><p style="margin:0"><b>問1</b>　令和3年度 問2 設問イ「設問アで述べたステークホルダについて，個別システム化構想案に対してどのような意見の相違があり，あなたはどのように意見を調整したか。個別システム化構想案の概要と意見の調整で工夫したこととともに，800字以上1,600字以内で具体的に述べよ。」の見出しを作ってください。</p><details><summary>答え</summary><div class="a">例：「2.1 個別システム化構想案の概要」「2.2 ステークホルダの意見の相違」「2.3 意見の調整」「2.4 意見の調整で工夫したこと」。構想案の概要は「とともに」で後ろにありますが、相違を書く前提になるので最初に置くと読みやすくなります（順番を変えるときも、見出しの言葉は設問どおりにします）。</div></details></div><div class="q"><p style="margin:0"><b>問2</b>　設問イの予定字数を「2.1 300字／2.2 300字／2.3 250字」とした骨子は、何が問題ですか。</p><details><summary>答え</summary><div class="a">合計850字で、最低字数（800字）ぎりぎりです。書いているうちに短くなると不足します。各見出しを400字前後にして、1,200〜1,400字を目標にします。</div></details></div><div class="q"><p style="margin:0"><b>問3</b>　見出しの中身に「需要予測AIで業務を効率化」とだけメモしました。何を足すとよいですか。</p><details><summary>答え</summary><div class="a">数字や固有の事情（例：廃棄が売上の2%・年16億円、3店舗で3か月試行、廃棄率2.1%→1.4%）と、設問とつなぐ一言の理由（例：効率化にとどめず、仕入れ方まで変えるため）を足します。</div></details></div></div>
+
+<div class="card"><h2>アプリで練習する</h2><div class="app"><span>骨子タブ：A社の部品を挿入</span><span>段階学習 段階1：見本の見出しと中身を確認</span><span>事例設定シート：テーマ別の使い方</span></div></div>
+
+<div class="nav"><span><a href="pm2_text_1.html">← 第1章 設問を読む</a></span>
+<span><a href="pm2_text_3.html">第3章 段落を組み立てる →</a></span></div>
+<p class="lead" style="font-size:12.5px;margin-top:24px">A社は練習用の架空の会社です。設問文はIPA 情報処理技術者試験 ITストラテジスト試験 午後II（令和3〜7年度）から引用しています。</p>
+</div></body></html>
