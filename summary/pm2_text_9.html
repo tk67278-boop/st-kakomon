@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>午後II教科書 第9章</title><style>
+:root { --bg:#f4f6fa; --card:#fff; --text:#1d2733; --muted:#5f6e7d; --line:#dde3eb; --accent:#2563eb; --accent-soft:#e5edfd;
+  --ok:#15803d; --ok-soft:#e7f6ec; --ng:#b91c1c; --ng-soft:#fdecec; --warn:#b45309; --warn-soft:#fdf3e2; --chip:#eef2f7;
+  --shadow:0 1px 3px rgba(16,30,54,.08),0 6px 18px rgba(16,30,54,.06); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0f151d; --card:#18212c; --text:#e5ecf4; --muted:#96a4b3; --line:#2b3847;
+  --accent:#5b93ff; --accent-soft:#1c2f50; --ok:#4ade80; --ok-soft:#14301e; --ng:#f87171; --ng-soft:#3a1a1c; --warn:#fbbf24; --warn-soft:#3a2c12; --chip:#222d3a; --shadow:0 1px 3px rgba(0,0,0,.45); } }
+:root[data-theme="dark"] { --bg:#0f151d; --card:#18212c; --text:#e5ecf4; --muted:#96a4b3; --line:#2b3847;
+  --accent:#5b93ff; --accent-soft:#1c2f50; --ok:#4ade80; --ok-soft:#14301e; --ng:#f87171; --ng-soft:#3a1a1c; --warn:#fbbf24; --warn-soft:#3a2c12; --chip:#222d3a; --shadow:0 1px 3px rgba(0,0,0,.45); }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif; font-size:16px; line-height:1.85; }
+.wrap { max-width:880px; margin:0 auto; padding:0 16px 60px; }
+header.hero { padding:28px 0 8px; }
+.crumb { font-size:13px; } .crumb a { color:var(--accent); text-decoration:none; }
+.eyebrow { font-size:13px; font-weight:700; color:var(--accent); margin-top:10px; }
+h1 { font-size:27px; line-height:1.4; margin:4px 0 6px; }
+h2 { font-size:21px; margin:0 0 8px; line-height:1.45; }
+h3 { font-size:17px; margin:20px 0 6px; }
+p { margin:0 0 12px; }
+.lead { color:var(--muted); }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 20px 14px; margin:18px 0; box-shadow:var(--shadow); }
+.goal { background:var(--accent-soft); border-radius:12px; padding:12px 16px; margin:14px 0; }
+.goal b { color:var(--accent); display:block; font-size:13px; }
+.goal ul { margin:4px 0 0; padding-left:1.3em; }
+table { border-collapse:collapse; width:100%; font-size:14.5px; margin:8px 0 12px; }
+th, td { border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+tr > :first-child { min-width:5.5em; }
+thead th { background:var(--chip); font-size:13.5px; }
+.tbl { overflow-x:auto; }
+.ex { background:var(--chip); border-radius:10px; padding:10px 14px; margin:8px 0 12px; font-size:15px; }
+.ex b.lbl { display:block; font-size:12.5px; color:var(--muted); }
+.good { background:var(--ok-soft); border-left:4px solid var(--ok); border-radius:0 10px 10px 0; padding:8px 14px; margin:8px 0; }
+.bad { background:var(--ng-soft); border-left:4px solid var(--ng); border-radius:0 10px 10px 0; padding:8px 14px; margin:8px 0; }
+.good b, .bad b { font-size:12.5px; display:block; }
+.good b { color:var(--ok); } .bad b { color:var(--ng); }
+.pit { background:var(--warn-soft); border-radius:12px; padding:12px 16px; }
+.pit b.t { color:var(--warn); }
+.pit ul { margin:4px 0 0; padding-left:1.3em; }
+mark { background:#fff3b0; color:inherit; padding:0 2px; border-radius:3px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark { background:#5c4d00; } }
+:root[data-theme="dark"] mark { background:#5c4d00; }
+.q { border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin:10px 0; }
+.q summary { cursor:pointer; font-weight:700; color:var(--accent); margin-top:6px; }
+.q .a { margin-top:6px; background:var(--ok-soft); border-radius:8px; padding:8px 12px; }
+.app { display:flex; flex-wrap:wrap; gap:8px; }
+.app span { background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:2px 12px; font-size:13.5px; font-weight:700; }
+.nav { display:flex; justify-content:space-between; gap:10px; margin-top:24px; }
+.nav a { color:var(--accent); text-decoration:none; font-weight:700; }
+.toc li { margin:6px 0; }
+.toc .soon { color:var(--muted); }
+.steps { counter-reset:st; list-style:none; padding:0; }
+.steps li { counter-increment:st; position:relative; padding-left:34px; margin:8px 0; }
+.steps li::before { content:counter(st); position:absolute; left:0; top:2px; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:13px; font-weight:800; display:grid; place-items:center; }
+.chk li { list-style:none; } .chk { padding-left:0; }
+.chk label { display:flex; gap:8px; align-items:flex-start; }
+.chk input { margin-top:7px; }
+@media (max-width:600px) { h1 { font-size:23px; } .card { padding:16px 14px 10px; } }
+@media print { .nav, .crumb { display:none; } body { background:#fff; } .card { box-shadow:none; } }
+</style></head>
+<body><div class="wrap">
+<header class="hero"><div class="crumb"><a href="pm2_text.html">午後II 教科書（目次）</a></div>
+<div class="eyebrow">ITストラテジスト 午後II（科目B-2）教科書 第9章</div>
+<h1>本番の120分</h1><p class="lead">時間配分と書けなくなったとき</p></header>
+
+<div class="goal"><b>この章で分かること</b><ul><li>120分の時間配分</li><li>問題の選び方</li><li>CBTで書くときの進め方</li><li>書けなくなったとき・時間が足りないときの対処</li><li>前日と当日にすること</li></ul></div>
+
+<div class="card"><h2>9.1 時間配分</h2>
+<div class="tbl"><table><thead><tr><th>時間</th><th>すること</th><th>目安</th></tr></thead><tbody>
+<tr><td>0〜5分</td><td>問題を選ぶ</td><td>2問の設問を読み比べ、5分で決める</td></tr>
+<tr><td>5〜25分</td><td>骨子を作る</td><td>見出し・部品・字数（第2章）</td></tr>
+<tr><td>25〜45分</td><td>設問アを書く</td><td>600〜750字</td></tr>
+<tr><td>45〜90分</td><td>設問イを書く</td><td>1,200〜1,400字</td></tr>
+<tr><td>90〜110分</td><td>設問ウを書く</td><td>800〜1,000字</td></tr>
+<tr><td>110〜120分</td><td>見直す</td><td>設問の要素・字数・誤字</td></tr>
+</tbody></table></div>
+<p>アは準備したひな形があるので20分で書けます。<b>イに一番時間をかけ、ウの20分は必ず残す</b>のがポイントです。練習の通し執筆で、自分の入力の速さに合わせて調整してください。</p>
+</div>
+
+<div class="card"><h2>9.2 問題の選び方</h2>
+<ol class="steps">
+<li>2問の<b>設問イとウ</b>を先に読む（アは事業特性と課題なので、どちらでも書ける）</li>
+<li>A社の部品で書ける要素が多いほうを選ぶ</li>
+<li>設問ウの関係者とのやり取り（反対・指摘・改善）を、部品で書けるほうを選ぶ</li>
+<li>迷ったら、<b>設問の中心の言葉の意味がはっきり分かるほう</b>を選ぶ（取り違えの落とし穴を避ける）</li>
+</ol>
+<p>選んだら、もう一方は見ないようにします。途中で問題を変えると、時間が足りなくなります。</p>
+</div>
+
+<div class="card"><h2>9.3 CBTで書くときの進め方</h2>
+<ul>
+<li><b>骨子は解答欄に先に打ち込む</b>：見出しとキーワードを解答欄に並べ、キーワードを文章に置き換えていくと、見出しの書き忘れが起きません（解答欄以外のメモ機能の有無は試験の案内で確認してください）。</li>
+<li><b>字数を確認しながら書く</b>：見出し1つ書き終えるごとに字数を確かめ、配分からずれたら次の見出しで調整します。</li>
+<li><b>検索やコピーに頼らない</b>：画面の機能は本番で使えるとは限りません。練習でも使わずに書きます（アプリの演習画面では検索を止めています）。</li>
+<li><b>見出しの番号</b>（1.1、2.1…）を付け、段落の初めは1字下げなくても構いません。読みやすさを優先します。</li>
+</ul>
+</div>
+
+<div class="card"><h2>9.4 書けなくなったとき</h2>
+<div class="tbl"><table><thead><tr><th>状態</th><th>対処</th></tr></thead><tbody>
+<tr><td>見出しの最初の1文が出ない</td><td>要の1文の型（このため、／この結果、／そこで私は、／その結果、）の書き出しから書き始める</td></tr>
+<tr><td>中身が浮かばない</td><td>骨子の部品を1つ選び、その数字から書く（「仕組みを知る社員は2名だけで…」）</td></tr>
+<tr><td>同じ見出しで5分以上止まった</td><td>次の見出しに進み、最後に戻る。空いた見出しは2〜3文でも埋める</td></tr>
+<tr><td>設問に合っているか不安</td><td>見出しを読み直し、設問の言葉をその段落の最初の文にも入れる</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="card"><h2>9.5 時間が足りないとき</h2>
+<ul>
+<li><b>設問ウを削らない</b>：ウが600字に届かないと、評価が大きく下がります。90分の時点でイが終わっていなければ、イの最後の見出しを短くまとめてウに移ります。</li>
+<li><b>最低字数を最優先</b>：イ800字・ウ600字に届かせることを先にし、具体例は後で足します。</li>
+<li><b>最後に「以上」</b>：論文の最後に「以上」と書いて締めます。</li>
+</ul>
+</div>
+
+<div class="card"><h2>9.6 前日と当日</h2>
+<div class="tbl"><table><thead><tr><th>いつ</th><th>すること</th></tr></thead><tbody>
+<tr><td>前日</td><td>新しいことはしない。A社の数字（40店・800億・4,000人・生鮮4割・会員60万）と、段階学習5テーマの要の1文を暗唱で確認して、早く寝る</td></tr>
+<tr><td>当日の朝</td><td>漫画の「覚えたかチェック」と、付録の提出前チェックリストを読む</td></tr>
+<tr><td>試験の直前</td><td>「設問を要素に分ける→骨子20分→イに時間→ウを残す」を頭の中で確認する</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="card pit"><b class="t">よくある失敗</b><ul><li>骨子を作らずに書き始め、途中で論点がずれる</li><li>イに時間をかけすぎて、ウが600字に届かない</li><li>問題を途中で変える</li><li>見直しの時間がなく、設問の要素の抜けに気付かない</li></ul></div>
+
+<div class="card"><h2>確認問題</h2><p class="lead">答えを考えてから「答え」を開いてください。</p><div class="q"><p style="margin:0"><b>問1</b>　90分の時点でイの最後の見出しが半分しか書けていません。どうしますか。</p><details><summary>答え</summary><div class="a">イの最後の見出しを2〜3文でまとめて終わらせ、すぐにウに移ります。ウの最低字数（600字）を先に確保し、時間が残ればイに戻って足します。</div></details></div><div class="q"><p style="margin:0"><b>問2</b>　2問のうちどちらを選ぶか迷いました。何で決めますか。</p><details><summary>答え</summary><div class="a">設問イとウを読み、A社の部品で書ける要素が多く、設問ウのやり取り（反対・指摘・改善）が書けるほうを選びます。それでも迷えば、設問の中心の言葉の意味がはっきり分かるほうにします。</div></details></div><div class="q"><p style="margin:0"><b>問3</b>　本番前日にやるべきことは何ですか。</p><details><summary>答え</summary><div class="a">新しいことはせず、A社の数字と段階学習の要の1文を暗唱で確認し、早く寝ることです。</div></details></div></div>
+
+<div class="card"><h2>アプリで練習する</h2><div class="app"><span>執筆タブ：120分の通し執筆（CBT形式）</span><span>段階学習 暗唱：要の1文</span><span>漫画で覚えるA社：覚えたかチェック</span></div></div>
+
+<div class="nav"><span><a href="pm2_text_8.html">← 第8章 採点講評から学ぶ落とし穴</a></span>
+<span><a href="pm2_text_appx.html">付録 早見表 →</a></span></div>
+<p class="lead" style="font-size:12.5px;margin-top:24px">A社は練習用の架空の会社です。設問文はIPA 情報処理技術者試験 ITストラテジスト試験 午後II（令和3〜7年度）から引用しています。</p>
+</div></body></html>

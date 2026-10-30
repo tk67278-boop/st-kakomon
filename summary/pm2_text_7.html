@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>午後II教科書 第7章</title><style>
+:root { --bg:#f4f6fa; --card:#fff; --text:#1d2733; --muted:#5f6e7d; --line:#dde3eb; --accent:#2563eb; --accent-soft:#e5edfd;
+  --ok:#15803d; --ok-soft:#e7f6ec; --ng:#b91c1c; --ng-soft:#fdecec; --warn:#b45309; --warn-soft:#fdf3e2; --chip:#eef2f7;
+  --shadow:0 1px 3px rgba(16,30,54,.08),0 6px 18px rgba(16,30,54,.06); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0f151d; --card:#18212c; --text:#e5ecf4; --muted:#96a4b3; --line:#2b3847;
+  --accent:#5b93ff; --accent-soft:#1c2f50; --ok:#4ade80; --ok-soft:#14301e; --ng:#f87171; --ng-soft:#3a1a1c; --warn:#fbbf24; --warn-soft:#3a2c12; --chip:#222d3a; --shadow:0 1px 3px rgba(0,0,0,.45); } }
+:root[data-theme="dark"] { --bg:#0f151d; --card:#18212c; --text:#e5ecf4; --muted:#96a4b3; --line:#2b3847;
+  --accent:#5b93ff; --accent-soft:#1c2f50; --ok:#4ade80; --ok-soft:#14301e; --ng:#f87171; --ng-soft:#3a1a1c; --warn:#fbbf24; --warn-soft:#3a2c12; --chip:#222d3a; --shadow:0 1px 3px rgba(0,0,0,.45); }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif; font-size:16px; line-height:1.85; }
+.wrap { max-width:880px; margin:0 auto; padding:0 16px 60px; }
+header.hero { padding:28px 0 8px; }
+.crumb { font-size:13px; } .crumb a { color:var(--accent); text-decoration:none; }
+.eyebrow { font-size:13px; font-weight:700; color:var(--accent); margin-top:10px; }
+h1 { font-size:27px; line-height:1.4; margin:4px 0 6px; }
+h2 { font-size:21px; margin:0 0 8px; line-height:1.45; }
+h3 { font-size:17px; margin:20px 0 6px; }
+p { margin:0 0 12px; }
+.lead { color:var(--muted); }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 20px 14px; margin:18px 0; box-shadow:var(--shadow); }
+.goal { background:var(--accent-soft); border-radius:12px; padding:12px 16px; margin:14px 0; }
+.goal b { color:var(--accent); display:block; font-size:13px; }
+.goal ul { margin:4px 0 0; padding-left:1.3em; }
+table { border-collapse:collapse; width:100%; font-size:14.5px; margin:8px 0 12px; }
+th, td { border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+tr > :first-child { min-width:5.5em; }
+thead th { background:var(--chip); font-size:13.5px; }
+.tbl { overflow-x:auto; }
+.ex { background:var(--chip); border-radius:10px; padding:10px 14px; margin:8px 0 12px; font-size:15px; }
+.ex b.lbl { display:block; font-size:12.5px; color:var(--muted); }
+.good { background:var(--ok-soft); border-left:4px solid var(--ok); border-radius:0 10px 10px 0; padding:8px 14px; margin:8px 0; }
+.bad { background:var(--ng-soft); border-left:4px solid var(--ng); border-radius:0 10px 10px 0; padding:8px 14px; margin:8px 0; }
+.good b, .bad b { font-size:12.5px; display:block; }
+.good b { color:var(--ok); } .bad b { color:var(--ng); }
+.pit { background:var(--warn-soft); border-radius:12px; padding:12px 16px; }
+.pit b.t { color:var(--warn); }
+.pit ul { margin:4px 0 0; padding-left:1.3em; }
+mark { background:#fff3b0; color:inherit; padding:0 2px; border-radius:3px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) mark { background:#5c4d00; } }
+:root[data-theme="dark"] mark { background:#5c4d00; }
+.q { border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin:10px 0; }
+.q summary { cursor:pointer; font-weight:700; color:var(--accent); margin-top:6px; }
+.q .a { margin-top:6px; background:var(--ok-soft); border-radius:8px; padding:8px 12px; }
+.app { display:flex; flex-wrap:wrap; gap:8px; }
+.app span { background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:2px 12px; font-size:13.5px; font-weight:700; }
+.nav { display:flex; justify-content:space-between; gap:10px; margin-top:24px; }
+.nav a { color:var(--accent); text-decoration:none; font-weight:700; }
+.toc li { margin:6px 0; }
+.toc .soon { color:var(--muted); }
+.steps { counter-reset:st; list-style:none; padding:0; }
+.steps li { counter-increment:st; position:relative; padding-left:34px; margin:8px 0; }
+.steps li::before { content:counter(st); position:absolute; left:0; top:2px; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:13px; font-weight:800; display:grid; place-items:center; }
+.chk li { list-style:none; } .chk { padding-left:0; }
+.chk label { display:flex; gap:8px; align-items:flex-start; }
+.chk input { margin-top:7px; }
+@media (max-width:600px) { h1 { font-size:23px; } .card { padding:16px 14px 10px; } }
+@media print { .nav, .crumb { display:none; } body { background:#fff; } .card { box-shadow:none; } }
+</style></head>
+<body><div class="wrap">
+<header class="hero"><div class="crumb"><a href="pm2_text.html">午後II 教科書（目次）</a></div>
+<div class="eyebrow">ITストラテジスト 午後II（科目B-2）教科書 第7章</div>
+<h1>テーマ別の攻略</h1><p class="lead">攻め・守り・分析と調整</p></header>
+
+<div class="goal"><b>この章で分かること</b><ul><li>令和3〜7年度のテーマを3つの群（攻め・守り・分析と調整）に分ける考え方</li><li>群ごとの論点と、講評で注意された点</li><li>初めて見るテーマが出たときの対処</li></ul></div>
+
+<div class="card"><h2>7.1 テーマを3つの群で考える</h2>
+<p>本番では、過去と同じテーマはまず出ません。ただし問われ方は、次の3つの群のどれかに近くなります。群ごとに<b>使う型と部品</b>が決まっているので、初めて見るテーマでも組み立てられます。</p>
+<div class="tbl"><table><thead><tr><th>群</th><th>ねらい</th><th>A社で使う部品</th></tr></thead><tbody>
+<tr><td><b>攻め</b>（DX・新技術・新サービス・ビジネスモデル）</td><td>事業や顧客への価値を新しく作る</td><td>目指す変革、攻め1〜3、AIの具体化、工夫1・2</td></tr>
+<tr><td><b>守り</b>（基幹刷新・リスク・優先順位）</td><td>事業を止めずに、ITの土台を作り直す</td><td>ITの現状、守り1・2、基幹刷新の部品、工夫3</td></tr>
+<tr><td><b>分析と調整</b>（要望の分析・意見調整）</td><td>関係者の問題や意見を整理し、全社で最適な方針にする</td><td>改修要望の分析の部品、設問ウの部品、工夫4</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="card"><h2>7.2 攻めのテーマ</h2>
+<div class="tbl"><table><thead><tr><th>年度・テーマ</th><th>論点</th><th>講評で注意された点</th></tr></thead><tbody>
+<tr><td>R7 問2 DXの企画策定</td><td>変革、デジタル技術の貢献、役割分担、投資、阻害要因と協議</td><td>技術の導入に終始して変革が曖昧／AIの中身がない／協議の内容がない</td></tr>
+<tr><td>R6 問1 新たな情報技術の採用</td><td>DXの狙い、技術の必要性、机上確認と技術検証、リスクと対策</td><td>製品選定や手順の説明だけ／技術的な検証に終始／狙いが具体的でない</td></tr>
+<tr><td>R6 問2 新しいビジネスモデル</td><td>顧客、提供価値、製品・サービス、収益、ITで実現したこと、要件とのかい離</td><td>ビジネスモデルの概念の誤解（新サービス導入の論述）／実現可能性の検討不足</td></tr>
+<tr><td>R4 問1 顧客満足度を高める新商品・新サービス</td><td>顧客との接点や関係性、新たな価値、扱うデータ</td><td>顧客の体験を理解せず、ITを使った新サービスの記述にとどまる</td></tr>
+<tr><td>R3 問1 DXを実現する新サービス</td><td>事業の変革と、それを実現する新サービス</td><td>デジタル化による業務改善や、業務の一機能のデジタル化にとどまる</td></tr>
+</tbody></table></div>
+<p><b>攻めの共通点</b>：①変革（〜から〜へ）を書く ②顧客や事業にとっての価値を書く ③技術は4点で具体化する ④効率化で止めない。</p>
+</div>
+
+<div class="card"><h2>7.3 守りのテーマ</h2>
+<div class="tbl"><table><thead><tr><th>年度・テーマ</th><th>論点</th><th>講評で注意された点</th></tr></thead><tbody>
+<tr><td>R7 問1 基幹システムの刷新方針</td><td>刷新の必要性と経営上の有効性、新しいシステム構造、事業部門との調整</td><td>技術的な課題だけ（クラウド更改）／段階的な刷新・業務改革だけで新しい構造への言及がない</td></tr>
+<tr><td>R5 問2 システムリスク対応方針</td><td>インシデントとインパクト、予防策と発生時対策、事業部門と経営層の指摘</td><td>インシデントが社会や経営に与えるインパクトが具体的でない</td></tr>
+<tr><td>R4 問2 基幹再構築の開発の優先順位</td><td>サブシステムの優先順位、経営層・事業部門の声、リソース制約、投資効果</td><td>クラウド・SaaS・マイクロサービスなど技術だけを書き、経営課題の解決が見えない</td></tr>
+</tbody></table></div>
+<p><b>守りの共通点</b>：①ITの問題を経営への影響（発注が止まる、新施策が始められない）につなぐ ②技術の名前でなく、経営課題をどう解決するかを書く ③事業を止めない工夫（段階移行・並行稼働）を書く。</p>
+</div>
+
+<div class="card"><h2>7.4 分析と調整のテーマ</h2>
+<div class="tbl"><table><thead><tr><th>年度・テーマ</th><th>論点</th><th>講評で注意された点</th></tr></thead><tbody>
+<tr><td>R5 問1 改修要望の分析と対応方針</td><td>情報収集、全社視点の分析、問題の真因、協議と対応方針</td><td>要望を与件として真因にする／分析手法の名前だけで具体性がない</td></tr>
+<tr><td>R3 問2 システム化構想の意見調整</td><td>ステークホルダの意見の相違、調整の工夫、経営層の評価と改善</td><td>単純な要望を聞いてまとめただけ／RPA・SaaSの活用だけで具体性がない</td></tr>
+</tbody></table></div>
+<p><b>分析と調整の共通点</b>：①関係者の意見や要望をそのまま受け入れず、全社の視点で整理する ②対立の原因を書く ③誰と何を合意したかを書く。</p>
+</div>
+
+<div class="card"><h2>7.5 初めて見るテーマが出たら</h2>
+<ol class="steps">
+<li><b>群を決める</b>：攻め・守り・分析と調整のどれに近いか（迷ったら、設問イで「何を作るか」か「何を整理するか」で決める）</li>
+<li><b>設問を要素に分ける</b>（第1章）</li>
+<li><b>群の型を当てはめる</b>：同じ群の段階学習のテーマの見出しを思い出し、要素を割り当てる</li>
+<li><b>部品で埋める</b>：A社の部品を選び、テーマの言葉に言い換える（例：「需要予測」→「新たな情報技術」）</li>
+</ol>
+<p>A社の部品は、どの群にも使えるように作ってあります。テーマの言葉に合わせて部品の見せ方を変えるのが、ITストラテジストの論文の書き方です。</p>
+</div>
+
+<div class="card pit"><b class="t">よくある失敗</b><ul><li>テーマの言葉を使わずに、準備した論文をそのまま書く（設問に答えていない）</li><li>攻めのテーマで効率化しか書かない</li><li>守りのテーマで技術の名前しか書かない</li><li>分析と調整のテーマで、要望や意見をそのまま受け入れる</li></ul></div>
+
+<div class="card"><h2>確認問題</h2><p class="lead">答えを考えてから「答え」を開いてください。</p><div class="q"><p style="margin:0"><b>問1</b>　「データ利活用による業務プロセスの変革」というテーマが出たら、どの群に近いですか。</p><details><summary>答え</summary><div class="a">攻め（DX）です。設問アで変革（〜から〜へ）を書き、イでデータ活用の施策（需要予測・データ基盤・予測の共有）、ウで阻害要因や関係者との協議を書きます。R7問2・R6問1の型が使えます。</div></details></div><div class="q"><p style="margin:0"><b>問2</b>　「システム運用コストの削減方針」というテーマが出たら、何に注意しますか。</p><details><summary>答え</summary><div class="a">守りの群です。コスト削減の技術（クラウド・SaaS）だけを書かず、削減した費用を何に回し、どの経営課題の解決につなげるか（例：保守費3割減を攻めの施策に回す）まで書きます。</div></details></div><div class="q"><p style="margin:0"><b>問3</b>　R3問2（意見調整）とR7問2（DXの企画）の設問ウに共通して書くべきことは何ですか。</p><details><summary>答え</summary><div class="a">関係者（経営層・事業部門）の具体的な意見や評価と、それを受けて構想や企画を変えたこと（改善・反映）です。</div></details></div></div>
+
+<div class="card"><h2>アプリで練習する</h2><div class="app"><span>段階学習：5テーマ（攻め：R7問2・R6問1・R6問2／守り：R7問1／分析：R5問1）</span><span>骨子タブ：残りのテーマで型の当てはめを練習</span><span>事例設定シート：テーマ別の使い方</span></div></div>
+
+<div class="nav"><span><a href="pm2_text_6.html">← 第6章 設問ウの書き方</a></span>
+<span><a href="pm2_text_8.html">第8章 採点講評から学ぶ落とし穴 →</a></span></div>
+<p class="lead" style="font-size:12.5px;margin-top:24px">A社は練習用の架空の会社です。設問文はIPA 情報処理技術者試験 ITストラテジスト試験 午後II（令和3〜7年度）から引用しています。</p>
+</div></body></html>
