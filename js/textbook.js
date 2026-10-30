@@ -281,17 +281,132 @@
     window.scrollTo(0, 0);
   }
 
-  /* ---------- 表示フック（js/pm.js の switchMode から呼ばれる） ---------- */
-  function onShow() {
-    if ($("#tb-reader").hidden) renderToc();
+  /* =====================================================================
+     午後II 教科書（summary/pm2_text_*.html を画面内に表示。目次は js/data/pm2_text_toc.js）
+     読了の記録は午前IIと同じ "tb#<id>"（id は pm2text-1 など）
+     ===================================================================== */
+  var PM2_TOC = window.PM2_TEXT_TOC || [];
+  var PREF_TB_TAB = "st_tb_tab";
+  var currentTab = "am2";
+  var pm2Index = -1; // 表示中の章（PM2_TOC の index）。-1なら目次
+  var pm2Resize = null;
+
+  function loadTabPref() { try { return localStorage.getItem(PREF_TB_TAB) || "am2"; } catch (e) { return "am2"; } }
+  function saveTabPref(v) { try { localStorage.setItem(PREF_TB_TAB, v); } catch (e) { /* ignore */ } }
+
+  function setTab(tab) {
+    currentTab = tab === "pm2" ? "pm2" : "am2";
+    saveTabPref(currentTab);
+    findAll(document, ".tb-tab").forEach(function (b) {
+      var on = b.dataset.tbtab === currentTab;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    $("#tb-am2").hidden = currentTab !== "am2";
+    $("#tb-pm2").hidden = currentTab !== "pm2";
+    if (currentTab === "pm2") { if (pm2Index >= 0) renderPm2Reader(); else renderPm2Toc(); }
+    else if ($("#tb-reader").hidden) renderToc();
     else renderReader();
   }
-  window.TextbookUI = { onShow: onShow };
+
+  function renderPm2Toc() {
+    stopPm2Resize();
+    var el = $("#tb-pm2");
+    var records = loadRecords();
+    var doneCount = PM2_TOC.filter(function (c) { return isDone(records, c.id); }).length;
+    var pct = PM2_TOC.length ? Math.round(doneCount / PM2_TOC.length * 100) : 0;
+    var html = '<div class="card tb-progress-card">' +
+      '<div class="group-head"><h2>午後II 教科書</h2><span class="spacer"></span>' +
+      '<span class="tb-progress-text">読了 ' + doneCount + ' ／ 全' + PM2_TOC.length + '章</span></div>' +
+      '<div class="progressbar"><div style="width:' + pct + '%"></div></div>' +
+      '<p class="stats-note">設問の読み方から、骨子・段落の組み立て、設問ア・イ・ウの書き方、本番の進め方までを順に学びます。例はすべてA社（事例設定シート）です。</p>' +
+      '</div>';
+    html += '<div class="card tb-chapter-card"><ul class="tb-section-list">';
+    PM2_TOC.forEach(function (c, i) {
+      var done = isDone(records, c.id);
+      html += '<li class="tb-section-row" data-pm2-index="' + i + '">' +
+        '<span class="tb-row-no">' + escapeHtml(c.label) + '</span>' +
+        '<span class="tb-row-title">' + escapeHtml(c.title) + '<small class="tb-row-sub">' + escapeHtml(c.sub) + '</small></span>' +
+        '<span class="tb-row-check' + (done ? ' done' : '') + '">' + (done ? '✓' : '') + '</span></li>';
+    });
+    html += '</ul></div>';
+    el.innerHTML = html;
+    findAll(el, ".tb-section-row").forEach(function (row) {
+      row.addEventListener("click", function () { showPm2(Number(row.dataset.pm2Index)); });
+    });
+  }
+
+  function showPm2(i) {
+    if (i < 0 || i >= PM2_TOC.length) return;
+    pm2Index = i;
+    renderPm2Reader();
+    window.scrollTo(0, 0);
+  }
+
+  function renderPm2Reader() {
+    stopPm2Resize();
+    var el = $("#tb-pm2"), c = PM2_TOC[pm2Index];
+    if (!c) { pm2Index = -1; renderPm2Toc(); return; }
+    var done = isDone(loadRecords(), c.id);
+    var navHtml = function (pos) {
+      return '<div class="tb-reader-nav tb-pm2-nav">' +
+        '<button type="button" class="tb-pm2-prev"' + (pm2Index <= 0 ? ' disabled' : '') + '>&larr; 前の章へ</button>' +
+        (pos === "bottom" ? '<button type="button" class="primary tb-pm2-done">' + (done ? '読了を取り消す' : '読了にする') + '</button>' : '') +
+        '<button type="button" class="tb-pm2-next"' + (pm2Index >= PM2_TOC.length - 1 ? ' disabled' : '') + '>次の章へ &rarr;</button></div>';
+    };
+    el.innerHTML = '<div class="card tb-reader-card">' +
+      '<div class="tb-reader-head"><button type="button" class="linkbtn" id="tb-pm2-back">&larr; 目次へ戻る</button>' +
+        '<span class="spacer"></span><a class="linkbtn" href="' + escapeAttr(c.file) + '" target="_blank" rel="noopener">別のタブで開く</a></div>' +
+      '<div class="tb-reader-chapter">午後II 教科書 ' + escapeHtml(c.label) + (done ? '<span class="tb-pm2-done-tag">読了</span>' : '') + '</div>' +
+      navHtml("top") +
+      '<iframe class="tb-pm2-frame" src="' + escapeAttr(c.file) + '" title="' + escapeAttr(c.label + " " + c.title) + '"></iframe>' +
+      navHtml("bottom") +
+      '</div>';
+    $("#tb-pm2-back").addEventListener("click", function () { pm2Index = -1; renderPm2Toc(); window.scrollTo(0, 0); });
+    findAll(el, ".tb-pm2-prev").forEach(function (b) { b.addEventListener("click", function () { showPm2(pm2Index - 1); }); });
+    findAll(el, ".tb-pm2-next").forEach(function (b) { b.addEventListener("click", function () { showPm2(pm2Index + 1); }); });
+    findAll(el, ".tb-pm2-done").forEach(function (b) {
+      b.addEventListener("click", function () { toggleDone(c.id); renderPm2Reader(); });
+    });
+    // 章のページの高さに合わせて枠の高さを変える（確認問題の答えを開いたときも追従）
+    var frame = el.querySelector(".tb-pm2-frame");
+    frame.addEventListener("load", function () {
+      var doc;
+      try { doc = frame.contentDocument; } catch (e) { doc = null; }
+      if (!doc) { frame.style.height = "80vh"; return; }
+      // 文書全体の高さは枠の高さ以上になるため、縮めるときも追従できるよう本文（body）の高さで合わせる
+      var fit = function () { frame.style.height = (doc.body.scrollHeight + 24) + "px"; };
+      fit();
+      // 枠の中の要素は、枠の中の ResizeObserver でないと変化を拾えないため defaultView のものを使う
+      var RO = doc.defaultView && doc.defaultView.ResizeObserver;
+      if (RO) { pm2Resize = new RO(fit); pm2Resize.observe(doc.body); }
+      doc.addEventListener("toggle", fit, true); // 確認問題の答えを開閉したとき
+      // 章の中の「次の章」リンクなどで中身が変わった場合も目次と合わせる
+      var m = /pm2_text_?([0-9]+|appx)?\.html/.exec(doc.location.pathname);
+      if (m && m[1]) {
+        var idx = PM2_TOC.findIndex(function (x) { return x.file.indexOf("pm2_text_" + m[1] + ".html") >= 0; });
+        if (idx >= 0 && idx !== pm2Index) { pm2Index = idx; renderPm2Reader(); }
+      }
+    });
+  }
+  function stopPm2Resize() { if (pm2Resize) { pm2Resize.disconnect(); pm2Resize = null; } }
+
+  findAll(document, ".tb-tab").forEach(function (b) {
+    b.addEventListener("click", function () { setTab(b.dataset.tbtab); });
+  });
+
+  /* ---------- 表示フック（js/pm.js の switchMode から呼ばれる） ---------- */
+  function onShow() {
+    setTab(currentTab === "am2" && pm2Index < 0 ? loadTabPref() : currentTab);
+  }
+  // openPm2: 午後IIトップの「教科書」リンクから、午後IIタブの目次を開く
+  window.TextbookUI = { onShow: onShow, openPm2: function () { pm2Index = -1; saveTabPref("pm2"); currentTab = "pm2"; } };
 
   // クラウド同期の変化（他端末での読了状態の更新など）を、教科書モード表示中のみ反映
   if (window.STSync) {
     window.STSync.setOnChange(function () {
       if ($("#mode-textbook").hidden) return;
+      if (currentTab === "pm2") { if (pm2Index < 0) renderPm2Toc(); return; } // 章の表示中は読み込み直さない
       if ($("#tb-reader").hidden) renderToc();
       else renderReader();
     });

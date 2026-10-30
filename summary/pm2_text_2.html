@@ -57,7 +57,18 @@ mark { background:#fff3b0; color:inherit; padding:0 2px; border-radius:3px; }
 .chk input { margin-top:7px; }
 @media (max-width:600px) { h1 { font-size:23px; } .card { padding:16px 14px 10px; } }
 @media print { .nav, .crumb { display:none; } body { background:#fff; } .card { box-shadow:none; } }
-</style></head>
+html.embed .nav, html.embed .crumb, html.embed .eyebrow { display:none; }
+html.embed header.hero { padding-top:8px; }
+</style><script>
+if (window.self !== window.top) {
+  document.documentElement.classList.add("embed");
+  document.addEventListener("DOMContentLoaded", function () {
+    Array.prototype.forEach.call(document.querySelectorAll("a[href]"), function (a) {
+      if (!/^pm2_text/.test(a.getAttribute("href"))) { a.target = "_blank"; a.rel = "noopener"; }
+    });
+  });
+}
+</script></head>
 <body><div class="wrap">
 <header class="hero"><div class="crumb"><a href="pm2_text.html">午後II 教科書（目次）</a></div>
 <div class="eyebrow">ITストラテジスト 午後II（科目B-2）教科書 第2章</div>

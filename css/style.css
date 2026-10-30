@@ -1343,3 +1343,12 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2r-theme li { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 2px 0; flex-wrap: wrap; }
 .pm2r-theme li small { color: var(--muted); font-size: 12px; }
 .pm2r-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* 教科書画面: 午前II／午後II のタブと、午後II 教科書の表示 */
+.tb-tabs { display: flex; gap: 6px; margin: 0 0 12px; border-bottom: 2px solid var(--line); }
+.tb-tab { font: inherit; font-size: 15px; font-weight: 700; padding: 8px 18px; border: none; background: none; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.tb-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tb-row-sub { display: block; font-size: 12.5px; color: var(--muted); font-weight: 400; }
+.tb-pm2-frame { display: block; width: 100%; min-height: 60vh; border: none; border-radius: 10px; background: transparent; margin: 8px 0; }
+.tb-pm2-nav { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.tb-pm2-done-tag { margin-left: 8px; font-size: 12px; font-weight: 700; color: #fff; background: var(--ok); border-radius: 999px; padding: 1px 9px; }

@@ -574,6 +574,18 @@
   }
 
   if ($("#pm-para-link")) {
+    var textLink = $("#pm-text-link");
+    if (textLink) {
+      // 午後II 教科書は教科書画面の「午後II」タブで開く
+      textLink.addEventListener("click", function (e) {
+        var tbBtn = document.querySelector('[data-mode="textbook"]');
+        if (!tbBtn || !window.TextbookUI || !window.TextbookUI.openPm2) return; // 使えないときは別タブで開く
+        e.preventDefault();
+        window.TextbookUI.openPm2();
+        tbBtn.click();
+        window.scrollTo(0, 0);
+      });
+    }
     $("#pm-para-link").addEventListener("click", function (e) {
       e.preventDefault();
       if (window.PmPara) window.PmPara.open();
