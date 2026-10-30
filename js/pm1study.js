@@ -373,7 +373,10 @@
      ===================================================================== */
   function ensureAnsLive() {
     if (state.ansLiveInit) return;
-    var draft = state.doc.ans.draft || {};
+    // 確認終了後は下書きがないので，確認終了したときの答案（最新の版）から始める。
+    // 下書きだけを見ると空の答案になり，対比・採点の「あなたの答案」が未入力に見えていた
+    var versions = state.doc.ans.versions || [];
+    var draft = state.doc.ans.draft || (versions.length ? versions[0].ans : null) || {};
     var live = {};
     state.flat.forEach(function (fp) {
       live[fp.idx] = (typeof draft[fp.idx] === "string") ? draft[fp.idx] : "";
