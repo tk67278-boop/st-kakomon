@@ -1233,6 +1233,32 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pp-old { background: var(--chip); margin-bottom: 10px; }
 .pp-hist-row { display: grid; grid-template-columns: 1fr auto auto auto auto auto; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
 .pp-ai-tag { font-size: 11.5px; font-weight: 700; color: var(--accent); }
+/* 初見骨子20分（js/pm2blind.js） */
+.pb-progress { font-size: 13.5px; color: var(--muted); font-weight: 700; }
+.pb-steps { margin: 6px 0; padding-left: 1.4em; line-height: 1.7; }
+.pb-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
+@media (min-width: 1000px) {
+  .pb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .pb-problem { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
+}
+.pb-lead { font-size: 15px; line-height: 1.85; }
+.pb-lead p { margin: 0 0 10px; }
+.pb-q { font-size: 15px; line-height: 1.8; padding: 8px 12px; margin: 8px 0; border-left: 3px solid var(--accent); background: var(--chip); border-radius: 0 8px 8px 0; }
+.pb-q b { display: block; font-size: 13px; color: var(--accent); }
+.pb-field { margin-bottom: 12px; }
+.pb-field-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font-weight: 700; }
+.pb-field-head select { margin-left: auto; max-width: 60%; }
+.pb-old { white-space: pre-wrap; font-size: 14.5px; line-height: 1.75; padding: 10px 12px; margin-bottom: 8px; border-radius: 10px; background: var(--chip); }
+.pb-old b { display: block; font-size: 12.5px; color: var(--muted); }
+.pb-ref { font-size: 15px; line-height: 1.8; padding: 10px 14px; margin: 8px 0; border-radius: 10px; background: var(--ok-soft); }
+.pb-ref p { margin: 0 0 8px; }
+.pb-ref > b { display: block; font-size: 13px; margin-bottom: 4px; }
+.pb-ref-warn { background: var(--chip); }
+.pb-grade { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px; flex-wrap: wrap; }
+.pb-grade-btn { font-size: 15px; min-width: 44px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+.pb-grade-btn.g-o.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+.pb-grade-btn.g-t.on { background: #d97706; border-color: #d97706; color: #fff; }
+.pb-grade-btn.g-x.on { background: var(--ng); border-color: var(--ng); color: #fff; }
 @media (max-width: 560px) {
   .pp-item { flex-wrap: wrap; }
   .pp-item-stat { width: 100%; text-align: left; padding-left: 34px; }

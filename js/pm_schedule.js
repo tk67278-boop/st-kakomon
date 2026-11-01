@@ -48,6 +48,7 @@
     pm2: {
       title: "午後II",
       // 課題の4番目: [examId, 問番号, 開くタブ]。タブは steps（段階学習）・outline（骨子）・write（執筆）
+      // 文字列のときは画面を開く: blind（初見骨子20分）・para（段落練習）・text（午後II 教科書）・case（事例設定シート）
       weeks: [
         { start: "2026-10-20", end: "2026-10-26", goal: "事例設定を作り、論文の型を覚える", tasks: [
           ["case1", "todo", "事例設定シート（A社・食品スーパー）を読み、設問アのひな形を声に出して読む", null],
@@ -64,27 +65,33 @@
           ["o-2025r07h-2", "o", "骨子：令和7年度 問2 DXの企画策定（同上）", ["2025r07h", 2, "outline"]],
           ["p1", "todo", "段落練習：設問アの3つ（事業特性・経営課題と変革・基幹刷新の背景）", null]
         ] },
-        { start: "2026-11-03", end: "2026-11-09", goal: "令和6年度の2テーマを段階学習し、通し執筆を1本書く", tasks: [
+        { start: "2026-11-03", end: "2026-11-09", goal: "型とネタを固め、週末に通し執筆1本目。初見テーマの骨子20分を2回", tasks: [
+          ["tb3", "todo", "教科書 第1〜3章を読み、第3章の選択問題（34問）を解く（選択は毎日10分でよい）", "text"],
+          ["nums", "todo", "A社の数字（40店・800億・4,000人・生鮮4割・会員60万・投資12億・年5億）を見ずに書き出す。概要欄に書く数字（規模・総額など）も決めておく", "case"],
+          ["s-2025r07h-1c", "s", "段階学習：令和7年度 問1 基幹刷新を最後まで通す（段階4〜6。済んでいれば段階6の暗唱だけ）", ["2025r07h", 1, "steps"]],
           ["s-2024r06h-1a", "s", "段階学習：令和6年度 問1 新たな情報技術の採用（段階1〜3）", ["2024r06h", 1, "steps"]],
-          ["s-2024r06h-1b", "s", "段階学習：令和6年度 問1（段階4）", ["2024r06h", 1, "steps"]],
+          ["b1", "b", "初見骨子20分（1回目）：出題趣旨・採点講評と見比べる", "blind"],
+          ["b2", "b", "初見骨子20分（2回目）", "blind"],
+          ["x1", "w", "通し執筆1本目（120分）：令和7年度 問1 基幹刷新 → AI採点 → 指摘された段落だけ書き直す", ["2025r07h", 1, "write"]]
+        ] },
+        { start: "2026-11-10", end: "2026-11-16", goal: "書く量を増やす。平日は段階学習と段落練習、週末に通し執筆2本目", tasks: [
+          ["s-2024r06h-1b", "s", "段階学習：令和6年度 問1（段階4：見出しごとに書く）", ["2024r06h", 1, "steps"]],
           ["s-2024r06h-2a", "s", "段階学習：令和6年度 問2 新しいビジネスモデル（段階1〜3）", ["2024r06h", 2, "steps"]],
           ["s-2024r06h-2b", "s", "段階学習：令和6年度 問2（段階4）", ["2024r06h", 2, "steps"]],
-          ["p2", "todo", "段落練習：設問イの「施策の具体化」「工夫」「調整」と，設問ウの「指摘と対応」", null],
-          ["w1", "w", "通し執筆1本目（120分）：令和7年度 問2 DX → AI採点", ["2025r07h", 2, "write"]]
-        ] },
-        { start: "2026-11-10", end: "2026-11-16", goal: "通し執筆を2本。令和5年度 問1を段階学習し，残りは骨子だけ作って型の使い回しに慣れる", tasks: [
-          ["w2", "w", "通し執筆2本目（120分）：令和7年度 問1 基幹刷新 → AI採点", ["2025r07h", 1, "write"]],
-          ["w3", "w", "通し執筆3本目（120分）：令和6年度 問2 ビジネスモデル → AI採点（前回の「次に向けたポイント」を反映）", ["2024r06h", 2, "write"]],
           ["s-2023r05h-1a", "s", "段階学習：令和5年度 問1 改修要望の分析と対応方針（段階1〜3）", ["2023r05h", 1, "steps"]],
-          ["o-2023r05h-2", "o", "骨子：令和5年度 問2 システムリスク対応方針", ["2023r05h", 2, "outline"]],
-          ["o-2022r04h-2", "o", "骨子：令和4年度 問2 基幹再構築の開発優先順位", ["2022r04h", 2, "outline"]]
+          ["p3", "todo", "段落練習を毎日1つ（設問イの「施策の具体化」「工夫」「調整」、設問ウの「指摘と対応」から）", "para"],
+          ["tb3w", "todo", "教科書 第3章の記入問題（16問）を解き、×と△を解き直す", "text"],
+          ["b3", "b", "初見骨子20分（3回目）", "blind"],
+          ["b4", "b", "初見骨子20分（4回目）", "blind"],
+          ["x2", "w", "通し執筆2本目（120分）：令和6年度 問2 ビジネスモデル → AI採点（前回の「次に向けたポイント」を反映）→ 書き直し", ["2024r06h", 2, "write"]]
         ] },
-        { start: "2026-11-17", end: "2026-11-22", goal: "最後の通し執筆と見直し。11/22は休む", tasks: [
-          ["w4", "w", "通し執筆4本目（120分）：令和6年度 問1 新たな情報技術の採用（11/19ごろまでに）", ["2024r06h", 1, "write"]],
-          ["o-2022r04h-1", "o", "骨子：令和4年度 問1 顧客満足度を高める新サービス", ["2022r04h", 1, "outline"]],
-          ["o-2021r03h-1", "o", "骨子：令和3年度 問1 DXを実現する新サービスの企画", ["2021r03h", 1, "outline"]],
-          ["o-2021r03h-2", "o", "骨子：令和3年度 問2 システム化構想の意見調整", ["2021r03h", 2, "outline"]],
-          ["review", "todo", "事例設定シート（A社）の数字・部品と、段階学習5テーマの要の1文を見直す", null]
+        { start: "2026-11-17", end: "2026-11-22", goal: "本番と同じ時間配分で2本書いて仕上げる。11/22は新しいことをしない", tasks: [
+          ["x3", "w", "通し執筆3本目（120分）：令和7年度 問2 DX → AI採点（11/18ごろまでに）", ["2025r07h", 2, "write"]],
+          ["x4", "w", "通し執筆4本目（120分）：令和5年度 問2 システムリスク。段階学習なしの初見テーマとして書く → AI採点（11/20ごろまでに）", ["2023r05h", 2, "write"]],
+          ["b5", "b", "初見骨子20分（5回目）", "blind"],
+          ["b6", "b", "初見骨子20分（6回目）", "blind"],
+          ["review2", "todo", "11/21：段階学習の暗唱（要の1文）、A社の数字、本番の時間配分（教科書 第9章）を確認する", null],
+          ["rest", "todo", "11/22：新しいことはせず、教科書 付録の提出前チェックリストを読んで早く寝る", null]
         ] }
       ]
     }
@@ -109,14 +116,29 @@
 
   var currentMode = null;
 
+  // 初見骨子20分（js/pm2blind.js）は取り組んだ問題数で自動チェック（b1 は1問、b2 は2問…）
+  function blindAuto(task, records) {
+    var n = Number(task[0].slice(1)) || 0;
+    return Object.keys(records).filter(function (k) { return k.indexOf("blind#") === 0 && records[k] && records[k].s === "done"; }).length >= n;
+  }
+
   function isDone(mode, task, records) {
     var m = records["sched#" + mode + "#" + task[0]];
     if (m && m.s === "done") return true;
+    if (task[1] === "b" && blindAuto(task, records)) return true;
     if (task[1] === "q" && task[3]) {
       var r = records[task[3][0] + "#pm1#" + task[3][1]];
       if (r && r.s === "done") return true;
     }
     return false;
+  }
+
+  function openScreen(go) {
+    if (go === "blind" && window.PmBlind) window.PmBlind.open();
+    else if (go === "para" && window.PmPara) window.PmPara.open();
+    else if (go === "text") { var t = document.getElementById("pm-text-link"); if (t) t.click(); }
+    else if (go === "case") window.open("summary/pm2_case.html", "_blank", "noopener");
+    window.scrollTo(0, 0);
   }
 
   function render(mode) {
@@ -144,14 +166,16 @@
         '<span class="sch-cnt' + (done === w.tasks.length ? " ok" : "") + '">' + done + ' / ' + w.tasks.length + '</span></summary><ul class="sch-tasks">';
       w.tasks.forEach(function (tk) {
         var d = isDone(mode, tk, records);
-        var auto = tk[1] === "q" && tk[3] && (records[tk[3][0] + "#pm1#" + tk[3][1]] || {}).s === "done";
-        html += '<li class="' + (d ? "done" : "") + '"><label><input type="checkbox" data-task="' + esc(tk[0]) + '"' + (d ? " checked" : "") + (auto ? " disabled title=\"演習記録が「済」なので自動でチェック済み\"" : "") + '> ' +
+        var auto = (tk[1] === "q" && tk[3] && (records[tk[3][0] + "#pm1#" + tk[3][1]] || {}).s === "done") ||
+          (tk[1] === "b" && blindAuto(tk, records));
+        html += '<li class="' + (d ? "done" : "") + '"><label><input type="checkbox" data-task="' + esc(tk[0]) + '"' + (d ? " checked" : "") + (auto ? " disabled title=\"記録があるので自動でチェック済み\"" : "") + '> ' +
           '<span>' + esc(tk[2]) + '</span></label>' +
-          (tk[3] ? ' <button type="button" class="linkbtn sch-open" data-exam="' + esc(tk[3][0]) + '" data-no="' + tk[3][1] + '"' + (tk[3][2] ? ' data-tab="' + esc(tk[3][2]) + '"' : '') + '>開く</button>' : '') + '</li>';
+          (typeof tk[3] === "string" ? ' <button type="button" class="linkbtn sch-go" data-go="' + esc(tk[3]) + '">開く</button>' :
+          tk[3] ? ' <button type="button" class="linkbtn sch-open" data-exam="' + esc(tk[3][0]) + '" data-no="' + tk[3][1] + '"' + (tk[3][2] ? ' data-tab="' + esc(tk[3][2]) + '"' : '') + '>開く</button>' : '') + '</li>';
       });
       html += '</ul></details>';
     });
-    html += '<p class="sch-note">午後Iの過去問は、演習で「演習記録に保存」すると自動でチェックが付きます。それ以外は自分でチェックしてください。チェックは端末間で同期されます。</p></div>';
+    html += '<p class="sch-note">午後Iの過去問は「演習記録に保存」、午後IIの初見骨子20分は「骨子を作り終えた」で自動でチェックが付きます。それ以外は自分でチェックしてください。チェックは端末間で同期されます。</p></div>';
     el.innerHTML = html;
 
     Array.prototype.forEach.call(el.querySelectorAll("input[data-task]"), function (cb) {
@@ -159,6 +183,9 @@
         saveRecord("sched#" + mode + "#" + cb.dataset.task, { s: cb.checked ? "done" : "", t: Date.now() });
         render(mode);
       });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll(".sch-go"), function (b) {
+      b.addEventListener("click", function () { openScreen(b.dataset.go); });
     });
     Array.prototype.forEach.call(el.querySelectorAll(".sch-open"), function (b) {
       b.addEventListener("click", function () {
@@ -168,7 +195,7 @@
     });
   }
 
-  window.PmSchedule = { render: render };
+  window.PmSchedule = { render: render, refresh: function () { if (currentMode) render(currentMode); } };
   if (window.STSync && window.STSync.setOnChange) {
     window.STSync.setOnChange(function () {
       var el = document.getElementById("pm-schedule");

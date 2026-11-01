@@ -139,7 +139,10 @@
       if (storyLink) storyLink.hidden = mode !== "pm2"; // 午後IIだけ「漫画で覚えるA社」を表示
       var textLink = $("#pm-text-link");
       if (textLink) textLink.hidden = mode !== "pm2"; // 午後IIだけ「午後II 教科書」を表示
+      var blindLink = $("#pm-blind-link");
+      if (blindLink) blindLink.hidden = mode !== "pm2"; // 午後IIだけ初見骨子20分（js/pm2blind.js）を表示
       if (window.PmPara) window.PmPara.close();
+      if (window.PmBlind) window.PmBlind.close();
       var guide = $("#pm-guide-link");
       if (guide) {
         guide.setAttribute("href", mode === "pm1" ? "summary/pm1_guide.html" : "summary/pm2_guide.html");
@@ -588,7 +591,14 @@
     }
     $("#pm-para-link").addEventListener("click", function (e) {
       e.preventDefault();
+      if (window.PmBlind) window.PmBlind.close();
       if (window.PmPara) window.PmPara.open();
+    });
+  }
+  if ($("#pm-blind-link")) {
+    $("#pm-blind-link").addEventListener("click", function (e) {
+      e.preventDefault();
+      if (window.PmBlind) window.PmBlind.open();
     });
   }
 
