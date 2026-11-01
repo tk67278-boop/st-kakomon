@@ -1233,6 +1233,28 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pp-old { background: var(--chip); margin-bottom: 10px; }
 .pp-hist-row { display: grid; grid-template-columns: 1fr auto auto auto auto auto; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
 .pp-ai-tag { font-size: 11.5px; font-weight: 700; color: var(--accent); }
+/* 午後の一覧の上部: 今週やること・スケジュール全体（折りたたみ）・教材リンク */
+.sch-today { border: 2px solid var(--accent); }
+.sch-today .group-head { flex-wrap: wrap; row-gap: 2px; }
+.sch-today h2, .sch-all-sum h2, .sch-all-hint, .sch-left { white-space: nowrap; }
+@media (max-width: 480px) { .sch-all-sum h2 { font-size: 15px; } .sch-all-hint { display: none; } }
+.sch-today-goal { margin: 2px 0 8px; font-size: 14px; color: var(--muted); }
+.sch-today-list { margin: 0; }
+.sch-today-foot { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
+.sch-all-sum { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; }
+.sch-all-sum::-webkit-details-marker { display: none; }
+.sch-all-sum h2 { margin: 0; font-size: 16px; }
+.sch-all-sum::before { content: "\25B8"; color: var(--muted); font-size: 13px; transition: transform .15s; }
+#sch-all[open] > .sch-all-sum::before { transform: rotate(90deg); }
+#sch-all[open] > .sch-all-sum { margin-bottom: 10px; }
+.sch-all-hint { font-size: 13px; color: var(--accent); font-weight: 700; }
+.pm-res { display: grid; gap: 8px; }
+.pm-res[hidden], .pm-res-row[hidden], .pm-res-link[hidden], .pm-timer-card[hidden] { display: none; }
+.pm-res-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pm-res-label { flex: none; width: 5.5em; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.pm-res-link { font-size: 14px; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip); color: var(--text); text-decoration: none; }
+.pm-res-link:hover { border-color: var(--accent); color: var(--accent); }
+#pm-res-tools .pm-res-link { background: var(--accent-soft, var(--chip)); border-color: var(--accent); color: var(--accent); }
 /* 初見骨子20分（js/pm2blind.js） */
 .pb-progress { font-size: 13.5px; color: var(--muted); font-weight: 700; }
 .pb-steps { margin: 6px 0; padding-left: 1.4em; line-height: 1.7; }

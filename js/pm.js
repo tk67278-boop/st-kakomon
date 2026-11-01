@@ -139,6 +139,11 @@
       if (storyLink) storyLink.hidden = mode !== "pm2"; // 午後IIだけ「漫画で覚えるA社」を表示
       var textLink = $("#pm-text-link");
       if (textLink) textLink.hidden = mode !== "pm2"; // 午後IIだけ「午後II 教科書」を表示
+      var tools = $("#pm-res-tools");
+      if (tools) tools.hidden = mode !== "pm2"; // 練習ツールは午後IIだけ
+      // 演習タイマーは午後Iの45分用。午後IIは執筆タブに120分のタイマーがあるので出さない
+      var timerCard = document.querySelector(".pm-timer-card");
+      if (timerCard) timerCard.hidden = mode === "pm2";
       var blindLink = $("#pm-blind-link");
       if (blindLink) blindLink.hidden = mode !== "pm2"; // 午後IIだけ初見骨子20分（js/pm2blind.js）を表示
       if (window.PmPara) window.PmPara.close();
@@ -146,7 +151,8 @@
       var guide = $("#pm-guide-link");
       if (guide) {
         guide.setAttribute("href", mode === "pm1" ? "summary/pm1_guide.html" : "summary/pm2_guide.html");
-        $("#pm-guide-title").textContent = mode === "pm1"
+        $("#pm-guide-title").textContent = mode === "pm1" ? "解き方ガイド" : "論文ガイド";
+        guide.title = mode === "pm1"
           ? "午後I 解き方ガイド（時間配分・問い方別の型・採点講評の落とし穴）"
           : "午後II 論文ガイド（ア・イ・ウの型・事業特性・経験がない人の事例設定）";
       }

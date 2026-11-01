@@ -1639,11 +1639,7 @@
     })).then(function (lists) {
       if (seq !== reviewSeq) return;
       var items = [].concat.apply([], lists).sort(function (a, b) { return b.late - a.late; });
-      if (!items.length) {
-        el.innerHTML = '<div class="card pm2r-card"><div class="group-head"><h2>今日の復習</h2></div>' +
-          '<p class="stats-note">今日解き直す段落はありません。段階学習の段階3・4で×や△を付けると、1日後・3日後・7日後にここに出ます。</p></div>';
-        return;
-      }
+      if (!items.length) { el.innerHTML = ""; return; } // 対象がない日は出さない（段階3・4で×や△を付けると1日後・3日後・7日後に出る）
       var groups = {};
       items.forEach(function (x) { (groups[x.themeKey] = groups[x.themeKey] || []).push(x); });
       var html = '<div class="card pm2r-card"><div class="group-head"><h2>今日の復習</h2><span class="spacer"></span><span class="pm2r-n">' + items.length + '件</span></div>' +

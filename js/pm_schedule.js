@@ -141,43 +141,41 @@
     window.scrollTo(0, 0);
   }
 
-  function render(mode) {
-    currentMode = mode;
-    var el = document.getElementById("pm-schedule");
-    if (!el) return;
-    var plan = PLAN[mode];
-    if (!plan) { el.innerHTML = ""; return; }
-    var records = loadRecords();
-    var t = today(), exam = day(EXAM_DATE);
-    var left = Math.round((exam - t) / 86400000);
-    var curIdx = -1;
-    plan.weeks.forEach(function (w, i) { if (t >= day(w.start) && t <= day(w.end)) curIdx = i; });
-    if (curIdx < 0 && t < day(plan.weeks[0].start)) curIdx = 0;
+  var TODAY_N = 3;           // 「今週やること」に出す件数
+  var PREF_ALL = "st_sch_all_open";
+  function loadPref(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function savePref(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } }
 
-    var html = '<div class="card sch-card"><div class="group-head"><h2>' + plan.title + ' 練習スケジュール</h2><span class="spacer"></span>' +
-      '<span class="sch-left">' + (left > 0 ? "本番（11/23）まで あと<b>" + left + "</b>日" : left === 0 ? "<b>今日が本番</b>" : "本番は終了しました") + '</span></div>';
-    plan.weeks.forEach(function (w, i) {
-      var done = w.tasks.filter(function (tk) { return isDone(mode, tk, records); }).length;
-      var cls = i === curIdx ? " cur" : (curIdx >= 0 && i < curIdx ? " past" : "");
-      html += '<details class="sch-week' + cls + '"' + (i === curIdx ? " open" : "") + '>' +
-        '<summary><span class="sch-wk">' + (i === curIdx ? "今週" : "第" + (i + 1) + "週") + '</span>' +
-        '<span class="sch-date">' + md(w.start) + '〜' + md(w.end) + '</span>' +
-        '<span class="sch-goal">' + esc(w.goal) + '</span>' +
-        '<span class="sch-cnt' + (done === w.tasks.length ? " ok" : "") + '">' + done + ' / ' + w.tasks.length + '</span></summary><ul class="sch-tasks">';
-      w.tasks.forEach(function (tk) {
-        var d = isDone(mode, tk, records);
-        var auto = (tk[1] === "q" && tk[3] && (records[tk[3][0] + "#pm1#" + tk[3][1]] || {}).s === "done") ||
-          (tk[1] === "b" && blindAuto(tk, records));
-        html += '<li class="' + (d ? "done" : "") + '"><label><input type="checkbox" data-task="' + esc(tk[0]) + '"' + (d ? " checked" : "") + (auto ? " disabled title=\"記録があるので自動でチェック済み\"" : "") + '> ' +
-          '<span>' + esc(tk[2]) + '</span></label>' +
-          (typeof tk[3] === "string" ? ' <button type="button" class="linkbtn sch-go" data-go="' + esc(tk[3]) + '">開く</button>' :
-          tk[3] ? ' <button type="button" class="linkbtn sch-open" data-exam="' + esc(tk[3][0]) + '" data-no="' + tk[3][1] + '"' + (tk[3][2] ? ' data-tab="' + esc(tk[3][2]) + '"' : '') + '>開く</button>' : '') + '</li>';
-      });
-      html += '</ul></details>';
-    });
-    html += '<p class="sch-note">午後Iの過去問は「演習記録に保存」、午後IIの初見骨子20分は「骨子を作り終えた」で自動でチェックが付きます。それ以外は自分でチェックしてください。チェックは端末間で同期されます。</p></div>';
-    el.innerHTML = html;
+  function taskHtml(mode, tk, records) {
+    var d = isDone(mode, tk, records);
+    var auto = (tk[1] === "q" && tk[3] && (records[tk[3][0] + "#pm1#" + tk[3][1]] || {}).s === "done") ||
+      (tk[1] === "b" && blindAuto(tk, records));
+    return '<li class="' + (d ? "done" : "") + '"><label><input type="checkbox" data-task="' + esc(tk[0]) + '"' + (d ? " checked" : "") + (auto ? " disabled title=\"記録があるので自動でチェック済み\"" : "") + '> ' +
+      '<span>' + esc(tk[2]) + '</span></label>' +
+      (typeof tk[3] === "string" ? ' <button type="button" class="linkbtn sch-go" data-go="' + esc(tk[3]) + '">開く</button>' :
+      tk[3] ? ' <button type="button" class="linkbtn sch-open" data-exam="' + esc(tk[3][0]) + '" data-no="' + tk[3][1] + '"' + (tk[3][2] ? ' data-tab="' + esc(tk[3][2]) + '"' : '') + '>開く</button>' : '') + '</li>';
+  }
 
+  // 今週（今週の課題が済んでいれば次の週）の未完了の課題を、上から TODAY_N 件だけ出す
+  function todayHtml(mode, plan, records, curIdx, left) {
+    if (curIdx < 0 || left < 0) return "";
+    var idx = curIdx, w = plan.weeks[idx];
+    var undone = function (wk) { return wk.tasks.filter(function (tk) { return !isDone(mode, tk, records); }); };
+    var rest = undone(w), ahead = false;
+    while (!rest.length && idx + 1 < plan.weeks.length) { idx++; w = plan.weeks[idx]; rest = undone(w); ahead = true; }
+    var total = plan.weeks[curIdx].tasks.length;
+    var doneCur = plan.weeks[curIdx].tasks.filter(function (tk) { return isDone(mode, tk, records); }).length;
+    var html = '<div class="card sch-today"><div class="group-head"><h2>' + (ahead ? "次の週の課題" : "今週やること") + '</h2><span class="spacer"></span>' +
+      '<span class="sch-left">' + (left > 0 ? "本番（11/23）まで あと<b>" + left + "</b>日" : "<b>今日が本番</b>") + '</span></div>';
+    if (!rest.length) return html + '<p class="sch-today-goal">予定した課題はすべて終わりました。</p></div>';
+    html += '<p class="sch-today-goal">' + (ahead ? "今週の課題はすべて終わりました。先に進める場合は " + md(w.start) + "〜の課題です。" : "目標：" + esc(w.goal)) + '</p>' +
+      '<ul class="sch-tasks sch-today-list">' + rest.slice(0, TODAY_N).map(function (tk) { return taskHtml(mode, tk, records); }).join("") + '</ul>' +
+      '<p class="sch-today-foot">上から順に進めてください。' + (ahead ? "" : "今週 " + doneCur + " / " + total + " 完了") +
+      (rest.length > TODAY_N ? "・ほかに " + (rest.length - TODAY_N) + " 件" : "") + '</p></div>';
+    return html;
+  }
+
+  function bind(el, mode) {
     Array.prototype.forEach.call(el.querySelectorAll("input[data-task]"), function (cb) {
       cb.addEventListener("change", function () {
         saveRecord("sched#" + mode + "#" + cb.dataset.task, { s: cb.checked ? "done" : "", t: Date.now() });
@@ -193,6 +191,47 @@
         if (api) api.open(b.dataset.exam, Number(b.dataset.no), b.dataset.tab || "");
       });
     });
+  }
+
+  function render(mode) {
+    currentMode = mode;
+    var el = document.getElementById("pm-schedule");
+    var todayEl = document.getElementById("pm-today");
+    if (!el) return;
+    var plan = PLAN[mode];
+    if (!plan) { el.innerHTML = ""; if (todayEl) todayEl.innerHTML = ""; return; }
+    var records = loadRecords();
+    var t = today(), exam = day(EXAM_DATE);
+    var left = Math.round((exam - t) / 86400000);
+    var curIdx = -1;
+    plan.weeks.forEach(function (w, i) { if (t >= day(w.start) && t <= day(w.end)) curIdx = i; });
+    if (curIdx < 0 && t < day(plan.weeks[0].start)) curIdx = 0;
+
+    if (todayEl) { todayEl.innerHTML = todayHtml(mode, plan, records, curIdx, left); bind(todayEl, mode); }
+
+    var allOpen = loadPref(PREF_ALL) === "1";
+    var html = '<details class="card sch-card" id="sch-all"' + (allOpen ? " open" : "") + '><summary class="sch-all-sum"><h2>' + plan.title + ' 練習スケジュール（全' + plan.weeks.length + '週）</h2>' +
+      '<span class="spacer"></span><span class="sch-all-hint">' + (allOpen ? "閉じる" : "全体を見る") + '</span></summary>';
+    plan.weeks.forEach(function (w, i) {
+      var done = w.tasks.filter(function (tk) { return isDone(mode, tk, records); }).length;
+      var cls = i === curIdx ? " cur" : (curIdx >= 0 && i < curIdx ? " past" : "");
+      html += '<details class="sch-week' + cls + '"' + (i === curIdx ? " open" : "") + '>' +
+        '<summary><span class="sch-wk">' + (i === curIdx ? "今週" : "第" + (i + 1) + "週") + '</span>' +
+        '<span class="sch-date">' + md(w.start) + '〜' + md(w.end) + '</span>' +
+        '<span class="sch-goal">' + esc(w.goal) + '</span>' +
+        '<span class="sch-cnt' + (done === w.tasks.length ? " ok" : "") + '">' + done + ' / ' + w.tasks.length + '</span></summary><ul class="sch-tasks">';
+      w.tasks.forEach(function (tk) { html += taskHtml(mode, tk, records); });
+      html += '</ul></details>';
+    });
+    html += '<p class="sch-note">午後Iの過去問は「演習記録に保存」、午後IIの初見骨子20分は「骨子を作り終えた」で自動でチェックが付きます。それ以外は自分でチェックしてください。チェックは端末間で同期されます。</p></details>';
+    el.innerHTML = html;
+    var all = el.querySelector("#sch-all");
+    all.addEventListener("toggle", function () {
+      savePref(PREF_ALL, all.open ? "1" : "0");
+      var h = all.querySelector(".sch-all-hint");
+      if (h) h.textContent = all.open ? "閉じる" : "全体を見る";
+    });
+    bind(el, mode);
   }
 
   window.PmSchedule = { render: render, refresh: function () { if (currentMode) render(currentMode); } };
