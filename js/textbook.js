@@ -326,7 +326,8 @@
       var done = isDone(records, c.id);
       html += '<li class="tb-section-row" data-pm2-index="' + i + '">' +
         '<span class="tb-row-no">' + escapeHtml(c.label) + '</span>' +
-        '<span class="tb-row-title">' + escapeHtml(c.title) + '<small class="tb-row-sub">' + escapeHtml(c.sub) + '</small></span>' +
+        '<span class="tb-row-title">' + escapeHtml(c.title) + (PM2_QUIZ[c.id] ? '<span class="tbq-badge">問題 ' + (PM2_QUIZ[c.id].choice.length + PM2_QUIZ[c.id].write.length) + '</span>' : '') +
+          '<small class="tb-row-sub">' + escapeHtml(c.sub) + '</small></span>' +
         '<span class="tb-row-check' + (done ? ' done' : '') + '">' + (done ? '✓' : '') + '</span></li>';
     });
     html += '</ul></div>';
@@ -338,9 +339,144 @@
 
   function showPm2(i) {
     if (i < 0 || i >= PM2_TOC.length) return;
+    quiz = null;
     pm2Index = i;
     renderPm2Reader();
     window.scrollTo(0, 0);
+  }
+
+  /* ---------- 午後II 教科書の章ごとの問題（js/data/pm2_text_quiz.js） ----------
+     記録: "tbq#<章id>#<問題id>"。選択は {c: 1/0}、記入は {g: o/t/x, a: 書いた答え} */
+  var PM2_QUIZ = window.PM2_TEXT_QUIZ || {};
+  var quiz = null; // { chap, kind: "choice"|"write", list, idx, answered, results }
+  function qKey(chap, id) { return "tbq#" + chap + "#" + id; }
+  function quizStats(chap) {
+    var data = PM2_QUIZ[chap], records = loadRecords();
+    var st = { cN: data.choice.length, cOk: 0, cNg: 0, wN: data.write.length, o: 0, t: 0, x: 0 };
+    data.choice.forEach(function (q) { var r = records[qKey(chap, q.id)]; if (r) { if (r.c) st.cOk++; else st.cNg++; } });
+    data.write.forEach(function (q) { var r = records[qKey(chap, q.id)]; if (r && st.hasOwnProperty(r.g)) st[r.g]++; });
+    return st;
+  }
+  function quizCardHtml(chap) {
+    var st = quizStats(chap);
+    return '<div class="card tbq-card"><div class="group-head"><h2>この章の問題</h2></div>' +
+      '<div class="tbq-stat"><span>選択問題 ' + st.cN + '問：正解 ' + st.cOk + '・不正解 ' + st.cNg + '・未回答 ' + (st.cN - st.cOk - st.cNg) + '</span>' +
+      '<span>記入問題 ' + st.wN + '問：◯ ' + st.o + '・△ ' + st.t + '・× ' + st.x + '・未回答 ' + (st.wN - st.o - st.t - st.x) + '</span></div>' +
+      '<div class="tbq-btns">' +
+        '<button type="button" class="primary" data-q="choice">選択問題を解く</button>' +
+        '<button type="button" class="primary" data-q="write">記入問題を解く</button>' +
+        '<button type="button" data-q="choice-retry"' + (st.cNg ? '' : ' disabled') + '>不正解の選択問題だけ（' + st.cNg + '）</button>' +
+        '<button type="button" data-q="write-retry"' + (st.t + st.x ? '' : ' disabled') + '>×と△の記入問題だけ（' + (st.t + st.x) + '）</button>' +
+      '</div></div>';
+  }
+  function bindQuizCard(el, chap) {
+    findAll(el, ".tbq-card [data-q]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var m = b.dataset.q.split("-");
+        startQuiz(chap, m[0], m[1] === "retry");
+      });
+    });
+  }
+  function shuffled(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function startQuiz(chap, kind, retry) {
+    var data = PM2_QUIZ[chap], records = loadRecords();
+    var list = data[kind].filter(function (q) {
+      if (!retry) return true;
+      var r = records[qKey(chap, q.id)];
+      return kind === "choice" ? (r && !r.c) : (r && (r.g === "t" || r.g === "x"));
+    });
+    if (!list.length) return;
+    quiz = { chap: chap, kind: kind, list: kind === "choice" ? shuffled(list) : list, idx: 0, answered: false, results: [] };
+    renderQuiz();
+  }
+  function quitQuiz() {
+    quiz = null;
+    stopPm2Resize();
+    renderPm2Reader();
+    var card = $("#tb-pm2 .tbq-card");
+    if (card) card.scrollIntoView();
+  }
+  function renderQuiz() {
+    stopPm2Resize();
+    var el = $("#tb-pm2"), q = quiz.list[quiz.idx], data = PM2_QUIZ[quiz.chap];
+    if (!q) return renderQuizEnd();
+    var head = '<div class="tb-reader-head"><button type="button" class="linkbtn" id="tbq-back">&larr; ' + escapeHtml(data.title) + 'に戻る</button>' +
+      '<span class="spacer"></span><span class="tbq-pos">' + (quiz.kind === "choice" ? "選択" : "記入") + ' ' + (quiz.idx + 1) + ' / ' + quiz.list.length + '</span></div>';
+    var html = '<div class="card tb-reader-card">' + head + '<div class="tbq-topic">' + escapeHtml(q.topic) + '</div>' +
+      '<p class="tbq-q">' + escapeHtml(q.q).replace(/\n/g, "<br>") + '</p>';
+    if (quiz.kind === "choice") {
+      var order = shuffled(q.choices.map(function (_, i) { return i; }));
+      html += '<div class="tbq-choices">' + order.map(function (i) {
+        return '<button type="button" class="tbq-choice" data-i="' + i + '">' + escapeHtml(q.choices[i]) + '</button>';
+      }).join("") + '</div><div class="tbq-fb" id="tbq-fb" hidden></div>';
+    } else {
+      var prev = loadRecords()[qKey(quiz.chap, q.id)];
+      html += '<textarea class="tbq-ta" id="tbq-ta" rows="4" placeholder="ここに書きます"></textarea>' +
+        '<div class="pm-panel-actions"><button type="button" class="primary" id="tbq-check">答え合わせ</button></div>' +
+        '<div class="tbq-fb" id="tbq-fb" hidden><b>解答例</b><p class="tbq-model">' + escapeHtml(q.model) + '</p>' +
+          '<b>自己採点の観点</b><ul class="tbq-points">' + q.points.map(function (p) { return '<li>' + escapeHtml(p) + '</li>'; }).join("") + '</ul>' +
+          (prev && prev.a ? '<div class="tbq-prev"><b>前回の答え' + (prev.g ? '（' + ({ o: "◯", t: "△", x: "×" })[prev.g] + '）' : '') + '</b>' + escapeHtml(prev.a) + '</div>' : '') +
+          '<div class="tbq-grade">' +
+            '<button type="button" data-g="o">◯ 観点をすべて満たした</button>' +
+            '<button type="button" data-g="t">△ 一部を満たした</button>' +
+            '<button type="button" data-g="x">× 満たしていない</button></div></div>';
+    }
+    html += '<div class="pm-panel-actions"><button type="button" class="primary" id="tbq-next" hidden>' + (quiz.idx + 1 >= quiz.list.length ? '結果を見る' : '次の問題へ') + '</button></div></div>';
+    el.innerHTML = html;
+    $("#tbq-back").addEventListener("click", quitQuiz);
+    $("#tbq-next").addEventListener("click", function () { quiz.idx++; renderQuiz(); window.scrollTo(0, 0); });
+    if (quiz.kind === "choice") {
+      findAll(el, ".tbq-choice").forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (quiz.answered) return;
+          quiz.answered = true;
+          var i = Number(b.dataset.i), ok = i === q.answer;
+          findAll(el, ".tbq-choice").forEach(function (x) {
+            var xi = Number(x.dataset.i);
+            x.disabled = true;
+            x.classList.add(xi === q.answer ? "correct" : xi === i ? "wrong" : "dim");
+          });
+          saveRecord(qKey(quiz.chap, q.id), { c: ok ? 1 : 0, t: Date.now() });
+          quiz.results.push(ok ? "o" : "x");
+          var fb = $("#tbq-fb");
+          fb.hidden = false;
+          fb.className = "tbq-fb " + (ok ? "good" : "bad");
+          fb.innerHTML = '<b>' + (ok ? "正解" : "不正解") + '</b>' + (ok ? '' : '<p class="tbq-model">正解：' + escapeHtml(q.choices[q.answer]) + '</p>') + '<p>' + escapeHtml(q.exp) + '</p>';
+          $("#tbq-next").hidden = false;
+        });
+      });
+    } else {
+      $("#tbq-check").addEventListener("click", function () { $("#tbq-fb").hidden = false; $("#tbq-check").hidden = true; });
+      findAll(el, ".tbq-grade button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var g = b.dataset.g;
+          findAll(el, ".tbq-grade button").forEach(function (x) { x.classList.toggle("active", x === b); });
+          saveRecord(qKey(quiz.chap, q.id), { g: g, a: String($("#tbq-ta").value || "").slice(0, 500), t: Date.now() });
+          if (!quiz.answered) quiz.results.push(g); else quiz.results[quiz.results.length - 1] = g;
+          quiz.answered = true;
+          $("#tbq-next").hidden = false;
+        });
+      });
+    }
+    quiz.answered = false;
+  }
+  function renderQuizEnd() {
+    var el = $("#tb-pm2"), data = PM2_QUIZ[quiz.chap], r = quiz.results;
+    var cnt = function (v) { return r.filter(function (x) { return x === v; }).length; };
+    var sum = quiz.kind === "choice" ? '正解 ' + cnt("o") + ' / ' + r.length + '問' : '◯ ' + cnt("o") + '・△ ' + cnt("t") + '・× ' + cnt("x") + '（' + r.length + '問）';
+    var missN = quiz.kind === "choice" ? cnt("x") : cnt("t") + cnt("x");
+    el.innerHTML = '<div class="card tb-reader-card"><h2>' + escapeHtml(data.title) + '：' + (quiz.kind === "choice" ? "選択問題" : "記入問題") + 'の結果</h2>' +
+      '<p class="tbq-sum">' + sum + '</p>' +
+      '<div class="pm-panel-actions">' +
+        (missN ? '<button type="button" class="primary" id="tbq-retry">' + (quiz.kind === "choice" ? '不正解' : '×と△') + 'だけもう一度（' + missN + '）</button>' : '') +
+        '<button type="button" id="tbq-end">章に戻る</button></div></div>';
+    var kind = quiz.kind, chap = quiz.chap;
+    if ($("#tbq-retry")) $("#tbq-retry").addEventListener("click", function () { startQuiz(chap, kind, true); });
+    $("#tbq-end").addEventListener("click", quitQuiz);
   }
 
   function renderPm2Reader() {
@@ -361,8 +497,10 @@
       navHtml("top") +
       '<iframe class="tb-pm2-frame" src="' + escapeAttr(c.file) + '" title="' + escapeAttr(c.label + " " + c.title) + '"></iframe>' +
       navHtml("bottom") +
-      '</div>';
+      '</div>' +
+      (PM2_QUIZ[c.id] ? quizCardHtml(c.id) : '');
     $("#tb-pm2-back").addEventListener("click", function () { pm2Index = -1; renderPm2Toc(); window.scrollTo(0, 0); });
+    if (PM2_QUIZ[c.id]) bindQuizCard(el, c.id);
     findAll(el, ".tb-pm2-prev").forEach(function (b) { b.addEventListener("click", function () { showPm2(pm2Index - 1); }); });
     findAll(el, ".tb-pm2-next").forEach(function (b) { b.addEventListener("click", function () { showPm2(pm2Index + 1); }); });
     findAll(el, ".tb-pm2-done").forEach(function (b) {
