@@ -301,7 +301,7 @@
      ===================================================================== */
   var STEP_STAGES = [
     { n: 1, label: "1 見本を読む", desc: "A社の模範論文を、骨子の見出しごとに読みます。黄色の文が各段落の「要の1文」です。使った部品と組み立て方（文型）も確認します。" },
-    { n: 6, label: "暗唱：要の1文", desc: "要の1文だけを見出しの順に並べています。見出しを見て1文を声に出してから押すと答えが出ます。8〜9文で論文の筋がつながっていることを確認します。" },
+    { n: 6, label: "暗唱：要の1文", desc: "要の1文だけを見出しの順に並べ、見本でその前後にある文を添えています。見出しと前後の文を見て1文を声に出してから押すと答えが出ます。8〜9文で論文の筋がつながっていることを確認します。" },
     { n: 2, label: "2 選んで組み立てる", desc: "各段落の要の1文や考え方を、選択肢から選びます。間違いの選択肢は、採点講評で指摘されたよくある失敗です。" },
     { n: 3, label: "3 穴埋めで書く", desc: "模範論文の要の1文だけが空欄になっています。前後の文を読んで、空欄の1文を自分で書き、答え合わせをします。" },
     { n: 4, label: "4 見出しごとに書く", desc: "見出しを1つずつ、組み立て方（文型）と部品を見ながら自分で書きます。書いたら見本と比べます。" },
@@ -360,7 +360,7 @@
     var stage = Number(state.stepStage || loadPref(PREF_STEP) || 1);
     if (!(stage >= 1 && stage <= 6)) stage = 1;
     state.stepStage = stage;
-    var info = STEP_STAGES[stage - 1];
+    var info = STEP_STAGES.filter(function (st) { return st.n === stage; })[0]; // 並び順と段階の番号は一致しない（暗唱が2番目）
     body.innerHTML =
       '<div class="card pm2s-head">' +
         '<div class="pm2s-stages" role="tablist">' + STEP_STAGES.map(function (st) {
@@ -429,7 +429,29 @@
     });
   }
 
-  // 暗唱: 要の1文だけを見出しの順に並べ，押すと答えが出る
+  // 文を「。」で区切る（「」の中の「。」では区切らない）
+  function splitSentences(text) {
+    var out = [], cur = "", depth = 0;
+    for (var i = 0; i < text.length; i++) {
+      var c = text.charAt(i);
+      cur += c;
+      if (c === "「") depth++;
+      else if (c === "」" && depth > 0) depth--;
+      else if (c === "。" && !depth) { out.push(cur); cur = ""; }
+    }
+    if (cur) out.push(cur);
+    return out.map(function (x) { return x.trim(); }).filter(function (x) { return x; });
+  }
+
+  // 見本の中で，要の1文の直前と直後にある文（段落の最初・最後なら空）
+  function keyNeighbors(sec) {
+    var i = sec.text.indexOf(sec.key);
+    if (i < 0) return { prev: "", next: "" };
+    var before = splitSentences(sec.text.slice(0, i)), after = splitSentences(sec.text.slice(i + sec.key.length));
+    return { prev: before[before.length - 1] || "", next: after[0] || "" };
+  }
+
+  // 暗唱: 要の1文だけを見出しの順に並べ，押すと答えが出る。手掛かりに見本の前後の文を添える
   function renderStepRecite(box, data) {
     var html = '<div class="card"><div class="pm2s-recite-bar">' +
       '<span class="pm2s-recite-n" id="pm2s-recite-n"></span><span class="spacer"></span>' +
@@ -437,11 +459,13 @@
       '<button type="button" class="linkbtn" id="pm2s-recite-none">すべて隠す</button></div>' +
       '<ol class="pm2s-recite">';
     data.sections.forEach(function (sec) {
-      var op = keyOpener(sec.key);
+      var op = keyOpener(sec.key), nb = keyNeighbors(sec);
       html += '<li><div class="pm2s-recite-head"><span class="badge pm-no">設問' + sec.part + '</span>' + escapeHtml(sec.id + " " + sec.head) + '</div>' +
+        '<div class="pm2s-recite-ctx"><b>前の文</b>' + (nb.prev ? escapeHtml(nb.prev) : '<span class="muted">（段落の最初の文です）</span>') + '</div>' +
         '<button type="button" class="pm2s-recite-card"><span class="pm2s-recite-q">押して答えを表示' +
           '<small>書き出し：「' + escapeHtml(op.head) + '」' + (op.type ? '（' + escapeHtml(op.type.replace(/（.*$/, "")) + '）' : '') + '</small></span>' +
-          '<span class="pm2s-recite-a" hidden>' + escapeHtml(sec.key) + '</span></button></li>';
+          '<span class="pm2s-recite-a" hidden>' + escapeHtml(sec.key) + '</span></button>' +
+        '<div class="pm2s-recite-ctx"><b>後の文</b>' + (nb.next ? escapeHtml(nb.next) : '<span class="muted">（段落の最後の文です）</span>') + '</div></li>';
     });
     box.innerHTML = html + '</ol></div>';
     var cards = $all(box, ".pm2s-recite-card");
