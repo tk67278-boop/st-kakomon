@@ -840,43 +840,27 @@
   }
 
   /* =====================================================================
-     骨子・執筆タブ共通: 問題文の参照表示
-     ===================================================================== */
-  // 前文の折りたたみ表示（執筆・骨子タブの先頭に置く）
-  function leadDetailsHtml(open) {
-    return '<div class="card pm2-lead-card">' +
-      '<details class="pm2-lead-details"' + (open ? ' open' : '') + '>' +
-      '<summary>前文（問題文）を表示</summary>' +
-      '<div class="pm2-lead">' + renderParagraphs(state.q.lead || "") + '</div>' +
-      '</details></div>';
-  }
-  // 各入力欄の直上に出す設問文ボックス
-  function setumonInlineHtml(k) {
-    var qq = state.q.q || {};
-    return '<div class="pm2-setumon-inline">' + escapeHtml(qq[k] || "") + '</div>';
-  }
-
-  /* =====================================================================
      骨子タブ
      ===================================================================== */
+  // 入力欄の書き方の例（初見骨子20分と同じ）
   var OUTLINE_PLACEHOLDER = {
-    a: "1-1 事業概要\n1-2 事業特性と課題",
-    i: "2-1 重要と考えた事項とその理由\n2-2 検討の過程と工夫",
-    u: "3-1 施策の評価\n3-2 今後の改善点"
+    a: "1.1 見出し ― 要の1文 ― 部品・数字\n1.2 …",
+    i: "2.1 見出し ― 要の1文 ― 部品・数字\n2.2 …\n2.3 …",
+    u: "3.1 見出し ― 要の1文 ― 部品・数字\n3.2 …"
   };
 
   // A社の部品（js/data/pm2_parts.js）を選ぶプルダウン。選ぶとカーソル位置に「・部品」を1行で挿入する
   function partsSelectHtml(k) {
     var groups = window.PM2_PARTS || [];
     if (!groups.length) return "";
-    return '<div class="pm2-parts-row"><select class="pm2-parts-sel" data-k="' + k + '" aria-label="A社の部品を挿入">' +
-      '<option value="">＋ A社の部品を挿入…</option>' +
+    return '<select class="pm2-parts-sel" data-k="' + k + '" aria-label="' + KANA_LABEL[k] + 'に部品を挿入" title="見出しの下にカーソルを置いて選ぶと、その位置に入ります">' +
+      '<option value="">部品を挿入…</option>' +
       groups.map(function (g, gi) {
         return '<optgroup label="' + escapeAttr(g.group) + '">' +
           g.items.map(function (it, ii) { return '<option value="' + gi + '-' + ii + '">' + escapeHtml(it.label) + '</option>'; }).join("") +
           '</optgroup>';
       }).join("") +
-      '</select><span class="pm2-parts-help">見出しの下にカーソルを置いて選ぶと、その位置に入ります</span></div>';
+      '</select>';
   }
   function insertPart(ta, text) {
     var v = ta.value;
@@ -898,22 +882,25 @@
   function renderOutlineTab(body) {
     if (!state.outlineLive) state.outlineLive = { a: "", i: "", u: "" };
 
-    // 広い画面では，左に問題文（開いた状態），右に骨子メモを並べる
-    var wide = window.matchMedia && window.matchMedia("(min-width: 1000px)").matches;
+    // 初見骨子20分（js/pm2blind.js）と同じ並び: 左に問題文と設問ア〜ウ，右に骨子（広い画面では左右，スマホでは縦）
     body.innerHTML =
-      '<div class="pm2-ol-grid">' +
-      '<div class="pm2-ol-left">' + leadDetailsHtml(wide) + '</div>' +
-      '<div class="card">' +
-        '<div class="group-head"><h2>骨子メモ</h2></div>' +
+      '<div class="pb-grid">' +
+      '<div class="card pb-problem"><div class="group-head"><h2>問題文</h2></div>' +
+        '<div class="pb-lead">' + renderParagraphs(state.q.lead || "") + '</div>' +
         KEY_ORDER.map(function (k) {
-          return '<div class="pm2-field">' +
-            '<label class="pm2-field-label">' + KANA_LABEL[k] + 'の章立て</label>' +
-            setumonInlineHtml(k) +
-            partsSelectHtml(k) +
-            '<textarea class="pm2-outline-ta" id="pm2-outline-' + k + '" rows="10" placeholder="' + escapeAttr(OUTLINE_PLACEHOLDER[k]) + '"></textarea>' +
+          return '<div class="pb-q"><b>' + KANA_LABEL[k] + '</b>' + escapeHtml((state.q.q || {})[k] || "") + '</div>';
+        }).join("") +
+      '</div>' +
+      '<div class="card pb-outline">' +
+        '<div class="group-head"><h2>骨子</h2></div>' +
+        '<details class="pp-hint"><summary>骨子の作り方</summary><p>見出しは設問の言葉をそのまま使い、見出しごとに要の1文（略記でよい）とA社の部品を当てます。<br>' +
+          '例：2.2 優先順位 ― 効果・リスク・依存で比べ 会計→発注在庫→店舗 ― 優先順位の基準</p></details>' +
+        KEY_ORDER.map(function (k) {
+          return '<div class="pb-field"><div class="pb-field-head"><label for="pm2-outline-' + k + '">' + KANA_LABEL[k] + '</label>' + partsSelectHtml(k) + '</div>' +
+            '<textarea class="pp-ta pm2-outline-ta" id="pm2-outline-' + k + '" rows="' + (k === "i" ? 13 : 8) + '" placeholder="' + escapeAttr(OUTLINE_PLACEHOLDER[k]) + '"></textarea>' +
           '</div>';
         }).join("") +
-        '<div class="pm-panel-actions"><button type="button" class="primary" id="pm2-btn-outline-save">骨子を保存</button></div>' +
+        '<div class="pm-panel-actions"><span class="pm2-save-status" id="pm2-outline-status"></span><button type="button" class="primary" id="pm2-btn-outline-save">骨子を保存</button></div>' +
       '</div>' +
       '</div>' +
       '<div class="card">' +
@@ -946,6 +933,7 @@
       if (state.doc.outline.versions.length > 5) state.doc.outline.versions.length = 5;
       saveDoc();
       renderOutlineVersions();
+      flashText($("#pm2-outline-status"), "保存しました", 2500);
     });
 
     renderOutlineVersions();
