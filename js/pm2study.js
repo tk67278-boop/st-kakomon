@@ -304,7 +304,7 @@
     { n: 6, label: "暗唱：要の1文", desc: "要の1文だけを見出しの順に並べ、見本でその前後にある文を添えています。見出しと前後の文を見て1文を声に出してから押すと答えが出ます。8〜9文で論文の筋がつながっていることを確認します。" },
     { n: 2, label: "2 選んで組み立てる", desc: "各段落の要の1文や考え方を、選択肢から選びます。間違いの選択肢は、採点講評で指摘されたよくある失敗です。" },
     { n: 3, label: "3 穴埋めで書く", desc: "模範論文の要の1文だけが空欄になっています。前後の文を読んで、空欄の1文を自分で書き、答え合わせをします。" },
-    { n: 4, label: "4 見出しごとに書く", desc: "見出しを1つずつ、組み立て方（文型）と部品を見ながら自分で書きます。書いたら見本と比べます。" },
+    { n: 4, label: "4 見出しごとに書く", desc: "見本は見ずに、組み立て方（文型）と部品だけを見て1段落ずつ書きます。書いたら4つのチェック（設問に答えている・要の1文・A社の数字や事情・組み立て方の順）で判定し、見本は最後に表現の参考として見ます。" },
     { n: 5, label: "5 骨子だけで書く", desc: "補助なしで書く本番形式です。骨子タブで見出しを作り、執筆タブで120分で書きます。" }
   ];
   var PREF_STEP = "st_pm2_step_stage";
@@ -529,7 +529,7 @@
       note: "判定は言葉ではなく，書き出しの型（役割）と要点が合っているかで付けます。" },
     write: { store: "write", grade: "wgrade", hist: "writeHist", what: "見出し",
       labels: [["o", "◯ 組み立て方どおりに書けた"], ["t", "△ 一部の要素が抜けた"], ["x", "× 書けなかった"]],
-      note: "判定は見本と同じ言葉かではなく，組み立て方の要素がそろい，A社の数字や事情が入っているかで付けます。" }
+      note: "判定は見本と同じ言葉かではなく，「チェックして判定する」の4つのチェックで付けます（4つ→◯，2〜3つ→△，0〜1つ→×）。" }
   };
   function stepSess(kind) {
     if (!state.stepSess) state.stepSess = {};
@@ -627,7 +627,7 @@
         var sec = btn.closest(".pm2s-sec"), ans = sec.querySelector(".pm2s-answer");
         ans.hidden = !ans.hidden;
         if (!ans.hidden) ans.querySelector(".pm2s-hist-wrap").innerHTML = stepHistHtml(kind, sec.dataset.id); // 開いた時点の履歴を表示
-        btn.textContent = ans.hidden ? btn.dataset.label : "見本を隠す";
+        btn.textContent = ans.hidden ? btn.dataset.label : (btn.dataset.hide || "見本を隠す");
       });
     });
     $all(box, ".pm2s-grade-btn").forEach(function (b) {
@@ -638,7 +638,7 @@
           pushStepHist(kind, id, ta.value);
         }
         var gm = state.doc.steps[k.grade];
-        if (gm[id] === b.dataset.g) delete gm[id]; else gm[id] = b.dataset.g;
+        if (gm[id] === b.dataset.g && !b.dataset.set) delete gm[id]; else gm[id] = b.dataset.g;
         var h = stepHist(kind, id);
         if (h[0] && ss.fresh[id]) { if (gm[id]) h[0].g = gm[id]; else delete h[0].g; }
         saveDoc();
@@ -715,13 +715,34 @@
         }).join("") + '</ul></div>' +
         '<textarea class="pm2s-write" rows="7" data-id="' + escapeAttr(sec.id) + '" data-target="' + n + '" placeholder="組み立て方の順に書きます">' + escapeHtml(stepMine("write", sec.id)) + '</textarea>' +
         '<div class="pm2-count muted" data-count="' + escapeAttr(sec.id) + '"></div>' +
-        '<div class="pm-panel-actions"><button type="button" class="pm2s-check" data-label="見本と比べる">見本と比べる</button></div>' +
-        '<div class="pm2s-answer" hidden><b>見本：</b><div class="pm2s-text">' + escapeHtml(sec.text) + '</div>' +
-          stepAnswerExtrasHtml("write", sec.id) +
+        '<div class="pm-panel-actions"><button type="button" class="pm2s-check" data-label="チェックして判定する" data-hide="閉じる">チェックして判定する</button></div>' +
+        '<div class="pm2s-answer pm2s-wanswer" hidden>' + writeCheckHtml(sec) +
+          '<details class="pm2s-model"><summary>見本を見る（表現の参考。判定には使いません）</summary><div class="pm2s-text">' + escapeHtml(sec.text) + '</div></details>' +
+          '<div class="pm2s-hist-wrap">' + stepHistHtml("write", sec.id) + '</div>' +
         '</div>' +
       '</div>';
     }, stepKeep("write"));
     bindStepCommon("write", box, ".pm2s-write", function () { renderStepWrite(box, data); });
+    // 4つのチェックの数から判定（◯△×）を決め，「判定を付ける」ボタンに出す
+    $all(box, ".pm2s-sec").forEach(function (sec) {
+      var ta = sec.querySelector(".pm2s-write"), btn = sec.querySelector(".pm2s-wc-grade");
+      if (!ta || !btn) return;
+      var boxes = $all(sec, ".pm2s-wc-box");
+      function upd() {
+        var n = boxes.filter(function (c) { return c.checked; }).length, empty = !ta.value.trim();
+        var g = empty || n <= 1 ? "x" : n === 4 ? "o" : "t";
+        btn.dataset.g = g;
+        btn.className = "pm2s-grade-btn pm2s-wc-grade g-" + g + " active";
+        btn.textContent = "判定を付ける：" + STEP_KINDS.write.labels.filter(function (l) { return l[0] === g; })[0][1];
+        sec.querySelector(".pm2s-wc-sum").textContent = empty ? "まだ書いていません" : "チェック " + n + " / 4";
+        var nums = (ta.value.match(/[0-9０-９]+/g) || []).length;
+        sec.querySelector(".pm2s-wc-num").textContent = nums ? "書いた文に数字が " + nums + " か所あります" :
+          "書いた文に数字がありません（A社ならではの事情が書けていればチェックしてよい）";
+      }
+      boxes.forEach(function (c) { c.addEventListener("change", upd); });
+      ta.addEventListener("input", upd);
+      upd();
+    });
     $all(box, ".pm2s-write").forEach(function (ta) {
       var cnt = box.querySelector('[data-count="' + ta.dataset.id + '"]');
       function upd() {
@@ -732,6 +753,24 @@
       ta.addEventListener("input", upd);
       upd();
     });
+  }
+
+  // 段階4の判定に使う4つのチェック。見本と同じ言葉かどうかは見ない
+  function writeCheckHtml(sec) {
+    var items = [
+      ["設問の言葉に答えている", "見出し「" + sec.head + "」で問われていることを書いた"],
+      ["要の1文がある", "この段落で一番言いたいことを1文で言い切った"],
+      ["A社の数字や固有の事情が入っている", ""],
+      ["組み立て方の順になっている", "上の「組み立て方」の要素がそろい、その順に並んでいる"]
+    ];
+    return '<div class="pm2s-wcheck"><b>4つのチェック</b><span class="muted">（見本と同じ言葉かどうかは問いません）</span>' +
+      items.map(function (x, i) {
+        return '<label class="pm2s-wc"><input type="checkbox" class="pm2s-wc-box"><span>' + (i + 1) + '. ' + escapeHtml(x[0]) +
+          '<small' + (i === 2 ? ' class="pm2s-wc-num"' : '') + '>' + escapeHtml(x[1]) + '</small></span></label>';
+      }).join("") +
+      '<div class="pm2s-grade"><span class="pm2s-wc-sum"></span>' +
+        '<button type="button" class="pm2s-grade-btn pm2s-wc-grade" data-set="1" data-g="x"></button></div>' +
+    '</div>';
   }
 
   // 段階5: 骨子だけで書く（骨子タブ・執筆タブへ）

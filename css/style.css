@@ -1327,6 +1327,17 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-fill, .pm2s-write { width: 100%; box-sizing: border-box; font-size: 15px; line-height: 1.8; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); resize: vertical; }
 .pm2s-answer { margin-top: 8px; padding: 10px 12px; background: var(--ok-soft); border-radius: 8px; font-size: 14.5px; line-height: 1.8; }
 .pm2s-partlist { margin: 8px 0; font-size: 13.5px; }
+/* 段階4: 4つのチェックで判定 */
+.pm2s-wanswer { background: var(--chip); }
+.pm2s-wcheck > b { margin-right: 4px; }
+.pm2s-wcheck .muted { font-size: 12.5px; }
+.pm2s-wc { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; cursor: pointer; }
+.pm2s-wc input { margin-top: 6px; flex: none; }
+.pm2s-wc small { display: block; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+.pm2s-wc-sum { font-weight: 700; font-size: 13.5px; align-self: center; margin-right: 4px; }
+.pm2s-model { margin-top: 12px; }
+.pm2s-model summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--accent); }
+.pm2s-model .pm2s-text { margin-top: 6px; }
 .pm2s-partlist ul { margin: 4px 0 0; padding-left: 1.3em; line-height: 1.65; }
 .pm2s-model { margin-top: 8px; }
 .pm2s-model summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: 13.5px; }
