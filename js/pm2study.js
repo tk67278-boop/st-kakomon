@@ -194,7 +194,6 @@
       drillEngine: null,
       essayLive: null,       // { a, i, u } 執筆タブの入力中キャッシュ（タブ切替をまたいで保持）
       essayLiveInit: false,
-      outlineLive: null,     // { a, i, u } 骨子タブの入力中キャッシュ
       autosaveIntervalId: null,
       writeTimer: {
         totalSec: 120 * 60,
@@ -810,17 +809,21 @@
     '</div>';
   }
 
-  // 段階5: 骨子だけで書く（骨子タブ・執筆タブへ）
+  // 段階5: 骨子だけで書く（初見骨子20分・執筆タブへ）
   function renderStepFinal(box) {
     box.innerHTML = '<div class="card"><div class="group-head"><h2>骨子だけで書く</h2></div>' +
       '<ol class="pm2s-final">' +
-        '<li>骨子タブで、設問の言葉から見出しを作り、部品を入れる（20分）</li>' +
+        '<li>初見骨子20分で、設問の言葉から見出しを作り、部品を入れる（20分）</li>' +
         '<li>執筆タブで、骨子だけを見て120分で書く（段階1〜4の見本は見ない）</li>' +
         '<li>振り返りタブでAI採点し、「次に向けたポイント」を確認する</li>' +
       '</ol>' +
-      '<div class="pm-panel-actions"><button type="button" id="pm2s-go-outline">骨子タブへ</button>' +
+      '<div class="pm-panel-actions"><button type="button" id="pm2s-go-outline">初見骨子20分で骨子を作る</button>' +
         '<button type="button" class="primary" id="pm2s-go-write">執筆タブへ</button></div></div>';
-    $("#pm2s-go-outline").addEventListener("click", function () { switchTab("outline"); });
+    $("#pm2s-go-outline").addEventListener("click", function () {
+      var key = state.examId + "-" + state.no;
+      closeStudy();
+      if (window.PmBlind) window.PmBlind.open(key);
+    });
     $("#pm2s-go-write").addEventListener("click", function () { switchTab("write"); });
   }
 
@@ -840,102 +843,28 @@
   }
 
   /* =====================================================================
-     骨子タブ
+     骨子タブ: 骨子づくりは初見骨子20分（js/pm2blind.js）にまとめた。
+     ここからこの問題の練習を開き，以前この画面で保存した骨子は読むだけにする
      ===================================================================== */
-  // 入力欄の書き方の例（初見骨子20分と同じ）
-  var OUTLINE_PLACEHOLDER = {
-    a: "1.1 見出し ― 要の1文 ― 部品・数字\n1.2 …",
-    i: "2.1 見出し ― 要の1文 ― 部品・数字\n2.2 …\n2.3 …",
-    u: "3.1 見出し ― 要の1文 ― 部品・数字\n3.2 …"
-  };
-
-  // A社の部品（js/data/pm2_parts.js）を選ぶプルダウン。選ぶとカーソル位置に「・部品」を1行で挿入する
-  function partsSelectHtml(k) {
-    var groups = window.PM2_PARTS || [];
-    if (!groups.length) return "";
-    return '<select class="pm2-parts-sel" data-k="' + k + '" aria-label="' + KANA_LABEL[k] + 'に部品を挿入" title="見出しの下にカーソルを置いて選ぶと、その位置に入ります">' +
-      '<option value="">部品を挿入…</option>' +
-      groups.map(function (g, gi) {
-        return '<optgroup label="' + escapeAttr(g.group) + '">' +
-          g.items.map(function (it, ii) { return '<option value="' + gi + '-' + ii + '">' + escapeHtml(it.label) + '</option>'; }).join("") +
-          '</optgroup>';
-      }).join("") +
-      '</select>';
-  }
-  function insertPart(ta, text) {
-    var v = ta.value;
-    var pos = typeof ta.selectionStart === "number" ? ta.selectionStart : v.length;
-    var lineStart = v.lastIndexOf("\n", pos - 1) + 1;
-    var lineEnd = v.indexOf("\n", pos);
-    if (lineEnd < 0) lineEnd = v.length;
-    var line = v.slice(lineStart, lineEnd);
-    // 空行ならその行に、文字のある行ならその行の下に挿入する
-    var filled = !!line.trim();
-    var at = filled ? lineEnd : lineStart;
-    var ins = (filled ? "\n" : "") + " ・" + text;
-    ta.value = filled ? v.slice(0, at) + ins + v.slice(at) : v.slice(0, lineStart) + ins + v.slice(lineEnd);
-    var caret = at + ins.length;
-    ta.focus();
-    ta.setSelectionRange(caret, caret);
-  }
-
   function renderOutlineTab(body) {
-    if (!state.outlineLive) state.outlineLive = { a: "", i: "", u: "" };
-
-    // 初見骨子20分（js/pm2blind.js）と同じ並び: 左に問題文と設問ア〜ウ，右に骨子（広い画面では左右，スマホでは縦）
+    var versions = state.doc.outline.versions || [];
     body.innerHTML =
-      '<div class="pb-grid">' +
-      '<div class="card pb-problem"><div class="group-head"><h2>問題文</h2></div>' +
-        '<div class="pb-lead">' + renderParagraphs(state.q.lead || "") + '</div>' +
-        KEY_ORDER.map(function (k) {
-          return '<div class="pb-q"><b>' + KANA_LABEL[k] + '</b>' + escapeHtml((state.q.q || {})[k] || "") + '</div>';
-        }).join("") +
-      '</div>' +
-      '<div class="card pb-outline">' +
-        '<div class="group-head"><h2>骨子</h2></div>' +
-        '<details class="pp-hint"><summary>骨子の作り方</summary><p>見出しは設問の言葉をそのまま使い、見出しごとに要の1文（略記でよい）とA社の部品を当てます。<br>' +
-          '例：2.2 優先順位 ― 効果・リスク・依存で比べ 会計→発注在庫→店舗 ― 優先順位の基準</p></details>' +
-        KEY_ORDER.map(function (k) {
-          return '<div class="pb-field"><div class="pb-field-head"><label for="pm2-outline-' + k + '">' + KANA_LABEL[k] + '</label>' + partsSelectHtml(k) + '</div>' +
-            '<textarea class="pp-ta pm2-outline-ta" id="pm2-outline-' + k + '" rows="' + (k === "i" ? 13 : 8) + '" placeholder="' + escapeAttr(OUTLINE_PLACEHOLDER[k]) + '"></textarea>' +
-          '</div>';
-        }).join("") +
-        '<div class="pm-panel-actions"><span class="pm2-save-status" id="pm2-outline-status"></span><button type="button" class="primary" id="pm2-btn-outline-save">骨子を保存</button></div>' +
-      '</div>' +
-      '</div>' +
       '<div class="card">' +
-        '<div class="group-head"><h2>保存した骨子（最新5件）</h2></div>' +
+        '<div class="group-head"><h2>骨子</h2></div>' +
+        '<p class="stats-note">この問題の骨子は「初見骨子20分」で作ります。20分のタイマー、部品の挿入、作り終えた後の見本の骨子・出題趣旨・AI採点がそろっています。' +
+          '記録は初見骨子20分の「これまでの練習」に残ります。</p>' +
+        '<div class="pm-panel-actions"><button type="button" class="primary" id="pm2-go-blind">この問題の骨子を初見骨子20分で作る</button></div>' +
+      '</div>' +
+      (versions.length ? '<div class="card">' +
+        '<div class="group-head"><h2>以前この画面で保存した骨子</h2></div>' +
+        '<p class="stats-note">骨子づくりを初見骨子20分にまとめる前に保存した骨子です。読むことと削除だけができます。</p>' +
         '<div id="pm2-outline-versions"></div>' +
-      '</div>';
-
-    KEY_ORDER.forEach(function (k) {
-      var ta = $("#pm2-outline-" + k);
-      ta.value = state.outlineLive[k];
-      ta.addEventListener("input", function () { state.outlineLive[k] = ta.value; });
+      '</div>' : '');
+    $("#pm2-go-blind").addEventListener("click", function () {
+      var key = state.examId + "-" + state.no;
+      closeStudy();
+      if (window.PmBlind) window.PmBlind.open(key);
     });
-    $all(body, ".pm2-parts-sel").forEach(function (sel) {
-      sel.addEventListener("change", function () {
-        if (!sel.value) return;
-        var ix = sel.value.split("-");
-        var it = (window.PM2_PARTS[Number(ix[0])] || { items: [] }).items[Number(ix[1])];
-        var ta = $("#pm2-outline-" + sel.dataset.k);
-        if (it && ta) {
-          insertPart(ta, it.text);
-          state.outlineLive[sel.dataset.k] = ta.value;
-        }
-        sel.value = "";
-      });
-    });
-
-    $("#pm2-btn-outline-save").addEventListener("click", function () {
-      var version = { t: Date.now(), a: state.outlineLive.a, i: state.outlineLive.i, u: state.outlineLive.u };
-      state.doc.outline.versions.unshift(version);
-      if (state.doc.outline.versions.length > 5) state.doc.outline.versions.length = 5;
-      saveDoc();
-      renderOutlineVersions();
-      flashText($("#pm2-outline-status"), "保存しました", 2500);
-    });
-
     renderOutlineVersions();
   }
 
@@ -943,40 +872,21 @@
     var el = $("#pm2-outline-versions");
     if (!el) return;
     var versions = state.doc.outline.versions || [];
-    if (!versions.length) {
-      el.innerHTML = '<p class="pm-empty">まだ保存された骨子がありません。</p>';
-      return;
-    }
-    el.innerHTML = '<ul class="pm2-version-list">' +
-      versions.map(function (v, idx) {
-        return '<li class="pm2-version-row">' +
-          '<span class="pm2-version-date">' + escapeHtml(fmtDateTime(v.t)) + '</span>' +
-          '<span class="pm2-version-actions">' +
-            '<button type="button" class="linkbtn pm2-btn-outline-open" data-idx="' + idx + '">開く</button>' +
-            '<button type="button" class="linkbtn danger pm2-btn-outline-del" data-idx="' + idx + '">削除</button>' +
-          '</span>' +
-        '</li>';
-      }).join("") +
-      '</ul>';
-
-    $all(el, ".pm2-btn-outline-open").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var idx = parseInt(btn.dataset.idx, 10);
-        var v = state.doc.outline.versions[idx];
-        if (!v) return;
-        state.outlineLive = { a: v.a || "", i: v.i || "", u: v.u || "" };
-        KEY_ORDER.forEach(function (k) {
-          var ta = $("#pm2-outline-" + k);
-          if (ta) ta.value = state.outlineLive[k];
-        });
-      });
-    });
+    el.innerHTML = versions.map(function (v, idx) {
+      return '<details class="pm2-old-outline"><summary><span class="pm2-version-date">' + escapeHtml(fmtDateTime(v.t)) + '</span>' +
+          '<button type="button" class="linkbtn danger pm2-btn-outline-del" data-idx="' + idx + '">削除</button></summary>' +
+        KEY_ORDER.map(function (k) {
+          return '<div class="pb-old"><b>' + KANA_LABEL[k] + '</b>' + escapeHtml(v[k] || "") + '</div>';
+        }).join("") +
+      '</details>';
+    }).join("");
     $all(el, ".pm2-btn-outline-del").forEach(function (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
         var idx = parseInt(btn.dataset.idx, 10);
         state.doc.outline.versions.splice(idx, 1);
         saveDoc();
-        renderOutlineVersions();
+        renderTabBody();
       });
     });
   }

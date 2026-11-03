@@ -1,5 +1,6 @@
-/* 午後II 初見骨子20分: 段階学習で扱っていない過去問（令和4年度以前・組込み系を除く）を初見として、
-   問題文から骨子（見出し・要の1文・部品）だけを20分で作る練習。
+/* 午後II 初見骨子20分: 問題文から骨子（見出し・要の1文・部品）だけを20分で作る練習（組込み系を除く）。
+   令和4年度以前は初見の問題として、令和5〜7年度は段階学習で扱う問題として出す（段階学習の骨子タブからもここを開く）。
+   練習スケジュールの自動チェックと「ランダムに1問」は、初見の問題（令和4年度以前）だけを数える。
    作り終えたら出題趣旨・採点講評・見本の骨子と見比べ、自己チェック・◯△×・AI採点で振り返る。
    問題文・設問・出題趣旨・採点講評は js/data/pm2/*.js（window.PM2_TEXT）、部品は js/data/pm2_parts.js、見本の骨子は js/data/pm2_model.js。
    保存先: ログイン中は users/{uid}/pm2docs/pm2blind（STSync.savePm2Doc）、未ログインは localStorage。 */
@@ -78,18 +79,20 @@
 
   /* ---------- 問題（令和4年度以前・組込み系を除く。新しい年度から） ---------- */
   var YEAR_LABEL = {
+    "2025r07h": "令和7年度", "2024r06h": "令和6年度", "2023r05h": "令和5年度",
     "2022r04h": "令和4年度", "2021r03h": "令和3年度", "2019r01a": "令和元年度", "2018h30a": "平成30年度",
     "2017h29a": "平成29年度", "2016h28a": "平成28年度", "2015h27a": "平成27年度", "2014h26a": "平成26年度",
     "2013h25a": "平成25年度", "2012h24a": "平成24年度", "2011h23a": "平成23年度", "2010h22a": "平成22年度",
     "2009h21a": "平成21年度"
   };
+  var STUDIED = { "2025r07h": true, "2024r06h": true, "2023r05h": true }; // 段階学習で扱う年度（初見ではない）
   function pool() {
     var all = window.PM2_TEXT || {}, out = [];
     Object.keys(all).sort().reverse().forEach(function (examId) {
       if (!YEAR_LABEL[examId]) return;
       (all[examId].questions || []).forEach(function (q) {
         if (/組込み/.test(q.title)) return;
-        out.push({ key: examId + "-" + q.no, examId: examId, year: YEAR_LABEL[examId], q: q });
+        out.push({ key: examId + "-" + q.no, examId: examId, year: YEAR_LABEL[examId], q: q, studied: STUDIED[examId] === true });
       });
     });
     return out;
@@ -141,31 +144,35 @@
   function renderList() {
     stopTimer();
     cur = null;
-    var items = pool();
+    var all = pool();
+    var items = all.filter(function (x) { return !x.studied; });
     var todo = items.filter(function (x) { return !(doc.attempts[x.key] || []).length; });
     var doneN = items.length - todo.length;
     var html =
       '<div class="card pm2-head-card">' +
         '<div class="group-head"><button type="button" class="linkbtn" id="pb-back">&larr; 午後IIの一覧へ戻る</button></div>' +
-        '<h2 class="pm2-title">初見骨子20分（令和4年度以前）</h2>' +
-        '<p class="stats-note">段階学習で扱っていない過去問を初見として、問題文から<b>骨子だけ</b>を20分で作ります。本番の最初の20分（5〜25分）の練習です。' +
-          '作り終えたら、IPAの出題趣旨・採点講評と見比べて自己チェックし、必要ならAIに骨子を見てもらいます。文章は書きません。</p>' +
-        '<div class="pm-panel-actions"><span class="pb-progress">' + doneN + ' / ' + items.length + ' 問に取り組み済み</span><span class="spacer"></span>' +
-          '<button type="button" class="primary" id="pb-random"' + (todo.length ? '' : ' disabled') + '>まだ解いていない問題からランダムに1問</button></div>' +
+        '<h2 class="pm2-title">初見骨子20分</h2>' +
+        '<p class="stats-note">問題文から<b>骨子だけ</b>を20分で作ります。本番の最初の20分（5〜25分）の練習です。' +
+          '作り終えたら、見本の骨子・IPAの出題趣旨と採点講評と見比べて自己チェックし、必要ならAIに骨子を見てもらいます。文章は書きません。' +
+          '令和4年度以前は初見の問題、令和5〜7年度は段階学習で学んだ問題です。</p>' +
+        '<div class="pm-panel-actions"><span class="pb-progress">初見の問題 ' + doneN + ' / ' + items.length + ' 問に取り組み済み</span><span class="spacer"></span>' +
+          '<button type="button" class="primary" id="pb-random"' + (todo.length ? '' : ' disabled') + '>まだ解いていない初見の問題からランダムに1問</button></div>' +
       '</div>';
-    html += '<div class="card"><div class="pp-list">';
-    items.forEach(function (x) {
+    function itemHtml(x) {
       var at = doc.attempts[x.key] || [];
       var last = at[0];
-      html += '<button type="button" class="pp-item' + (at.length ? ' done' : '') + '" data-key="' + x.key + '">' +
+      return '<button type="button" class="pp-item' + (at.length ? ' done' : '') + '" data-key="' + x.key + '">' +
         '<span class="pp-mark">' + (at.length ? "✓" : "") + '</span>' +
         '<span class="pp-item-body"><b>' + esc(x.q.title) + '</b><small>' + esc(x.year) + ' 問' + x.q.no + '</small></span>' +
         '<span class="pp-item-stat">' + (last
           ? at.length + '回・前回 ' + (last.g ? GRADE[last.g] + '・' : '') + 'チェック ' + (last.checks || []).filter(Boolean).length + '/' + CHECKS.length
           : (doc.drafts[x.key] ? '作りかけ' : '')) + '</span>' +
       '</button>';
-    });
-    html += '</div></div>';
+    }
+    html += '<div class="card"><div class="group-head"><h2>初見の問題（令和4年度以前）</h2></div><div class="pp-list">' + items.map(itemHtml).join("") + '</div></div>';
+    html += '<div class="card"><div class="group-head"><h2>段階学習の問題（令和5〜7年度）</h2></div>' +
+      '<p class="stats-note">段階学習で学んだ問題です。見本の文章を思い出しながらではなく、問題文から骨子を組み直す練習に使います。</p>' +
+      '<div class="pp-list">' + all.filter(function (x) { return x.studied; }).map(itemHtml).join("") + '</div></div>';
     root.innerHTML = html;
     $("#pb-back").addEventListener("click", close);
     $("#pb-random").addEventListener("click", function () {
@@ -330,7 +337,7 @@
     if (doc.attempts[cur.key].length > MAX_ATTEMPTS) doc.attempts[cur.key].length = MAX_ATTEMPTS;
     delete doc.drafts[cur.key];
     saveDoc();
-    markDone(cur.key);
+    if (!cur.x.studied) markDone(cur.key);
     $all(root, ".pb-ta").forEach(function (ta) { ta.readOnly = true; });
     $all(root, ".pb-parts").forEach(function (s) { s.disabled = true; });
     $("#pb-timer-btn").disabled = true;
@@ -523,12 +530,16 @@
   }
 
   /* ---------- 開閉 ---------- */
-  function open() {
+  function open(key) {
     if (window.PmPara) window.PmPara.close();
     pmMain.hidden = true;
     root.hidden = false;
     root.innerHTML = '<p class="pm-empty">読み込み中…</p>';
-    loadDoc().then(function (d) { doc = d; renderList(); });
+    loadDoc().then(function (d) {
+      doc = d;
+      if (typeof key === "string" && itemByKey(key)) renderDrill(key);
+      else renderList();
+    });
   }
   function close() {
     saveDraftSilently();

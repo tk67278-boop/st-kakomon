@@ -1358,6 +1358,11 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pb-field-head select { margin-left: auto; max-width: 60%; }
 .pb-old { white-space: pre-wrap; font-size: 14.5px; line-height: 1.75; padding: 10px 12px; margin-bottom: 8px; border-radius: 10px; background: var(--chip); }
 .pb-old b { display: block; font-size: 12.5px; color: var(--muted); }
+/* 段階学習の骨子タブ: 以前保存した骨子（読むだけ） */
+.pm2-old-outline { border-top: 1px solid var(--line); padding: 8px 0; }
+.pm2-old-outline summary { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 14px; }
+.pm2-old-outline summary .linkbtn { margin-left: auto; }
+.pm2-old-outline[open] summary { margin-bottom: 8px; }
 .pb-ref { font-size: 15px; line-height: 1.8; padding: 10px 14px; margin: 8px 0; border-radius: 10px; background: var(--ok-soft); }
 .pb-ref p { margin: 0 0 8px; }
 .pb-ref > b { display: block; font-size: 13px; margin-bottom: 4px; }
