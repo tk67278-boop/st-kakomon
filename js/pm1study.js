@@ -1259,6 +1259,7 @@
       state.doc.t = Date.now();
       saveDoc();
     });
+    if (window.AiView) window.AiView.attach(aiTa); // 貼り付けた結果を整えて表示（js/mdlite.js）
 
     updateGradeSummary();
 

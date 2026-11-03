@@ -1581,6 +1581,7 @@
       state.doc.check.t = Date.now();
       saveDoc();
     });
+    if (window.AiView) window.AiView.attach(aiTa); // 貼り付けた結果を整えて表示（js/mdlite.js）
 
     var copyBtn = $("#pm2-btn-copy-prompt");
     if (copyBtn && essay) {

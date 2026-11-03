@@ -577,6 +577,34 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 .pm2-outline-ta { min-height: 110px; }
 .pm2-essay-ta { min-height: 220px; font-size: 16px; line-height: 1.8; }
 .pm2-ai-result { min-height: 140px; margin-top: 4px; }
+/* AIの採点結果を整えた表示（js/mdlite.js） */
+.ai-view-bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 14px; }
+.ai-view { margin-top: 6px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 14.5px; line-height: 1.8; overflow-wrap: anywhere; }
+.ai-view p { margin: 0 0 10px; }
+.ai-view .md-h { font-weight: 700; margin: 14px 0 6px; line-height: 1.5; }
+.ai-view .md-h:first-child { margin-top: 0; }
+.ai-view .md-h1 { font-size: 17px; padding-bottom: 4px; border-bottom: 2px solid var(--accent); }
+.ai-view .md-h2 { font-size: 15.5px; padding-left: 8px; border-left: 4px solid var(--accent); }
+.ai-view .md-h3, .ai-view .md-h4 { font-size: 14.5px; color: var(--accent); }
+.ai-view .md-table { overflow-x: auto; margin: 6px 0 12px; }
+.ai-view table { border-collapse: collapse; width: 100%; font-size: 13.5px; line-height: 1.65; }
+.ai-view th, .ai-view td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.ai-view th { background: var(--chip); white-space: nowrap; }
+.ai-view .md-mark { display: inline-block; min-width: 1.8em; text-align: center; font-weight: 800; border-radius: 6px; color: #fff; }
+.ai-view .md-mark-o { background: var(--ok); }
+.ai-view .md-mark-t { background: #d97706; }
+.ai-view .md-mark-x { background: var(--ng); }
+.ai-view .md-list { list-style: none; margin: 4px 0 10px; padding: 0; }
+.ai-view .md-list li { position: relative; padding-left: 1.2em; margin: 2px 0; }
+.ai-view .md-list li::before { content: "・"; position: absolute; left: 0; }
+.ai-view .md-list li.md-num { padding-left: 1.8em; }
+.ai-view .md-list li.md-num::before { content: attr(data-n); font-weight: 700; }
+.ai-view .md-list .md-l1 { margin-left: 1.2em; }
+.ai-view .md-list .md-l2, .ai-view .md-list .md-l3 { margin-left: 2.4em; }
+.ai-view blockquote { margin: 6px 0 10px; padding: 6px 12px; border-left: 3px solid var(--line); color: var(--muted); }
+.ai-view hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
+.ai-view code { font-size: 13px; padding: 1px 5px; border-radius: 4px; background: var(--chip); }
+.ai-view pre { white-space: pre-wrap; font-size: 13px; padding: 8px 10px; border-radius: 8px; background: var(--chip); }
 
 .pm2-count { margin-top: 6px; font-size: 13px; font-weight: 700; text-align: right; }
 .pm2-count.muted { color: var(--muted); }

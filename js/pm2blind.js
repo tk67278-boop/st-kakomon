@@ -393,6 +393,7 @@
         function () { flash($("#pb-copy-status"), "コピーできませんでした"); });
     });
     $("#pb-ai").addEventListener("change", function (e) { at.ai = e.target.value; saveDoc(); renderHistory(); });
+    if (window.AiView) window.AiView.attach($("#pb-ai")); // 貼り付けた結果を整えて表示（js/mdlite.js）
   }
   function updateCheckN(at) {
     var el = $("#pb-check-n");
