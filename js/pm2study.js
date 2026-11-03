@@ -255,15 +255,18 @@
   function renderProblemTab(body) {
     var q = state.q;
     var qq = q.q || {};
+    // 広い画面では，左に問題文，右に設問ア・イ・ウを並べる
     body.innerHTML =
-      '<div class="card"><div class="pm2-lead">' + renderParagraphs(q.lead) + '</div></div>' +
-      KEY_ORDER.map(function (k) {
+      '<div class="pm2-pb-grid">' +
+      '<div class="pm2-pb-left"><div class="card"><div class="pm2-lead">' + renderParagraphs(q.lead) + '</div></div></div>' +
+      '<div>' + KEY_ORDER.map(function (k) {
         return '<div class="card pm2-setumon-box">' +
           '<div class="group-head"><h2>' + KANA_LABEL[k] + '</h2><span class="spacer"></span>' +
           '<span class="pm2-limit-label">' + escapeHtml(LIMITS[k].label) + '</span></div>' +
           '<div class="pm2-setumon-body">' + escapeHtml(qq[k] || "（未収録）") + '</div>' +
         '</div>';
-      }).join("");
+      }).join("") + '</div>' +
+      '</div>';
   }
 
   /* =====================================================================

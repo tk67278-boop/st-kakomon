@@ -1266,7 +1266,14 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2s-body),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-ol-grid),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-essay-versions),
-  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-rv-grid) { max-width: 1440px; }
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-rv-grid),
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-pb-grid) { max-width: 1440px; }
+}
+/* 問題文タブ（js/pm2study.js）: 広い画面では左に問題文，右に設問ア・イ・ウ */
+.pm2-pb-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
+@media (min-width: 1000px) {
+  .pm2-pb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .pm2-pb-left { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
 }
 /* 振り返りタブ（js/pm2study.js）: 広い画面では左に評価とセルフチェック，右にAI添削 */
 .pm2-rv-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
