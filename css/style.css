@@ -1387,9 +1387,12 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-recite { list-style: none; margin: 0; padding: 0; counter-reset: rc; }
 .pm2s-recite li { padding: 10px 0; border-top: 1px solid var(--line); }
 .pm2s-recite-head { font-weight: 700; display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
-.pm2s-recite-card { width: 100%; text-align: left; font: inherit; cursor: pointer; border: 2px dashed var(--line); border-radius: 10px; background: var(--card); color: var(--text); padding: 10px 12px; }
+.pm2s-recite-card { border: 2px dashed var(--line); border-radius: 10px; background: var(--card); color: var(--text); padding: 10px 12px; }
 .pm2s-recite-card.open { border-style: solid; border-color: var(--ok); background: var(--ok-soft); }
-.pm2s-recite-q { color: var(--muted); font-size: 14px; }
+.pm2s-recite-q { display: block; width: 100%; text-align: left; font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; }
+.pm2s-recite-role { font-size: 15px; line-height: 1.8; }
+.pm2s-recite-role b { display: block; font-size: 12.5px; color: var(--muted); }
+.pm2s-recite-card .pm2s-grade { align-items: center; }
 .pm2s-recite-q small { display: block; margin-top: 2px; font-size: 12.5px; }
 .pm2s-recite-q[hidden], .pm2s-recite-a[hidden] { display: none; }
 .pm2s-recite-a { font-size: 15px; line-height: 1.8; }

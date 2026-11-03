@@ -301,7 +301,7 @@
      ===================================================================== */
   var STEP_STAGES = [
     { n: 1, label: "1 見本を読む", desc: "A社の模範論文を、骨子の見出しごとに読みます。黄色の文が各段落の「要の1文」です。使った部品と組み立て方（文型）も確認します。" },
-    { n: 6, label: "暗唱：要の1文", desc: "要の1文だけを見出しの順に並べ、見本でその前後にある文を添えています。見出しと前後の文を見て1文を声に出してから押すと答えが出ます。8〜9文で論文の筋がつながっていることを確認します。" },
+    { n: 6, label: "暗唱：要の1文", desc: "見出しと前後の文を手掛かりに、要の1文を自分の言葉で声に出します。押すとその1文の役割が出るので、役割どおりに言えたかで◯×を付けます。言い回しは見本と同じでなくてかまいません。8〜9文で論文の筋がつながることを確認します。" },
     { n: 2, label: "2 選んで組み立てる", desc: "各段落の要の1文や考え方を、選択肢から選びます。間違いの選択肢は、採点講評で指摘されたよくある失敗です。" },
     { n: 3, label: "3 穴埋めで書く", desc: "模範論文の要の1文だけが空欄になっています。前後の文を読んで、空欄の1文を自分で書き、答え合わせをします。" },
     { n: 4, label: "4 見出しごとに書く", desc: "見本は見ずに、組み立て方（文型）と部品だけを見て1段落ずつ書きます。書いたら4つのチェック（設問に答えている・要の1文・A社の数字や事情・組み立て方の順）で判定し、見本は最後に表現の参考として見ます。" },
@@ -451,27 +451,43 @@
     return { prev: before[before.length - 1] || "", next: after[0] || "" };
   }
 
-  // 暗唱: 要の1文だけを見出しの順に並べ，押すと答えが出る。手掛かりに見本の前後の文を添える
+  // 暗唱: 見出しの順に，前後の文を手掛かりに要の1文を自分の言葉で言う。
+  // 押すと見本の文ではなく「その1文の役割」（keyHint）が出て，役割どおりに言えたかで◯×を付ける（見本の1文は参考として畳んでおく）
   function renderStepRecite(box, data) {
     var html = '<div class="card"><div class="pm2s-recite-bar">' +
       '<span class="pm2s-recite-n" id="pm2s-recite-n"></span><span class="spacer"></span>' +
-      '<button type="button" class="linkbtn" id="pm2s-recite-all">すべて表示</button>' +
-      '<button type="button" class="linkbtn" id="pm2s-recite-none">すべて隠す</button></div>' +
+      '<button type="button" class="linkbtn" id="pm2s-recite-all">すべて開く</button>' +
+      '<button type="button" class="linkbtn" id="pm2s-recite-none">すべて閉じる</button></div>' +
       '<ol class="pm2s-recite">';
     data.sections.forEach(function (sec) {
       var op = keyOpener(sec.key), nb = keyNeighbors(sec);
       html += '<li><div class="pm2s-recite-head"><span class="badge pm-no">設問' + sec.part + '</span>' + escapeHtml(sec.id + " " + sec.head) + '</div>' +
         '<div class="pm2s-recite-ctx"><b>前の文</b>' + (nb.prev ? escapeHtml(nb.prev) : '<span class="muted">（段落の最初の文です）</span>') + '</div>' +
-        '<button type="button" class="pm2s-recite-card"><span class="pm2s-recite-q">押して答えを表示' +
-          '<small>書き出し：「' + escapeHtml(op.head) + '」' + (op.type ? '（' + escapeHtml(op.type.replace(/（.*$/, "")) + '）' : '') + '</small></span>' +
-          '<span class="pm2s-recite-a" hidden>' + escapeHtml(sec.key) + '</span></button>' +
+        '<div class="pm2s-recite-card">' +
+          '<button type="button" class="pm2s-recite-q">1文を声に出してから押す' +
+            '<small>書き出しの例：「' + escapeHtml(op.head) + '」' + (op.type ? '（' + escapeHtml(op.type.replace(/（.*$/, "")) + '）' : '') + '</small></button>' +
+          '<div class="pm2s-recite-a" hidden>' +
+            '<div class="pm2s-recite-role"><b>この1文の役割</b>' + escapeHtml(sec.keyHint) + '</div>' +
+            '<div class="pm2s-grade">' +
+              '<button type="button" class="pm2s-grade-btn g-o" data-r="o">◯ 役割どおりに言えた</button>' +
+              '<button type="button" class="pm2s-grade-btn g-x" data-r="x">× 言えなかった</button>' +
+              '<button type="button" class="linkbtn pm2s-recite-close">閉じる</button>' +
+            '</div>' +
+            '<details class="pm2s-model"><summary>見本の1文を見る（参考。判定には使いません）</summary><div class="pm2s-text">' + escapeHtml(sec.key) + '</div></details>' +
+          '</div>' +
+        '</div>' +
         '<div class="pm2s-recite-ctx"><b>後の文</b>' + (nb.next ? escapeHtml(nb.next) : '<span class="muted">（段落の最後の文です）</span>') + '</div></li>';
     });
     box.innerHTML = html + '</ol></div>';
     var cards = $all(box, ".pm2s-recite-card");
     function paint() {
-      var shown = cards.filter(function (c) { return !c.querySelector(".pm2s-recite-a").hidden; }).length;
-      $("#pm2s-recite-n").textContent = "表示 " + shown + " / " + cards.length;
+      var opened = 0, ok = 0, ng = 0;
+      cards.forEach(function (c) {
+        if (!c.querySelector(".pm2s-recite-a").hidden) opened++;
+        if (c.dataset.r === "o") ok++;
+        if (c.dataset.r === "x") ng++;
+      });
+      $("#pm2s-recite-n").textContent = "確認 " + opened + " / " + cards.length + "（◯ " + ok + "・× " + ng + "）";
     }
     function setShown(c, on) {
       c.querySelector(".pm2s-recite-a").hidden = !on;
@@ -479,7 +495,16 @@
       c.classList.toggle("open", on);
     }
     cards.forEach(function (c) {
-      c.addEventListener("click", function () { setShown(c, c.querySelector(".pm2s-recite-a").hidden); paint(); });
+      c.querySelector(".pm2s-recite-q").addEventListener("click", function () { setShown(c, true); paint(); });
+      c.querySelector(".pm2s-recite-close").addEventListener("click", function () { setShown(c, false); paint(); });
+      // ◯×はこの画面を開いている間だけ数える（記録には残さない）。同じものを押し直すと取り消す
+      $all(c, "[data-r]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (c.dataset.r === b.dataset.r) delete c.dataset.r; else c.dataset.r = b.dataset.r;
+          $all(c, "[data-r]").forEach(function (x) { x.classList.toggle("active", x.dataset.r === c.dataset.r); });
+          paint();
+        });
+      });
     });
     $("#pm2s-recite-all").addEventListener("click", function () { cards.forEach(function (c) { setShown(c, true); }); paint(); });
     $("#pm2s-recite-none").addEventListener("click", function () { cards.forEach(function (c) { setShown(c, false); }); paint(); });
