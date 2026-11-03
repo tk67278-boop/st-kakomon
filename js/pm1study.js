@@ -326,7 +326,8 @@
   }
   function renderProblemTab(body) {
     var q = state.q;
-    var html = '<div class="card"><div class="pm2-lead">' + renderBodyWithFigures(q) + '</div></div>';
+    // 広い画面では，左に問題文，右に設問を並べる（css は午後IIの問題文タブと共通）
+    var html = '<div class="pm2-pb-grid"><div class="pm2-pb-left"><div class="card"><div class="pm2-lead">' + renderBodyWithFigures(q) + '</div></div></div><div>';
     html += (q.setsumon || []).map(function (s) {
       return '<div class="card pm2-setumon-box">' +
         '<div class="group-head"><h2>' + escapeHtml(s.label || "") + '</h2></div>' +
@@ -339,6 +340,7 @@
         '</div>' +
       '</div>';
     }).join("");
+    html += '</div></div>';
     body.innerHTML = html;
   }
 
@@ -358,6 +360,7 @@
           (urls.cmnt ? '<a href="' + escapeAttr(urls.cmnt) + '" target="_blank" rel="noopener">講評</a>' : '') +
         '</div>' +
       '</div>' +
+      '<div class="pm2-mt-grid">' + // 広い画面では出題趣旨と採点講評を左右に並べる
       '<div class="card">' +
         '<div class="group-head"><h2>出題趣旨</h2></div>' +
         '<pre class="pm2-pre">' + escapeHtml(q.shushi || "（未収録）") + '</pre>' +
@@ -365,6 +368,7 @@
       '<div class="card">' +
         '<div class="group-head"><h2>採点講評</h2></div>' +
         '<pre class="pm2-pre">' + escapeHtml(q.kouhyo || "（未収録）") + '</pre>' +
+      '</div>' +
       '</div>';
   }
 
@@ -1133,6 +1137,7 @@
         '<div class="group-head"><h3>' + escapeHtml(fp.part.label || "") + '<span class="pm1-pt">' + state.points[fp.idx] + '点</span></h3>' +
           (hintsUsed[fp.idx] ? '<span class="pm1x-hint-badge">ヒント' + hintsUsed[fp.idx] + 'まで使用</span>' : '') + '</div>' +
         comparePartQuestionHtml(fp) +
+        '<div class="pm1-cmp-grid">' + // 広い画面では，あなたの答案と公式解答例を左右に並べる
         '<div class="pm1-compare-box pm1-compare-mine">' +
           '<div class="pm1-compare-label">あなたの答案</div>' +
           '<div class="pm1-compare-text">' + (ansText ? escapeHtml(ansText) : '<span class="pm1-empty-inline">（未入力）</span>') + '</div>' +
@@ -1141,6 +1146,7 @@
           '<div class="pm1-compare-label">公式解答例</div>' +
           '<div class="pm1-compare-text">' + escapeHtml(fp.part.answer || "（未収録）") + '</div>' +
           explainHtml(fp) +
+        '</div>' +
         '</div>' +
         '<div class="pm1-grade-row">' +
           GRADE_OPTIONS.map(function (sym) {
@@ -1158,7 +1164,8 @@
       '<details><summary>採点講評を表示</summary><pre class="pm2-pre">' + escapeHtml(q.kouhyo || "（未収録）") + '</pre></details>' +
     '</div>';
 
-    html += '<div class="card">' +
+    html += '<div class="pm2-rv-grid"><div>' +
+      '<div class="card">' +
       '<div class="group-head"><h2>総合評価</h2></div>' +
       '<div class="pm1-grade-summary" id="pm1-grade-summary"></div>' +
       '<h3 class="pm-next-head">次に向けたポイント（AI採点から）</h3><div id="pm1-next"></div>' +
@@ -1174,15 +1181,17 @@
       '<textarea class="pm2-ai-result" id="pm1-memo" rows="4" placeholder="気づき・弱点など"></textarea>' +
     '</div>';
 
-    html += '<div class="card">' +
+    html += '</div><div class="pm2-rv-right">' +
+      '<div class="card">' +
       '<div class="group-head"><h2>AI採点</h2></div>' +
       '<div class="pm2-ai-actions">' +
         '<button type="button" class="primary" id="pm1-btn-copy-prompt">AI採点用にコピー</button>' +
         '<span class="pm2-copy-status" id="pm1-copy-status"></span>' +
       '</div>' +
       '<label class="pm2-field-label">AI採点結果の貼り付け欄</label>' +
-      '<textarea class="pm2-ai-result" id="pm1-ai-result" rows="8" placeholder="AIから返ってきた採点結果をここに貼り付けて保存できます"></textarea>' +
-    '</div>';
+      '<textarea class="pm2-ai-result" id="pm1-ai-result" rows="12" placeholder="AIから返ってきた採点結果をここに貼り付けて保存できます"></textarea>' +
+    '</div>' +
+    '</div></div>';
 
     body.innerHTML = html;
 

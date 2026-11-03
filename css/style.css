@@ -829,7 +829,11 @@ table.rep-qtable {
 }
 
 /* ---------- 午後I 演習: 問題文と解答欄の分割表示・ヒントモード ---------- */
-body.pm1-wide main.wrap { max-width: 1440px; }
+/* 午後Iの演習画面（js/pm1study.js）は，広い画面ではどのタブも横幅を広げる */
+@media (min-width: 1000px) {
+  main.wrap:has(#mode-pm:not([hidden]) #pm1-study:not([hidden])) { max-width: 1440px; }
+  .pm1-cmp-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+}
 .pm1x-bar { padding: 10px 14px; }
 .pm1x-bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .pm1x-bar-title { font-weight: 700; }
