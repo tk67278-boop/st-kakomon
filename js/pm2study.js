@@ -682,6 +682,7 @@
       var op = keyOpener(sec.key);
       return '<div class="pm2s-sec" data-id="' + escapeAttr(sec.id) + '">' +
         '<h3>' + escapeHtml(sec.id + " " + sec.head) + stepGradeTag("fill", sec.id) + '</h3>' +
+        '<div class="pm2s-wgrid"><div>' + // 広い画面では左に本文，右に答え合わせ
         '<div class="pm2s-text">' + escapeHtml(before) +
           '<span class="pm2s-blank"><span class="pm2s-blank-hint">空欄：' + escapeHtml(sec.keyHint) + '</span>' +
           '<textarea class="pm2s-fill" rows="2" data-id="' + escapeAttr(sec.id) + '">' + escapeHtml(stepMine("fill", sec.id)) + '</textarea>' +
@@ -689,6 +690,7 @@
           '<span class="pm2s-opener" hidden>書き出し：「' + escapeHtml(op.head) + '」' + (op.type ? '　型：' + escapeHtml(op.type) : '') + '</span>' +
           '</span>' +
           escapeHtml(after) + '</div>' +
+        '</div><div>' +
         '<div class="pm-panel-actions"><button type="button" class="pm2s-check" data-label="答え合わせ">答え合わせ</button></div>' +
         '<div class="pm2s-answer" hidden><b>見本の1文：</b>' + escapeHtml(sec.key) +
           (op.type ? '<div class="pm2s-note">型：' + escapeHtml(op.type) + '</div>' : '') +
@@ -698,6 +700,7 @@
             '<div class="pm2-count muted" data-keycount="' + escapeAttr(sec.id) + '"></div></div>' +
           stepAnswerExtrasHtml("fill", sec.id) +
         '</div>' +
+        '</div></div>' +
       '</div>';
     }, stepKeep("fill"));
     bindStepCommon("fill", box, ".pm2s-fill", function () { renderStepFill(box, data); });
@@ -733,18 +736,21 @@
       var n = stepChars(sec.text);
       return '<div class="pm2s-sec" data-id="' + escapeAttr(sec.id) + '">' +
         '<h3>' + escapeHtml(sec.id + " " + sec.head) + stepGradeTag("write", sec.id) + '<small>目安 ' + Math.round(n / 50) * 50 + '字前後</small></h3>' +
+        '<div class="pm2s-wgrid"><div>' + // 広い画面では左に組み立て方と部品，右に入力欄とチェック
         patternHtml(sec.pattern) +
         '<div class="pm2s-partlist"><b>使える部品</b><ul>' + sec.parts.map(function (x) {
           var t = findPartText(x);
           return '<li>' + escapeHtml(t || x) + '</li>';
         }).join("") + '</ul></div>' +
-        '<textarea class="pm2s-write" rows="7" data-id="' + escapeAttr(sec.id) + '" data-target="' + n + '" placeholder="組み立て方の順に書きます">' + escapeHtml(stepMine("write", sec.id)) + '</textarea>' +
+        '</div><div>' +
+        '<textarea class="pm2s-write" rows="10" data-id="' + escapeAttr(sec.id) + '" data-target="' + n + '" placeholder="組み立て方の順に書きます">' + escapeHtml(stepMine("write", sec.id)) + '</textarea>' +
         '<div class="pm2-count muted" data-count="' + escapeAttr(sec.id) + '"></div>' +
         '<div class="pm-panel-actions"><button type="button" class="pm2s-check" data-label="チェックして判定する" data-hide="閉じる">チェックして判定する</button></div>' +
         '<div class="pm2s-answer pm2s-wanswer" hidden>' + writeCheckHtml(sec) +
           '<details class="pm2s-model"><summary>見本を見る（表現の参考。判定には使いません）</summary><div class="pm2s-text">' + escapeHtml(sec.text) + '</div></details>' +
           '<div class="pm2s-hist-wrap">' + stepHistHtml("write", sec.id) + '</div>' +
         '</div>' +
+        '</div></div>' +
       '</div>';
     }, stepKeep("write"));
     bindStepCommon("write", box, ".pm2s-write", function () { renderStepWrite(box, data); });

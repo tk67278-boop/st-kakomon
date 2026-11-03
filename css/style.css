@@ -1262,7 +1262,18 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 /* 練習画面（.pb-grid）が見えている間だけ，広い画面では横幅を広げる */
 @media (min-width: 1000px) {
   main.wrap:has(#mode-pm:not([hidden]) #pm2-blind:not([hidden]) .pb-grid),
-  main.wrap:has(#mode-pm:not([hidden]) #pm2-para:not([hidden]) .pp-grid) { max-width: 1440px; }
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-para:not([hidden]) .pp-grid),
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2s-body) { max-width: 1440px; }
+}
+/* 段階学習（js/pm2study.js）: 広い画面では段落ごとに左右に並べる。暗唱は「前の文｜？｜後の文」を横に並べる */
+.pm2s-wgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 20px; }
+@media (min-width: 1000px) {
+  .pm2s-wgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .pm2s-wgrid > div:last-child > .pm-panel-actions:first-child { justify-content: flex-start; }
+  .pm2s-recite li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 12px; align-items: start; }
+  .pm2s-recite-head { grid-column: 1 / -1; }
+  .pm2s-recite-ctx { padding: 10px 4px; }
+  #pm2s-drill { max-width: 960px; margin: 0 auto; }
 }
 /* 段落練習（js/pm2para.js）の練習画面: 左に課題，右に執筆欄 */
 .pp-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
@@ -1346,9 +1357,6 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .pm2s-wc input { margin-top: 6px; flex: none; }
 .pm2s-wc small { display: block; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
 .pm2s-wc-sum { font-weight: 700; font-size: 13.5px; align-self: center; margin-right: 4px; }
-.pm2s-model { margin-top: 12px; }
-.pm2s-model summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--accent); }
-.pm2s-model .pm2s-text { margin-top: 6px; }
 .pm2s-partlist ul { margin: 4px 0 0; padding-left: 1.3em; line-height: 1.65; }
 .pm2s-model { margin-top: 8px; }
 .pm2s-model summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: 13.5px; }
