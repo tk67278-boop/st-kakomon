@@ -186,6 +186,26 @@
   .model p:nth-child(odd) { font-weight: 700; margin-top: 6px; }
   tbody th { white-space: normal; }
   @media (max-width: 680px) { .cards { grid-template-columns: 1fr; } }
+  /* 数字の書き出し */
+  .nt-row { display: grid; grid-template-columns: 11em minmax(0, 1fr); gap: 4px 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+  .nt-row label { font-weight: 700; font-size: 14.5px; }
+  .nt-row label small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); }
+  .nt-in { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .nt-in input { font: inherit; font-size: 16px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); width: 8em; min-width: 0; }
+  .nt-in input.wide { width: 100%; max-width: 30em; }
+  .nt-unit { font-size: 14px; color: var(--muted); }
+  .nt-res { font-size: 13.5px; font-weight: 700; }
+  .nt-res.ok { color: var(--ok); }
+  .nt-res.ng { color: var(--warn); }
+  .nt-row.ok input { border-color: var(--ok); background: var(--ok-soft); }
+  .nt-row.ng input { border-color: var(--warn); background: var(--warn-soft); }
+  .nt-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .nt-actions button { font: inherit; font-size: 14px; font-weight: 700; padding: 7px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .nt-actions button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nt-sum { font-weight: 700; }
+  .nt-last { font-size: 13px; color: var(--muted); }
+  h3.nt-h { font-size: 16px; margin: 22px 0 4px; }
+  @media (max-width: 560px) { .nt-row { grid-template-columns: 1fr; } }
   #profile table { min-width: 0; }
   #profile tbody th { width: 6.5em; white-space: nowrap; }
 </style>
@@ -203,7 +223,7 @@
     <div class="stat"><b>10テーマ</b><span>令和3〜7年度の全テーマに当てはめ済み</span></div>
   </div>
   <nav class="toc">
-    <a href="#profile">会社と私</a><a href="#trait">事業特性</a><a href="#issue">経営課題</a><a href="#vision">変革と施策</a><a href="#dxcheck">DXチェック</a><a href="#ai-detail">AIの具体化</a><a href="#it">ITの現状</a><a href="#parts">施策の部品</a><a href="#mamori">基幹刷新の部品</a><a href="#kufu">工夫の部品</a><a href="#talk">ウの部品</a><a href="#map">テーマ別の使い方</a><a href="#a-text">設問アのひな形</a><a href="#drill">暗記チェック</a><a href="pm2_story.html">漫画で覚える &rarr;</a>
+    <a href="#profile">会社と私</a><a href="#numtest">数字の書き出し</a><a href="#trait">事業特性</a><a href="#issue">経営課題</a><a href="#vision">変革と施策</a><a href="#dxcheck">DXチェック</a><a href="#ai-detail">AIの具体化</a><a href="#it">ITの現状</a><a href="#parts">施策の部品</a><a href="#mamori">基幹刷新の部品</a><a href="#kufu">工夫の部品</a><a href="#talk">ウの部品</a><a href="#map">テーマ別の使い方</a><a href="#a-text">設問アのひな形</a><a href="#drill">暗記チェック</a><a href="pm2_story.html">漫画で覚える &rarr;</a>
   </nav>
 </header>
 
@@ -403,6 +423,21 @@
   <div class="tip"><b>使い方：</b>1.1と1.2は毎回ほぼ同じ文で書けるように覚えておきます。テーマによって「事業特性」の2点目を「近（常連）」に入れ替えたり、1.3の背景を変えたりします。</div>
 </section>
 
+<section class="card" id="numtest">
+  <h2>数字の書き出し（見ずに入力して答え合わせ）</h2>
+  <p class="lead">上の表を見ずに、A社の数字を入力してから「答え合わせ」を押します。全部そろうまで繰り返してください。入力した内容はこの端末にだけ残ります。</p>
+  <div id="nt-nums"></div>
+  <h3 class="nt-h">概要欄に答える内容</h3>
+  <p class="lead" style="font-size:14px">本番では設問アの前に「論述の対象とする概要」を答える欄があります。本文の数字や立場とずれないよう、A社での答えを決めておきます。本番の欄の項目と選択肢は確認できていないため、ここで決めた内容から、欄の項目に合うものを選んで答えます。</p>
+  <div id="nt-gaiyo"></div>
+  <div class="nt-actions">
+    <button type="button" class="primary" id="nt-check">答え合わせ</button>
+    <button type="button" id="nt-clear">空にしてもう一度</button>
+    <span class="nt-sum" id="nt-sum"></span>
+  </div>
+  <div class="nt-last" id="nt-last"></div>
+</section>
+
 <section class="card" id="drill">
   <span class="score" id="score">0 / 13</span>
   <h2>暗記チェック（押すと答え）</h2>
@@ -429,6 +464,96 @@
     apply(cur);
     try { localStorage.setItem("kikaku_theme", cur); } catch (e) {}
   });
+
+  // 数字の書き出し。数字は全角・カンマ・単位・「約」を除いて比べる（「4千」は4000）
+  var NUMS = [
+    { id: "store", label: "店舗数", unit: "店舗", ans: [40] },
+    { id: "sales", label: "年間売上高", unit: "億円", ans: [800] },
+    { id: "staff", label: "従業員数", note: "パート・アルバイトを含む", unit: "人", ans: [4000] },
+    { id: "fresh", label: "売上に占める生鮮食品の比率", unit: "割", ans: [4, 40], show: "4割" },
+    { id: "member", label: "ポイントカード会員", unit: "万人", ans: [60] },
+    { id: "invest", label: "投資額", note: "需要予測AIと基幹刷新の合計", unit: "億円", ans: [12] },
+    { id: "effect", label: "年間の効果", note: "食品ロスの削減", unit: "億円", ans: [5] }
+  ];
+  // 概要欄: 決めておく内容。判定は欠かせない言葉が入っているか（いずれかの組がすべて入っていれば正解）
+  var GAIYO = [
+    { id: "g-biz", label: "業種", ans: "小売業（食品スーパー）", need: [["小売"], ["スーパー"]] },
+    { id: "g-size", label: "規模", note: "従業員と売上高", ans: "従業員 約4,000人、売上高 800億円", need: [["4000", "800"], ["4千", "800"]] },
+    { id: "g-cost", label: "対象の投資額（総額）", ans: "12億円", need: [["12"]] },
+    { id: "g-role", label: "私の立場", ans: "情報システム部 システム企画担当の課長", need: [["情報システム", "課長"], ["情報システム", "企画"]] }
+  ];
+  var NT_KEY = "pm2_case_numtest";
+  function ntLoad() { try { return JSON.parse(localStorage.getItem(NT_KEY)) || {}; } catch (e) { return {}; } }
+  function ntSave(o) { try { localStorage.setItem(NT_KEY, JSON.stringify(o)); } catch (e) {} }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function half(t) {
+    return String(t || "").replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/[，,\s]/g, "");
+  }
+  function toNum(t) {
+    var v = half(t).replace(/^約/, "");
+    var m = v.match(/^(\d+(?:\.\d+)?)(千)?/);
+    if (!m) return null;
+    return Number(m[1]) * (m[2] ? 1000 : 1);
+  }
+  function rowHtml(x, wide) {
+    return '<div class="nt-row" id="row-' + x.id + '"><label for="in-' + x.id + '">' + esc(x.label) + (x.note ? '<small>' + esc(x.note) + '</small>' : '') + '</label>' +
+      '<div class="nt-in"><input id="in-' + x.id + '" autocomplete="off"' + (wide ? ' class="wide"' : ' inputmode="decimal"') + '>' +
+      (x.unit ? '<span class="nt-unit">' + esc(x.unit) + '</span>' : '') + '<span class="nt-res" id="res-' + x.id + '"></span></div></div>';
+  }
+  document.getElementById("nt-nums").innerHTML = NUMS.map(function (x) { return rowHtml(x, false); }).join("");
+  document.getElementById("nt-gaiyo").innerHTML = GAIYO.map(function (x) { return rowHtml(x, true); }).join("");
+  var ALL = NUMS.concat(GAIYO), saved = ntLoad();
+  ALL.forEach(function (x) {
+    var inp = document.getElementById("in-" + x.id);
+    inp.value = (saved.v || {})[x.id] || "";
+    inp.addEventListener("input", function () {
+      var o = ntLoad(); o.v = o.v || {}; o.v[x.id] = inp.value; ntSave(o);
+      document.getElementById("row-" + x.id).className = "nt-row";
+      document.getElementById("res-" + x.id).textContent = "";
+    });
+  });
+  function showLast() {
+    var o = ntLoad(), el = document.getElementById("nt-last");
+    if (!o.last) { el.textContent = ""; return; }
+    var d = new Date(o.last.t);
+    el.textContent = "前回の答え合わせ：" + (d.getMonth() + 1) + "/" + d.getDate() + " " + d.getHours() + ":" + ("0" + d.getMinutes()).slice(-2) +
+      "　" + o.last.n + " / " + o.last.total + " 正解" + (o.firstAll ? "（初めて全問正解：" + o.firstAll + "）" : "");
+  }
+  document.getElementById("nt-check").addEventListener("click", function () {
+    var n = 0;
+    ALL.forEach(function (x) {
+      var v = document.getElementById("in-" + x.id).value, ok;
+      if (x.need) {
+        var h = half(v);
+        ok = x.need.some(function (set) { return set.every(function (w) { return h.indexOf(w) >= 0; }); });
+      } else {
+        var num = toNum(v);
+        ok = num !== null && x.ans.indexOf(num) >= 0;
+      }
+      if (ok) n++;
+      document.getElementById("row-" + x.id).className = "nt-row " + (ok ? "ok" : "ng");
+      var r = document.getElementById("res-" + x.id);
+      r.className = "nt-res " + (ok ? "ok" : "ng");
+      r.textContent = ok ? "正解" : "答え：" + (x.show || (x.need ? x.ans : x.ans[0].toLocaleString() + x.unit));
+    });
+    document.getElementById("nt-sum").textContent = ALL.length + "問中 " + n + "問 正解" + (n === ALL.length ? "。全部そろいました" : "");
+    var o = ntLoad(), now = new Date();
+    o.last = { t: now.getTime(), n: n, total: ALL.length };
+    if (n === ALL.length && !o.firstAll) o.firstAll = (now.getMonth() + 1) + "/" + now.getDate();
+    ntSave(o);
+    showLast();
+  });
+  document.getElementById("nt-clear").addEventListener("click", function () {
+    var o = ntLoad(); o.v = {}; ntSave(o);
+    ALL.forEach(function (x) {
+      document.getElementById("in-" + x.id).value = "";
+      document.getElementById("row-" + x.id).className = "nt-row";
+      document.getElementById("res-" + x.id).textContent = "";
+    });
+    document.getElementById("nt-sum").textContent = "";
+    document.getElementById("in-" + ALL[0].id).focus();
+  });
+  showLast();
 
   // 暗記チェック（押すと答えが出る。開いた枚数を数える）
   var CARDS = [

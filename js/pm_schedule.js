@@ -67,7 +67,7 @@
         ] },
         { start: "2026-11-03", end: "2026-11-09", goal: "型とネタを固め、週末に通し執筆1本目。初見テーマの骨子20分を2回", tasks: [
           ["tb3", "todo", "教科書 第1〜3章を読み、第3章の選択問題（34問）を解く（選択は毎日10分でよい）", "text"],
-          ["nums", "todo", "A社の数字（40店・800億・4,000人・生鮮4割・会員60万・投資12億・年5億）を見ずに書き出す。概要欄に書く数字（規模・総額など）も決めておく", "case"],
+          ["nums", "todo", "事例設定シートの「数字の書き出し」で、A社の数字7つ（店舗数・売上高・従業員・生鮮の比率・会員・投資額・年間の効果）と概要欄に答える内容を、見ずに入力して全部正解にする", "case"],
           ["s-2025r07h-1c", "s", "段階学習：令和7年度 問1 基幹刷新を最後まで通す（段階4〜6。済んでいれば段階6の暗唱だけ）", ["2025r07h", 1, "steps"]],
           ["s-2024r06h-1a", "s", "段階学習：令和6年度 問1 新たな情報技術の採用（段階1〜3）", ["2024r06h", 1, "steps"]],
           ["b1", "b", "初見骨子20分（1回目）：出題趣旨・採点講評と見比べる", "blind"],
@@ -137,7 +137,7 @@
     if (go === "blind" && window.PmBlind) window.PmBlind.open();
     else if (go === "para" && window.PmPara) window.PmPara.open();
     else if (go === "text") { var t = document.getElementById("pm-text-link"); if (t) t.click(); }
-    else if (go === "case") window.open("summary/pm2_case.html", "_blank", "noopener");
+    else if (go === "case") window.open("summary/pm2_case.html#numtest", "_blank", "noopener");
     window.scrollTo(0, 0);
   }
 
