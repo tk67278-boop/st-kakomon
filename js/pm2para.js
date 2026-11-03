@@ -128,6 +128,10 @@
       '<div class="card pm2-head-card">' +
         '<div class="group-head"><button type="button" class="linkbtn" id="pp-to-list">&larr; 段落練習の一覧へ</button></div>' +
         '<div class="pm2-head-title"><span class="badge pm-no">設問' + d.part + '</span><h2 class="pm2-title">' + esc(d.title) + '</h2></div>' +
+      '</div>' +
+      // 広い画面では，左に課題と必須要素，右に執筆欄を並べる
+      '<div class="pp-grid">' +
+      '<div class="card pp-left">' +
         '<div class="pp-task">' + esc(d.task) + '</div>' +
         '<div class="pp-meta">目安 <b>' + d.chars + '字</b>（' + lo + '〜' + hi + '字）・<b>' + d.min + '分</b>・使う部品：' + esc(d.parts) + '</div>' +
         '<div class="pp-must"><b>必須要素</b><ol>' + d.must.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join("") + '</ol></div>' +
@@ -139,11 +143,12 @@
         '<div class="group-head"><h2>執筆</h2><span class="spacer"></span>' +
           '<span class="pp-timer" id="pp-timer">' + fmtClock(cur.sec) + '</span>' +
           '<button type="button" id="pp-timer-btn">開始</button></div>' +
-        '<textarea class="pp-ta" id="pp-ta" rows="12" placeholder="「開始」を押してから書き始めます。段落の最初は1字下げなくてかまいません。">' + esc(draft) + '</textarea>' +
+        '<textarea class="pp-ta" id="pp-ta" rows="14" placeholder="「開始」を押してから書き始めます。段落の最初は1字下げなくてかまいません。">' + esc(draft) + '</textarea>' +
         '<div class="pm2-count" id="pp-count"></div>' +
         '<div class="pm-panel-actions"><span class="pm2-save-status" id="pp-status"></span>' +
           '<button type="button" id="pp-save-draft">書きかけを保存</button>' +
           '<button type="button" class="primary" id="pp-finish">書き終えた</button></div>' +
+      '</div>' +
       '</div>' +
       '<div id="pp-review"></div>' +
       '<div class="card" id="pp-history-card"><div class="group-head"><h2>これまでの練習（最新' + MAX_ATTEMPTS + '件）</h2></div><div id="pp-history"></div></div>';
