@@ -837,9 +837,9 @@
      骨子・執筆タブ共通: 問題文の参照表示
      ===================================================================== */
   // 前文の折りたたみ表示（執筆・骨子タブの先頭に置く）
-  function leadDetailsHtml() {
+  function leadDetailsHtml(open) {
     return '<div class="card pm2-lead-card">' +
-      '<details class="pm2-lead-details">' +
+      '<details class="pm2-lead-details"' + (open ? ' open' : '') + '>' +
       '<summary>前文（問題文）を表示</summary>' +
       '<div class="pm2-lead">' + renderParagraphs(state.q.lead || "") + '</div>' +
       '</details></div>';
@@ -892,8 +892,11 @@
   function renderOutlineTab(body) {
     if (!state.outlineLive) state.outlineLive = { a: "", i: "", u: "" };
 
+    // 広い画面では，左に問題文（開いた状態），右に骨子メモを並べる
+    var wide = window.matchMedia && window.matchMedia("(min-width: 1000px)").matches;
     body.innerHTML =
-      leadDetailsHtml() +
+      '<div class="pm2-ol-grid">' +
+      '<div class="pm2-ol-left">' + leadDetailsHtml(wide) + '</div>' +
       '<div class="card">' +
         '<div class="group-head"><h2>骨子メモ</h2></div>' +
         KEY_ORDER.map(function (k) {
@@ -901,10 +904,11 @@
             '<label class="pm2-field-label">' + KANA_LABEL[k] + 'の章立て</label>' +
             setumonInlineHtml(k) +
             partsSelectHtml(k) +
-            '<textarea class="pm2-outline-ta" id="pm2-outline-' + k + '" rows="8" placeholder="' + escapeAttr(OUTLINE_PLACEHOLDER[k]) + '"></textarea>' +
+            '<textarea class="pm2-outline-ta" id="pm2-outline-' + k + '" rows="10" placeholder="' + escapeAttr(OUTLINE_PLACEHOLDER[k]) + '"></textarea>' +
           '</div>';
         }).join("") +
         '<div class="pm-panel-actions"><button type="button" class="primary" id="pm2-btn-outline-save">骨子を保存</button></div>' +
+      '</div>' +
       '</div>' +
       '<div class="card">' +
         '<div class="group-head"><h2>保存した骨子（最新5件）</h2></div>' +
