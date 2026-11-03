@@ -1267,7 +1267,18 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-ol-grid),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-essay-versions),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-rv-grid),
-  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-pb-grid) { max-width: 1440px; }
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-pb-grid),
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-drill-mount) { max-width: 1440px; }
+}
+/* ドリルタブ・段階学習の「選んで組み立てる」（js/drill.js）: 広い画面では左に問題と選択肢，右に解説 */
+@media (min-width: 1000px) {
+  :is(#pm2-drill-mount, #pm2s-drill) .q-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 24px; align-items: start; }
+  :is(#pm2-drill-mount, #pm2s-drill) .q-card > .q-meta { grid-column: 1; grid-row: 1; }
+  :is(#pm2-drill-mount, #pm2s-drill) .q-card > .q-text { grid-column: 1; grid-row: 2; }
+  :is(#pm2-drill-mount, #pm2s-drill) .q-card > .choices { grid-column: 1; grid-row: 3; }
+  :is(#pm2-drill-mount, #pm2s-drill) .q-card > .kbd-hint { grid-column: 1; grid-row: 4; }
+  :is(#pm2-drill-mount, #pm2s-drill) .q-card > .feedback { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; }
+  :is(#pm2-drill-mount, #pm2s-drill) .q-card > .q-actions { grid-column: 2; grid-row: 4; }
 }
 /* 問題文タブ（js/pm2study.js）: 広い画面では左に問題文，右に設問ア・イ・ウ */
 .pm2-pb-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
@@ -1295,7 +1306,6 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
   .pm2s-recite li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 12px; align-items: start; }
   .pm2s-recite-head { grid-column: 1 / -1; }
   .pm2s-recite-ctx { padding: 10px 4px; }
-  #pm2s-drill { max-width: 960px; margin: 0 auto; }
 }
 /* 段落練習（js/pm2para.js）の練習画面: 左に課題，右に執筆欄 */
 .pp-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
