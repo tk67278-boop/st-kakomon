@@ -1368,6 +1368,22 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pb-ref p { margin: 0 0 8px; }
 .pb-ref > b { display: block; font-size: 13px; margin-bottom: 4px; }
 .pb-ref-warn { background: var(--chip); }
+/* 初見骨子20分: 見本の骨子 */
+.pb-model { margin: 12px 0 0; }
+@media (min-width: 1000px) {
+  .pb-model-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 14px; }
+}
+.pb-model-q { display: block; font-size: 14px; color: var(--accent); margin-bottom: 4px; }
+.pb-model-h { padding: 8px 12px; margin: 6px 0; border: 1px solid var(--line); border-radius: 10px; }
+.pb-model-title { font-weight: 700; font-size: 15px; }
+.pb-model-key { font-size: 14.5px; line-height: 1.7; margin: 2px 0 6px; }
+.pb-model-parts { display: flex; flex-wrap: wrap; gap: 6px; }
+.pb-model-part { font-size: 13px; }
+.pb-model-part[open] { flex-basis: 100%; }
+.pb-model-part summary { display: inline-block; cursor: pointer; padding: 2px 10px; border-radius: 999px; background: var(--chip); list-style: none; }
+.pb-model-part summary::-webkit-details-marker { display: none; }
+.pb-model-part[open] summary { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.pb-model-part > div { margin: 4px 0 2px; padding: 6px 10px; line-height: 1.7; border-left: 3px solid var(--accent-soft); }
 .pb-grade { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px; flex-wrap: wrap; }
 .pb-grade-btn { font-size: 15px; min-width: 44px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
 .pb-grade-btn.g-o.on { background: var(--ok); border-color: var(--ok); color: #fff; }

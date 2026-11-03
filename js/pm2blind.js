@@ -1,7 +1,7 @@
 /* 午後II 初見骨子20分: 段階学習で扱っていない過去問（令和4年度以前・組込み系を除く）を初見として、
    問題文から骨子（見出し・要の1文・部品）だけを20分で作る練習。
-   作り終えたら出題趣旨・採点講評と見比べ、自己チェック・◯△×・AI採点で振り返る。
-   問題文・設問・出題趣旨・採点講評は js/data/pm2/*.js（window.PM2_TEXT）、部品は js/data/pm2_parts.js。
+   作り終えたら出題趣旨・採点講評・見本の骨子と見比べ、自己チェック・◯△×・AI採点で振り返る。
+   問題文・設問・出題趣旨・採点講評は js/data/pm2/*.js（window.PM2_TEXT）、部品は js/data/pm2_parts.js、見本の骨子は js/data/pm2_model.js。
    保存先: ログイン中は users/{uid}/pm2docs/pm2blind（STSync.savePm2Doc）、未ログインは localStorage。 */
 (function () {
   "use strict";
@@ -355,6 +355,7 @@
         '<div class="pb-ref"><b>出題趣旨</b>' + paras(x.q.shushi) + '</div>' +
         '<div class="pb-ref pb-ref-warn"><b>採点講評</b>' + paras(x.q.kouhyo || "（この問題の講評はありません）") + '</div>' +
       '</div>' +
+      modelHtml(cur.key) +
       '<div class="card">' +
         '<div class="group-head"><h2>自己チェック</h2><span class="spacer"></span><span class="pp-check-n" id="pb-check-n"></span></div>' +
         '<div class="pp-checks">' + CHECKS.map(function (m, i) {
@@ -394,6 +395,28 @@
     });
     $("#pb-ai").addEventListener("change", function (e) { at.ai = e.target.value; saveDoc(); renderHistory(); });
     if (window.AiView) window.AiView.attach($("#pb-ai")); // 貼り付けた結果を整えて表示（js/mdlite.js）
+  }
+  // 見本の骨子（js/data/pm2_model.js）。A社の部品だけで組んだ例で，部品は押すと中身が開く
+  function modelHtml(key) {
+    var m = (window.PM2_MODEL || {})[key];
+    if (!m) return "";
+    var head = '<div class="group-head"><h2>見本の骨子（A社の部品だけで組んだ例）</h2></div>';
+    if (m.skip) return '<div class="card">' + head + '<p class="stats-note">' + esc(m.skip) + '</p></div>';
+    var text = {};
+    (window.PM2_PARTS || []).forEach(function (g) { g.items.forEach(function (it) { text[it.label] = it.text; }); });
+    return '<div class="card">' + head +
+      '<p class="stats-note">自分の骨子と、見出しの立て方・要の1文・部品の当て方を見比べます。見本は一例です。見出しが設問の言葉に合っていて、部品の当て方に筋が通っていれば、違う組み方でも構いません。</p>' +
+      (m.pt ? '<div class="pb-ref"><b>この問題で外さないこと</b><p>' + esc(m.pt) + '</p></div>' : '') +
+      '<div class="pb-model-grid">' + PARTS.map(function (p) {
+        return '<div class="pb-model"><b class="pb-model-q">設問' + p[1] + '</b>' + (m[p[0]] || []).map(function (h) {
+          return '<div class="pb-model-h"><div class="pb-model-title">' + esc(h[0]) + '</div>' +
+            '<div class="pb-model-key">要：' + esc(h[1]) + '</div>' +
+            '<div class="pb-model-parts">' + h[2].map(function (l) {
+              return '<details class="pb-model-part"><summary>' + esc(l) + '</summary><div>' + esc(text[l] || "") + '</div></details>';
+            }).join("") + '</div></div>';
+        }).join("") + '</div>';
+      }).join("") + '</div>' +
+    '</div>';
   }
   function updateCheckN(at) {
     var el = $("#pb-check-n");
