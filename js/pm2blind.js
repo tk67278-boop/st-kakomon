@@ -227,7 +227,7 @@
             '<button type="button" id="pb-timer-btn">開始</button></div>' +
           PARTS.map(function (p) {
             return '<div class="pb-field"><div class="pb-field-head"><label for="pb-ta-' + p[0] + '">設問' + p[1] + '</label>' + partsSelectHtml(p[0]) + '</div>' +
-              '<textarea class="pp-ta pb-ta" id="pb-ta-' + p[0] + '" data-k="' + p[0] + '" rows="' + (p[0] === "i" ? 9 : 6) + '" placeholder="' +
+              '<textarea class="pp-ta pb-ta" id="pb-ta-' + p[0] + '" data-k="' + p[0] + '" rows="' + (p[0] === "i" ? 13 : 8) + '" placeholder="' +
               (p[0] === "a" ? "1.1 見出し ― 要の1文 ― 部品・数字\n1.2 …" : p[0] === "i" ? "2.1 見出し ― 要の1文 ― 部品・数字\n2.2 …\n2.3 …" : "3.1 見出し ― 要の1文 ― 部品・数字\n3.2 …") +
               '">' + esc(draft[p[0]] || "") + '</textarea></div>';
           }).join("") +

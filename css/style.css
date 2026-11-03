@@ -1259,6 +1259,8 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pb-progress { font-size: 13.5px; color: var(--muted); font-weight: 700; }
 .pb-steps { margin: 6px 0; padding-left: 1.4em; line-height: 1.7; }
 .pb-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
+/* 練習画面（.pb-grid）が見えている間だけ，広い画面では横幅を広げる */
+@media (min-width: 1000px) { main.wrap:has(#mode-pm:not([hidden]) #pm2-blind:not([hidden]) .pb-grid) { max-width: 1440px; } }
 @media (min-width: 1000px) {
   .pb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   .pb-problem { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
