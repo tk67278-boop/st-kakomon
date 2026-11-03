@@ -1268,7 +1268,13 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-essay-versions),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-rv-grid),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-pb-grid),
-  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-drill-mount) { max-width: 1440px; }
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-drill-mount),
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-mt-grid) { max-width: 1440px; }
+}
+/* 資料タブ（js/pm2study.js）: 広い画面では出題趣旨と採点講評を左右に並べる */
+.pm2-mt-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
+@media (min-width: 1000px) {
+  .pm2-mt-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
 }
 /* ドリルタブ・段階学習の「選んで組み立てる」（js/drill.js）: 広い画面では左に問題と選択肢，右に解説 */
 @media (min-width: 1000px) {

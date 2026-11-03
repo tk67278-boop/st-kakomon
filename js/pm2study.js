@@ -285,6 +285,8 @@
           (urls.cmnt ? '<a href="' + escapeAttr(urls.cmnt) + '" target="_blank" rel="noopener">講評</a>' : '') +
         '</div>' +
       '</div>' +
+      // 広い画面では，出題趣旨と採点講評を左右に並べる
+      '<div class="pm2-mt-grid">' +
       '<div class="card">' +
         '<div class="group-head"><h2>出題趣旨</h2></div>' +
         '<pre class="pm2-pre">' + escapeHtml(q.shushi || "（未収録）") + '</pre>' +
@@ -292,6 +294,7 @@
       '<div class="card">' +
         '<div class="group-head"><h2>採点講評</h2></div>' +
         '<pre class="pm2-pre">' + escapeHtml(q.kouhyo || "（未収録）") + '</pre>' +
+      '</div>' +
       '</div>';
   }
 
