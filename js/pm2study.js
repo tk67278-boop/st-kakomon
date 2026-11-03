@@ -1504,7 +1504,9 @@
     var items = state.doc.check.items || {};
     var essay = getLatestEssayForPrompt();
 
+    // 広い画面では，左に評価とセルフチェック，右にAI添削を並べる
     body.innerHTML =
+      '<div class="pm2-rv-grid"><div>' +
       '<div class="card">' +
         '<div class="group-head"><h2>評価（自分とAI）</h2></div>' +
         '<p class="stats-note">IPAの評価はA（合格水準）〜Dの4段階です。自分の評価を付け、AI採点の結果を下に貼り付けると、AIの評価が並んで表示されます。自分の評価はAIで上書きされません。</p>' +
@@ -1522,6 +1524,7 @@
           }).join("") +
         '</ul>' +
       '</div>' +
+      '</div><div class="pm2-rv-right">' +
       '<div class="card">' +
         '<div class="group-head"><h2>AI添削</h2></div>' +
         '<div class="pm2-ai-actions">' +
@@ -1530,8 +1533,9 @@
         '</div>' +
         (essay ? '' : '<p class="pm-empty">※論文が未入力です</p>') +
         '<label class="pm2-field-label">AI採点結果の貼り付け欄</label>' +
-        '<textarea class="pm2-ai-result" id="pm2-ai-result" rows="8" placeholder="AIから返ってきた採点結果をここに貼り付けて保存できます"></textarea>' +
-      '</div>';
+        '<textarea class="pm2-ai-result" id="pm2-ai-result" rows="12" placeholder="AIから返ってきた採点結果をここに貼り付けて保存できます"></textarea>' +
+      '</div>' +
+      '</div></div>';
 
     $all(body, ".pm2-check-box").forEach(function (cb) {
       cb.addEventListener("change", function () {
