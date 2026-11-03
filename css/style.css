@@ -1264,7 +1264,8 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
   main.wrap:has(#mode-pm:not([hidden]) #pm2-blind:not([hidden]) .pb-grid),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-para:not([hidden]) .pp-grid),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2s-body),
-  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-ol-grid) { max-width: 1440px; }
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-ol-grid),
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-essay-versions) { max-width: 1440px; }
 }
 /* 骨子タブ（js/pm2study.js）: 広い画面では左に問題文，右に骨子メモ */
 .pm2-ol-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
