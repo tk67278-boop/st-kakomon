@@ -346,17 +346,29 @@
     var x = cur.x, at = (doc.attempts[cur.key] || [])[idx];
     if (!at) return;
     var box = $("#pb-review");
+    // 広い画面では，左に自分の骨子を固定し，右の見本・出題趣旨・チェック・AI採点と見比べられるようにする
+    // （作り終えた直後のスマホでは，すぐ上の入力欄と同じ内容なので左の骨子は出さない）
+    var dup = cur.done && idx === 0;
     box.innerHTML =
-      (idx > 0 || !cur.done ? '<div class="card"><div class="group-head"><h2>' + esc(fmtDate(at.t)) + 'の骨子</h2></div>' +
-        PARTS.map(function (p) { return '<div class="pb-old"><b>設問' + p[1] + '</b>' + esc(at.o[p[0]] || "") + '</div>'; }).join("") + '</div>' : '') +
-      '<div class="card">' +
+      '<div class="pb-rv-grid">' +
+      '<aside class="pb-rv-mine' + (dup ? ' pb-dup' : '') + '"><div class="card">' +
+        '<div class="group-head"><h2>あなたの骨子（' + esc(fmtDate(at.t)) + '）</h2></div>' +
+        PARTS.map(function (p) { return '<div class="pb-old"><b>設問' + p[1] + '</b>' + esc(at.o[p[0]] || "") + '</div>'; }).join("") +
+        '<div class="pb-rv-nav">' +
+          [["pb-rv-model", "見本"], ["pb-rv-ref", "出題趣旨・講評"], ["pb-rv-check", "自己チェック"], ["pb-rv-ai", "AI採点"]].map(function (n) {
+            return '<button type="button" class="linkbtn" data-to="' + n[0] + '">' + n[1] + '</button>';
+          }).join("") +
+        '</div>' +
+      '</div></aside>' +
+      '<div class="pb-rv-main">' +
+      modelHtml(cur.key) +
+      '<div class="card" id="pb-rv-ref">' +
         '<div class="group-head"><h2>出題趣旨と採点講評（IPA）</h2></div>' +
         '<p class="stats-note">自分の骨子と見比べます。出題趣旨の「〜を論述することを求めている」の部分が、骨子のどの見出しに当たるかを確かめ、採点講評の「散見された」に当てはまらないかを見ます。</p>' +
         '<div class="pb-ref"><b>出題趣旨</b>' + paras(x.q.shushi) + '</div>' +
         '<div class="pb-ref pb-ref-warn"><b>採点講評</b>' + paras(x.q.kouhyo || "（この問題の講評はありません）") + '</div>' +
       '</div>' +
-      modelHtml(cur.key) +
-      '<div class="card">' +
+      '<div class="card" id="pb-rv-check">' +
         '<div class="group-head"><h2>自己チェック</h2><span class="spacer"></span><span class="pp-check-n" id="pb-check-n"></span></div>' +
         '<div class="pp-checks">' + CHECKS.map(function (m, i) {
           return '<label><input type="checkbox" data-i="' + i + '"' + (at.checks && at.checks[i] ? ' checked' : '') + '> ' + esc(m) + '</label>';
@@ -366,12 +378,19 @@
             return '<button type="button" class="pb-grade-btn g-' + g + (at.g === g ? ' on' : '') + '" data-g="' + g + '">' + GRADE[g] + '</button>';
           }).join("") + '</div>' +
       '</div>' +
-      '<div class="card">' +
+      '<div class="card" id="pb-rv-ai">' +
         '<div class="group-head"><h2>AIに骨子を見てもらう</h2></div>' +
         '<div class="pm2-ai-actions"><button type="button" class="primary" id="pb-copy">AI採点用にコピー</button><span class="pm2-copy-status" id="pb-copy-status"></span></div>' +
         '<label class="pm2-field-label" for="pb-ai">AIの結果の貼り付け欄</label>' +
         '<textarea class="pm2-ai-result" id="pb-ai" rows="6" placeholder="AIから返ってきた結果を貼り付けると、この練習の記録に保存されます">' + esc(at.ai || "") + '</textarea>' +
-      '</div>';
+      '</div>' +
+      '</div></div>';
+    $all(box, ".pb-rv-nav button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var t = document.getElementById(b.dataset.to);
+        if (t) window.scrollTo(0, window.scrollY + t.getBoundingClientRect().top - 8);
+      });
+    });
     updateCheckN(at);
     $all(box, ".pp-checks input").forEach(function (cb) {
       cb.addEventListener("change", function () {
@@ -401,10 +420,10 @@
     var m = (window.PM2_MODEL || {})[key];
     if (!m) return "";
     var head = '<div class="group-head"><h2>見本の骨子（A社の部品だけで組んだ例）</h2></div>';
-    if (m.skip) return '<div class="card">' + head + '<p class="stats-note">' + esc(m.skip) + '</p></div>';
+    if (m.skip) return '<div class="card" id="pb-rv-model">' + head + '<p class="stats-note">' + esc(m.skip) + '</p></div>';
     var text = {};
     (window.PM2_PARTS || []).forEach(function (g) { g.items.forEach(function (it) { text[it.label] = it.text; }); });
-    return '<div class="card">' + head +
+    return '<div class="card" id="pb-rv-model">' + head +
       '<p class="stats-note">自分の骨子と、見出しの立て方・要の1文・部品の当て方を見比べます。見本は一例です。見出しが設問の言葉に合っていて、部品の当て方に筋が通っていれば、違う組み方でも構いません。</p>' +
       (m.pt ? '<div class="pb-ref"><b>この問題で外さないこと</b><p>' + esc(m.pt) + '</p></div>' : '') +
       '<div class="pb-model-grid">' + PARTS.map(function (p) {

@@ -1370,8 +1370,16 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pb-ref-warn { background: var(--chip); }
 /* 初見骨子20分: 見本の骨子 */
 .pb-model { margin: 12px 0 0; }
+/* 振り返り: 広い画面では左に自分の骨子を固定し、右の見本・出題趣旨・チェック・AI採点と見比べる */
+.pb-rv-nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13.5px; margin-top: 4px; }
+.pb-rv-mine .pb-old { font-size: 14px; }
+@media (max-width: 999px) {
+  .pb-rv-mine.pb-dup { display: none; }
+  .pb-rv-nav { display: none; }
+}
 @media (min-width: 1000px) {
-  .pb-model-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 14px; }
+  .pb-rv-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 0 16px; align-items: start; }
+  .pb-rv-mine { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
 }
 .pb-model-q { display: block; font-size: 14px; color: var(--accent); margin-bottom: 4px; }
 .pb-model-h { padding: 8px 12px; margin: 6px 0; border: 1px solid var(--line); border-radius: 10px; }
