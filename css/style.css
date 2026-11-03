@@ -1475,6 +1475,21 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .tb-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tb-row-sub { display: block; font-size: 12.5px; color: var(--muted); font-weight: 400; }
 .tb-pm2-frame { display: block; width: 100%; min-height: 60vh; border: none; border-radius: 10px; background: transparent; margin: 8px 0; }
+/* 午後II 教科書の章: 広い画面では左に章の一覧と見出しのナビを置く */
+.tb-pm2-side { display: none; }
+@media (min-width: 1000px) {
+  main.wrap:has(#mode-textbook:not([hidden]) #tb-pm2:not([hidden]) .tb-pm2-layout) { max-width: 1440px; }
+  .tb-pm2-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 0 16px; align-items: start; }
+  .tb-pm2-side { display: block; position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
+}
+.tb-pm2-side .card { padding: 12px 10px; }
+.tb-pm2-side-h { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 4px 8px 4px; }
+.tb-pm2-side-h:not(:first-child) { margin-top: 14px; }
+.tb-pm2-side-list { list-style: none; margin: 0; padding: 0; }
+.tb-pm2-side-btn { display: block; width: 100%; text-align: left; font: inherit; font-size: 13.5px; line-height: 1.5; padding: 6px 8px; border: 0; border-radius: 8px; background: none; color: var(--text); cursor: pointer; }
+.tb-pm2-side-btn:hover { background: var(--chip); }
+.tb-pm2-side-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.tb-pm2-side-done { margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--ok); }
 .tb-pm2-nav { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
 .tb-pm2-done-tag { margin-left: 8px; font-size: 12px; font-weight: 700; color: #fff; background: var(--ok); border-radius: 999px; padding: 1px 9px; }
 

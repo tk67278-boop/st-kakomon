@@ -490,7 +490,18 @@
         (pos === "bottom" ? '<button type="button" class="primary tb-pm2-done">' + (done ? '読了を取り消す' : '読了にする') + '</button>' : '') +
         '<button type="button" class="tb-pm2-next"' + (pm2Index >= PM2_TOC.length - 1 ? ' disabled' : '') + '>次の章へ &rarr;</button></div>';
     };
-    el.innerHTML = '<div class="card tb-reader-card">' +
+    // 広い画面では左に章の一覧と「この章の見出し」を置く（本文は読みやすい幅のまま）
+    var recs = loadRecords();
+    var sideHtml = '<aside class="tb-pm2-side"><div class="card">' +
+      '<div class="tb-pm2-side-h">章</div><ol class="tb-pm2-side-list">' +
+      PM2_TOC.map(function (x, i) {
+        return '<li><button type="button" class="tb-pm2-side-btn tb-pm2-side-ch' + (i === pm2Index ? ' active' : '') + '" data-i="' + i + '">' +
+          escapeHtml(x.label + " " + x.title) + (isDone(recs, x.id) ? '<span class="tb-pm2-side-done">読了</span>' : '') + '</button></li>';
+      }).join("") + '</ol>' +
+      '<div class="tb-pm2-side-h">この章の見出し</div><ol class="tb-pm2-side-list" id="tb-pm2-secs"></ol>' +
+      '</div></aside>';
+    el.innerHTML = '<div class="tb-pm2-layout">' + sideHtml + '<div class="tb-pm2-main">' +
+      '<div class="card tb-reader-card">' +
       '<div class="tb-reader-head"><button type="button" class="linkbtn" id="tb-pm2-back">&larr; 目次へ戻る</button>' +
         '<span class="spacer"></span><a class="linkbtn" href="' + escapeAttr(c.file) + '" target="_blank" rel="noopener">別のタブで開く</a></div>' +
       '<div class="tb-reader-chapter">午後II 教科書 ' + escapeHtml(c.label) + (done ? '<span class="tb-pm2-done-tag">読了</span>' : '') + '</div>' +
@@ -498,7 +509,11 @@
       '<iframe class="tb-pm2-frame" src="' + escapeAttr(c.file) + '" title="' + escapeAttr(c.label + " " + c.title) + '"></iframe>' +
       navHtml("bottom") +
       '</div>' +
-      (PM2_QUIZ[c.id] ? quizCardHtml(c.id) : '');
+      (PM2_QUIZ[c.id] ? quizCardHtml(c.id) : '') +
+      '</div></div>';
+    findAll(el, ".tb-pm2-side-ch").forEach(function (b) {
+      b.addEventListener("click", function () { showPm2(Number(b.dataset.i)); });
+    });
     $("#tb-pm2-back").addEventListener("click", function () { pm2Index = -1; renderPm2Toc(); window.scrollTo(0, 0); });
     if (PM2_QUIZ[c.id]) bindQuizCard(el, c.id);
     findAll(el, ".tb-pm2-prev").forEach(function (b) { b.addEventListener("click", function () { showPm2(pm2Index - 1); }); });
@@ -515,6 +530,7 @@
       // 文書全体の高さは枠の高さ以上になるため、縮めるときも追従できるよう本文（body）の高さで合わせる
       var fit = function () { frame.style.height = (doc.body.scrollHeight + 24) + "px"; };
       fit();
+      buildPm2Secs(frame, doc);
       // 枠の中の要素は、枠の中の ResizeObserver でないと変化を拾えないため defaultView のものを使う
       var RO = doc.defaultView && doc.defaultView.ResizeObserver;
       if (RO) { pm2Resize = new RO(fit); pm2Resize.observe(doc.body); }
@@ -525,6 +541,25 @@
         var idx = PM2_TOC.findIndex(function (x) { return x.file.indexOf("pm2_text_" + m[1] + ".html") >= 0; });
         if (idx >= 0 && idx !== pm2Index) { pm2Index = idx; renderPm2Reader(); }
       }
+    });
+  }
+  // 左の「この章の見出し」: 章のページの h2 へ移動する（枠は中身の高さに合わせてあるので、ページ全体をスクロールする）
+  function buildPm2Secs(frame, doc) {
+    var list = $("#tb-pm2-secs");
+    if (!list) return;
+    var hs = Array.prototype.slice.call(doc.querySelectorAll("h2"));
+    var c = PM2_TOC[pm2Index];
+    list.innerHTML = hs.map(function (h, i) {
+      return '<li><button type="button" class="tb-pm2-side-btn" data-h="' + i + '">' + escapeHtml(h.textContent.trim()) + '</button></li>';
+    }).join("") +
+      (c && PM2_QUIZ[c.id] ? '<li><button type="button" class="tb-pm2-side-btn" data-quiz="1">この章の問題（アプリで解く）</button></li>' : '');
+    findAll(list, "button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var target = b.dataset.quiz ? document.querySelector("#tb-pm2 .tbq-card") : null;
+        var y = target ? target.getBoundingClientRect().top :
+          frame.getBoundingClientRect().top + hs[Number(b.dataset.h)].getBoundingClientRect().top;
+        window.scrollTo(0, window.scrollY + y - 8);
+      });
     });
   }
   function stopPm2Resize() { if (pm2Resize) { pm2Resize.disconnect(); pm2Resize = null; } }
