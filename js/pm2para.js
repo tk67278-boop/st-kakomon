@@ -250,26 +250,47 @@
     if (!at) return;
     cur.attemptIdx = idx;
     var box = $("#pp-review");
+    // 広い画面では，左に自分の段落を固定し，右の模範例・自己チェック・AI採点と見比べられるようにする
+    // （作り終えた直後のスマホでは，すぐ上の入力欄と同じ内容なので左の段落は出さない。css は初見骨子20分と共通）
+    var dup = cur.done && idx === 0;
     box.innerHTML =
-      '<div class="card">' +
+      '<div class="pb-rv-grid">' +
+      '<aside class="pb-rv-mine' + (dup ? ' pb-dup' : '') + '"><div class="card">' +
+        '<div class="group-head"><h2>あなたの段落（' + esc(fmtDate(at.t)) + '）</h2><span class="spacer"></span>' +
+          '<span class="pp-check-n">' + countChars(at.text) + '字・所要 ' + fmtClock(at.sec) + '</span></div>' +
+        '<div class="pp-old">' + esc(at.text) + '</div>' +
+        '<div class="pb-rv-nav">' +
+          [["pp-rv-model", "模範例"], ["pp-rv-check", "自己チェック"], ["pp-rv-ai", "AI採点"]].map(function (n) {
+            return '<button type="button" class="linkbtn" data-to="' + n[0] + '">' + n[1] + '</button>';
+          }).join("") +
+        '</div>' +
+      '</div></aside>' +
+      '<div class="pb-rv-main">' +
+      '<div class="card" id="pp-rv-model">' +
+        '<div class="group-head"><h2>模範例（A社）</h2><span class="spacer"></span><span class="pp-check-n">' + countChars(d.model) + '字</span></div>' +
+        '<div class="pp-model">' + esc(d.model) + '</div>' +
+        '<p class="stats-note"><b>見比べ方：</b>型（' + esc(d.form) + '）の順になっているか、数字と固有の事情（A社ならでは）が入っているかを確認します。模範例の言い回しで使えるものは、事例設定シートの余白にメモしておきます。</p>' +
+      '</div>' +
+      '<div class="card" id="pp-rv-check">' +
         '<div class="group-head"><h2>自己チェック</h2><span class="spacer"></span><span class="pp-check-n" id="pp-check-n"></span></div>' +
-        (idx > 0 ? '<p class="stats-note">' + esc(fmtDate(at.t)) + 'の練習（' + countChars(at.text) + '字・所要 ' + fmtClock(at.sec) + '）を表示しています。</p><div class="pp-old">' + esc(at.text) + '</div>' : '') +
         '<p class="stats-note">書いた段落を読み返し、満たしている要素にチェックを付けます。</p>' +
         '<div class="pp-checks">' + d.must.map(function (m, i) {
           return '<label><input type="checkbox" data-i="' + i + '"' + (at.checks && at.checks[i] ? ' checked' : '') + '> ' + esc(m) + '</label>';
         }).join("") + '</div>' +
       '</div>' +
-      '<div class="card">' +
-        '<div class="group-head"><h2>模範例（A社）</h2><span class="spacer"></span><span class="pp-check-n">' + countChars(d.model) + '字</span></div>' +
-        '<div class="pp-model">' + esc(d.model) + '</div>' +
-        '<p class="stats-note"><b>見比べ方：</b>型（' + esc(d.form) + '）の順になっているか、数字と固有の事情（A社ならでは）が入っているかを確認します。模範例の言い回しで使えるものは、事例設定シートの余白にメモしておきます。</p>' +
-      '</div>' +
-      '<div class="card">' +
+      '<div class="card" id="pp-rv-ai">' +
         '<div class="group-head"><h2>AI採点</h2></div>' +
         '<div class="pm2-ai-actions"><button type="button" class="primary" id="pp-copy">AI採点用にコピー</button><span class="pm2-copy-status" id="pp-copy-status"></span></div>' +
         '<label class="pm2-field-label" for="pp-ai">AI採点結果の貼り付け欄</label>' +
         '<textarea class="pm2-ai-result" id="pp-ai" rows="6" placeholder="AIから返ってきた結果を貼り付けると、この練習の記録に保存されます">' + esc(at.ai || "") + '</textarea>' +
-      '</div>';
+      '</div>' +
+      '</div></div>';
+    $all(box, ".pb-rv-nav button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var t = document.getElementById(b.dataset.to);
+        if (t) window.scrollTo(0, window.scrollY + t.getBoundingClientRect().top - 8);
+      });
+    });
     updateCheckN(at);
     $all(box, ".pp-checks input").forEach(function (cb) {
       cb.addEventListener("change", function () {
