@@ -1255,6 +1255,13 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pp-hint p { margin: 6px 0; line-height: 1.7; }
 .pp-timer { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; margin-right: 8px; }
 .pp-timer.over { color: var(--ng); }
+/* 初見骨子20分・段落練習: タイマーのある見出し行は、スクロールしても画面の上に残す */
+.pb-outline > .group-head:first-child,
+.pp-grid > .card:not(.pp-left) > .group-head:first-child {
+  position: sticky; top: 0; z-index: 3;
+  margin: -18px -20px 12px; padding: 12px 20px;
+  background: var(--card); border-bottom: 1px solid var(--line); border-radius: 12px 12px 0 0;
+}
 .pp-ta { width: 100%; box-sizing: border-box; font-size: 16px; line-height: 1.8; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg, transparent); color: var(--text); resize: vertical; }
 .pp-ta[readonly] { opacity: .85; }
 .pp-checks { display: grid; gap: 8px; font-size: 14.5px; line-height: 1.6; }
