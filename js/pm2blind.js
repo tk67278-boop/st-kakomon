@@ -191,16 +191,23 @@
       return '<div class="pb-q"><b>設問' + p[1] + '</b>' + esc((q.q || {})[p[0]] || "") + '</div>';
     }).join("");
   }
-  function partsSelectHtml(k) {
+  // 部品のプルダウン。設問ア・イ・ウの欄ごとに、その設問でよく使う部品（pm2_parts.js の k）だけを出す。
+  // 「ほかの設問の部品も出す」を選ぶと、その欄だけ全部の部品を出す
+  var KANA = { a: "ア", i: "イ", u: "ウ" };
+  function partsOptionsHtml(k, all) {
     var groups = window.PM2_PARTS || [];
-    if (!groups.length) return "";
-    return '<select class="pm2-parts-sel pb-parts" data-k="' + k + '" aria-label="設問' + k + 'に部品を挿入">' +
-      '<option value="">部品を挿入…</option>' +
+    return '<option value="">' + (all ? 'すべての部品から挿入…' : '設問' + KANA[k] + 'の部品を挿入…') + '</option>' +
       groups.map(function (g, gi) {
-        return '<optgroup label="' + esc(g.group) + '">' +
-          g.items.map(function (it, ii) { return '<option value="' + gi + '-' + ii + '">' + esc(it.label) + '</option>'; }).join("") +
-          '</optgroup>';
-      }).join("") + '</select>';
+        var opts = g.items.map(function (it, ii) {
+          return all || !it.k || it.k.indexOf(k) >= 0 ? '<option value="' + gi + '-' + ii + '">' + esc(it.label) + '</option>' : '';
+        }).join("");
+        return opts ? '<optgroup label="' + esc(g.group) + '">' + opts + '</optgroup>' : '';
+      }).join("") +
+      '<option value="' + (all ? 'mine' : 'all') + '">' + (all ? '― 設問' + KANA[k] + 'の部品だけに戻す' : '― ほかの設問の部品も出す') + '</option>';
+  }
+  function partsSelectHtml(k) {
+    if (!(window.PM2_PARTS || []).length) return "";
+    return '<select class="pm2-parts-sel pb-parts" data-k="' + k + '" aria-label="設問' + KANA[k] + 'に部品を挿入">' + partsOptionsHtml(k, false) + '</select>';
   }
   function insertAtCursor(ta, text) {
     var s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
@@ -257,6 +264,11 @@
     $all(root, ".pb-parts").forEach(function (sel) {
       sel.addEventListener("change", function () {
         if (!sel.value) return;
+        if (sel.value === "all" || sel.value === "mine") {
+          sel.innerHTML = partsOptionsHtml(sel.dataset.k, sel.value === "all");
+          sel.value = "";
+          return;
+        }
         var ij = sel.value.split("-"), g = (window.PM2_PARTS || [])[+ij[0]], it = g && g.items[+ij[1]];
         if (it) insertAtCursor($("#pb-ta-" + sel.dataset.k), "（" + it.label + "）");
         sel.value = "";
