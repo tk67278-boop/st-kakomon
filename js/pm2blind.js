@@ -105,6 +105,7 @@
     d = d && typeof d === "object" ? d : {};
     if (!d.attempts || typeof d.attempts !== "object") d.attempts = {};
     if (!d.drafts || typeof d.drafts !== "object") d.drafts = {};
+    if (!d.timers || typeof d.timers !== "object") d.timers = {}; // 作りかけのタイマーの経過秒（一時停止して別の画面へ行っても続きから再開する）
     return d;
   }
   function loadLocal() {
@@ -166,7 +167,7 @@
         '<span class="pp-item-body"><b>' + esc(x.q.title) + '</b><small>' + esc(x.year) + ' 問' + x.q.no + '</small></span>' +
         '<span class="pp-item-stat">' + (last
           ? at.length + '回・前回 ' + (last.g ? GRADE[last.g] + '・' : '') + 'チェック ' + (last.checks || []).filter(Boolean).length + '/' + CHECKS.length
-          : (doc.drafts[x.key] ? '作りかけ' : '')) + '</span>' +
+          : (doc.drafts[x.key] || doc.timers[x.key] ? '作りかけ' : '')) + '</span>' +
       '</button>';
     }
     html += '<div class="card"><div class="group-head"><h2>初見の問題（令和4年度以前）</h2></div><div class="pp-list">' + items.map(itemHtml).join("") + '</div></div>';
@@ -220,7 +221,8 @@
   function renderDrill(key) {
     var x = itemByKey(key);
     if (!x) return renderList();
-    cur = { key: key, x: x, running: false, startedAt: 0, base: 0, intervalId: null, done: false, alerted: false };
+    var base = doc.timers[key] || 0; // 前回一時停止したところから再開する
+    cur = { key: key, x: x, running: false, startedAt: 0, base: base, intervalId: null, done: false, alerted: base >= LIMIT_MIN * 60 };
     var draft = doc.drafts[key] || {};
     var q = x.q;
     root.innerHTML =
@@ -237,8 +239,8 @@
           '<div class="pb-lead">' + paras(q.lead) + '</div>' + setumonHtml(q) + '</div>' +
         '<div class="card pb-outline">' +
           '<div class="group-head"><h2>骨子</h2><span class="spacer"></span>' +
-            '<span class="pp-timer" id="pb-timer">' + fmtClock(LIMIT_MIN * 60) + '</span>' +
-            '<button type="button" id="pb-timer-btn">開始</button></div>' +
+            '<span class="pp-timer' + (base > LIMIT_MIN * 60 ? ' over' : '') + '" id="pb-timer">' + fmtClock(LIMIT_MIN * 60 - base) + '</span>' +
+            '<button type="button" id="pb-timer-btn">' + (base ? '再開' : '開始') + '</button></div>' +
           PARTS.map(function (p) {
             return '<div class="pb-field"><div class="pb-field-head"><label for="pb-ta-' + p[0] + '">設問' + p[1] + '</label>' + partsSelectHtml(p[0]) + '</div>' +
               '<textarea class="pp-ta pb-ta" id="pb-ta-' + p[0] + '" data-k="' + p[0] + '" rows="' + (p[0] === "i" ? 13 : 8) + '" placeholder="' +
@@ -257,6 +259,7 @@
     $("#pb-timer-btn").addEventListener("click", toggleTimer);
     $("#pb-save-draft").addEventListener("click", function () {
       doc.drafts[key] = readOutline();
+      if (usedSec() > 0) doc.timers[key] = usedSec();
       saveDoc();
       flash($("#pb-status"), "作りかけを保存しました");
     });
@@ -285,11 +288,17 @@
   function outlineEmpty(o) { return !PARTS.some(function (p) { return (o[p[0]] || "").trim(); }); }
   function saveDraftSilently() {
     if (!cur || cur.done || !$("#pb-ta-a")) return;
-    var o = readOutline(), old = doc.drafts[cur.key] || {};
+    var o = readOutline(), old = doc.drafts[cur.key] || {}, changed = false;
     if (PARTS.some(function (p) { return (o[p[0]] || "") !== (old[p[0]] || ""); })) {
       if (outlineEmpty(o)) delete doc.drafts[cur.key]; else doc.drafts[cur.key] = o;
-      saveDoc();
+      changed = true;
     }
+    var sec = usedSec();
+    if (sec !== (doc.timers[cur.key] || 0)) {
+      if (sec > 0) doc.timers[cur.key] = sec; else delete doc.timers[cur.key];
+      changed = true;
+    }
+    if (changed) saveDoc();
   }
 
   /* ---------- タイマー（残り時間。0を過ぎたら超過を赤で表示） ---------- */
@@ -348,6 +357,7 @@
     doc.attempts[cur.key].unshift(at);
     if (doc.attempts[cur.key].length > MAX_ATTEMPTS) doc.attempts[cur.key].length = MAX_ATTEMPTS;
     delete doc.drafts[cur.key];
+    delete doc.timers[cur.key];
     saveDoc();
     if (!cur.x.studied) markDone(cur.key);
     $all(root, ".pb-ta").forEach(function (ta) { ta.readOnly = true; });
@@ -563,5 +573,8 @@
     if (window.PmSchedule && window.PmSchedule.refresh) window.PmSchedule.refresh();
   }
 
+  // ページを閉じる・再読み込みする・アプリを切り替えるときも，作りかけとタイマーの経過を残す
+  window.addEventListener("pagehide", function () { saveDraftSilently(); });
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") saveDraftSilently(); });
   window.PmBlind = { open: open, close: function () { if (!root.hidden) close(); } };
 })();

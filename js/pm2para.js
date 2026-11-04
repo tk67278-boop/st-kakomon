@@ -59,6 +59,7 @@
     d = d && typeof d === "object" ? d : {};
     if (!d.attempts || typeof d.attempts !== "object") d.attempts = {};
     if (!d.drafts || typeof d.drafts !== "object") d.drafts = {};
+    if (!d.timers || typeof d.timers !== "object") d.timers = {}; // 作りかけのタイマーの経過秒（一時停止して別の画面へ行っても続きから再開する）
     return d;
   }
   function loadLocal() {
@@ -121,7 +122,8 @@
   function renderDrill(id) {
     var d = drillById(id);
     if (!d) return renderList();
-    cur = { d: d, sec: d.min * 60, running: false, startedAt: 0, base: 0, intervalId: null, done: false, attemptIdx: -1 };
+    var base = doc.timers[d.id] || 0; // 前回一時停止したところから再開する
+    cur = { d: d, sec: d.min * 60, running: false, startedAt: 0, base: base, intervalId: null, done: false, attemptIdx: -1 };
     var draft = doc.drafts[d.id] || "";
     var lo = Math.round(d.chars * 0.85), hi = Math.round(d.chars * 1.15);
     root.innerHTML =
@@ -141,8 +143,8 @@
       '</div>' +
       '<div class="card">' +
         '<div class="group-head"><h2>執筆</h2><span class="spacer"></span>' +
-          '<span class="pp-timer" id="pp-timer">' + fmtClock(cur.sec) + '</span>' +
-          '<button type="button" id="pp-timer-btn">開始</button></div>' +
+          '<span class="pp-timer' + (base > cur.sec ? ' over' : '') + '" id="pp-timer">' + fmtClock(cur.sec - base) + '</span>' +
+          '<button type="button" id="pp-timer-btn">' + (base ? '再開' : '開始') + '</button></div>' +
         '<textarea class="pp-ta" id="pp-ta" rows="14" placeholder="「開始」を押してから書き始めます。段落の最初は1字下げなくてかまいません。">' + esc(draft) + '</textarea>' +
         '<div class="pm2-count" id="pp-count"></div>' +
         '<div class="pm-panel-actions"><span class="pm2-save-status" id="pp-status"></span>' +
@@ -160,6 +162,7 @@
     $("#pp-timer-btn").addEventListener("click", toggleTimer);
     $("#pp-save-draft").addEventListener("click", function () {
       doc.drafts[d.id] = ta.value;
+      if (usedSec() > 0) doc.timers[d.id] = usedSec();
       saveDoc();
       flash($("#pp-status"), "書きかけを保存しました");
     });
@@ -171,8 +174,14 @@
     if (!cur || cur.done) return;
     var ta = $("#pp-ta");
     if (!ta) return;
-    var v = ta.value;
-    if (v !== (doc.drafts[cur.d.id] || "")) { doc.drafts[cur.d.id] = v; saveDoc(); }
+    var v = ta.value, changed = false;
+    if (v !== (doc.drafts[cur.d.id] || "")) { doc.drafts[cur.d.id] = v; changed = true; }
+    var sec = usedSec();
+    if (sec !== (doc.timers[cur.d.id] || 0)) {
+      if (sec > 0) doc.timers[cur.d.id] = sec; else delete doc.timers[cur.d.id];
+      changed = true;
+    }
+    if (changed) saveDoc();
   }
   function updateCount() {
     var el = $("#pp-count"), ta = $("#pp-ta");
@@ -234,6 +243,7 @@
     doc.attempts[d.id].unshift(at);
     if (doc.attempts[d.id].length > MAX_ATTEMPTS) doc.attempts[d.id].length = MAX_ATTEMPTS;
     delete doc.drafts[d.id];
+    delete doc.timers[d.id];
     saveDoc();
     ta.readOnly = true;
     $("#pp-timer-btn").disabled = true;
@@ -370,5 +380,8 @@
     pmMain.hidden = false;
   }
 
+  // ページを閉じる・再読み込みする・アプリを切り替えるときも，作りかけとタイマーの経過を残す
+  window.addEventListener("pagehide", function () { saveDraftSilently(); });
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") saveDraftSilently(); });
   window.PmPara = { open: open, close: function () { if (!root.hidden) close(); } };
 })();
