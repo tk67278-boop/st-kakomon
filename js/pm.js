@@ -136,7 +136,7 @@
       var paraLink = $("#pm-para-link");
       if (paraLink) paraLink.hidden = mode !== "pm2"; // 午後IIだけ段落練習（js/pm2para.js）を表示
       var treeLink = $("#pm-tree-link");
-      if (treeLink) treeLink.hidden = mode !== "pm2"; // 午後IIだけ「A社の施策ツリー」（summary/pm2_tree.html）を表示
+      if (treeLink) treeLink.hidden = mode !== "pm2"; // 午後IIだけ「骨子の型ツリー」（summary/pm2_tree.html）を表示
       var slidesLink = $("#pm-slides-link");
       if (slidesLink) slidesLink.hidden = mode !== "pm2"; // 午後IIだけ「A社スライド」（summary/pm2_slides.html）を表示
       var textLink = $("#pm-text-link");
