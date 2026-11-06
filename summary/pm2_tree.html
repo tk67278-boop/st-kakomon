@@ -89,7 +89,6 @@
   .part .txt { display: block; font-size: 13.5px; line-height: 1.65; color: var(--text); }
   body.memorize .part .txt { color: transparent; background: var(--hide); border-radius: 6px; cursor: pointer; user-select: none; }
   body.memorize .part.show .txt { color: var(--text); background: none; }
-  .part.missing b { color: #b91c1c; }
 
   .hint { font-size: 13px; color: var(--muted); }
   footer { margin-top: 26px; font-size: 13px; color: var(--muted); }
@@ -108,6 +107,7 @@
     <button type="button" id="b-close">すべて閉じる</button>
     <button type="button" id="b-mem">中身を隠して覚える</button>
     <span class="sp"></span>
+    <a href="pm2_slides.html">スライドで覚える</a>
     <a href="pm2_case.html">事例設定シート</a>
   </div>
   <p class="hint" id="mem-hint" hidden>部品の名前を見て中身を言ってから、灰色の部分を押して確かめます。</p>
@@ -194,7 +194,7 @@ function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&
 function body(t) { var i = t.indexOf("："); return i > 0 && i < 16 ? t.slice(i + 1) : t; }
 function partHtml(label) {
   var t = TEXT[label];
-  if (t === undefined) return '<div class="part missing"><b>' + esc(label) + '</b><span class="txt">（部品が見つかりません）</span></div>';
+  if (t === undefined) { console.warn("pm2_tree: 部品がありません", label); return ""; } // 名前の書き間違いは画面に出さず、確認用にコンソールへ出す
   return '<div class="part"><b>' + esc(label) + '</b><span class="txt">' + esc(body(t)) + '</span></div>';
 }
 

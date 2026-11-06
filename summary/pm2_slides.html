@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A社スライド</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd; --seme: #2563eb; --seme-soft: #e5edfd;
+    --mamori: #0f8a5f; --mamori-soft: #e2f5ec; --warn: #c2410c; --warn-soft: #fdeee4;
+    --ok: #15803d; --ng: #b91c1c; --chip: #eef2f7; --hide: #d3dbe6;
+    --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50; --seme: #5b93ff; --seme-soft: #1c2f50;
+      --mamori: #34c48b; --mamori-soft: #12301f; --warn: #fb923c; --warn-soft: #3a2414;
+      --ok: #4ade80; --ng: #f87171; --chip: #222d3a; --hide: #33414f; --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50; --seme: #5b93ff; --seme-soft: #1c2f50;
+    --mamori: #34c48b; --mamori-soft: #12301f; --warn: #fb923c; --warn-soft: #3a2414;
+    --ok: #4ade80; --ng: #f87171; --chip: #222d3a; --hide: #33414f; --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column;
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 16px; line-height: 1.6; -webkit-tap-highlight-color: transparent; }
+
+  /* 上の帯 */
+  .top { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--card); }
+  .top h1 { font-size: 15px; margin: 0; }
+  .top .cnt { margin-left: auto; font-size: 13.5px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .top button { font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+  .top button.on { background: var(--ng); border-color: var(--ng); color: #fff; }
+  .top a { font-size: 12.5px; color: var(--accent); }
+
+  /* スライド（横にスワイプ） */
+  .deck { flex: 1; min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .deck::-webkit-scrollbar { display: none; }
+  .slide { flex: 0 0 100%; scroll-snap-align: start; overflow-y: auto; padding: 14px 14px 20px; }
+  .slide[hidden] { display: none; }
+  .sc { max-width: 720px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 16px 16px 18px; min-height: 100%; }
+  .kicker { font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--accent); }
+  .sc h2 { font-size: 20px; line-height: 1.4; margin: 2px 0 12px; }
+  .mark-tag { float: right; font-size: 11.5px; font-weight: 800; border-radius: 6px; padding: 0 7px; }
+  .mark-tag.ok { color: var(--ok); border: 1px solid var(--ok); }
+  .mark-tag.ng { color: var(--ng); border: 1px solid var(--ng); }
+  .use { margin-top: 14px; font-size: 12.5px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+
+  /* 空欄（押すと答え） */
+  .b { display: inline-block; min-width: 2.6em; padding: 0 4px; border-radius: 6px; font-weight: 800; color: var(--accent); }
+  .slide:not(.open) .b { color: transparent; background: var(--hide); user-select: none; }
+  .slide:not(.open) .b.long { min-width: 6em; }
+
+  /* 図の部品 */
+  svg.i { width: 34px; height: 34px; flex: none; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .tile { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; background: var(--chip); border-radius: 12px; padding: 12px 8px; font-size: 13.5px; }
+  .tile .num { font-size: 22px; line-height: 1.3; }
+  .tile svg.i { color: var(--accent); }
+  .row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .box { border: 2px solid var(--line); border-radius: 12px; padding: 10px; font-size: 14px; line-height: 1.6; background: var(--card); }
+  .box h3 { font-size: 15px; margin: 0 0 4px; display: flex; align-items: center; gap: 6px; }
+  .box.seme { border-color: var(--seme); } .box.seme h3 { color: var(--seme); }
+  .box.mamori { border-color: var(--mamori); } .box.mamori h3 { color: var(--mamori); }
+  .box.warn { border-color: var(--warn); } .box.warn h3 { color: var(--warn); }
+  .flow { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  .flow .box { text-align: center; }
+  .arrow { text-align: center; color: var(--muted); font-size: 18px; line-height: 1.2; }
+  .arrow small { font-size: 12px; font-weight: 700; color: var(--accent); }
+  .hflow { display: flex; align-items: stretch; gap: 6px; }
+  .hflow .box { flex: 1; text-align: center; }
+  .hflow .ar { align-self: center; color: var(--muted); font-weight: 800; }
+  .hflow > .box { min-width: 0; }
+  /* 矢印付きの横の流れは、スマホでは縦に並べる */
+  @media (max-width: 560px) {
+    .hflow:has(.ar) { flex-direction: column; }
+    .hflow:has(.ar) .ar { transform: rotate(90deg); }
+  }
+  .ba { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; }
+  .ba .ar { font-size: 24px; color: var(--accent); font-weight: 900; }
+  .layer { border-radius: 12px; padding: 8px; text-align: center; font-size: 14px; }
+  .layer.seme { background: var(--seme-soft); } .layer.mamori { background: var(--mamori-soft); margin-top: 6px; }
+  .layer .row3, .layer .two { margin-top: 6px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .lab { font-size: 12.5px; font-weight: 800; color: var(--muted); }
+  .people { display: flex; flex-direction: column; gap: 10px; }
+  .person { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .person .who { text-align: center; font-size: 11px; line-height: 1.3; color: var(--muted); }
+  .bubble { background: var(--chip); border-radius: 12px; padding: 8px 10px; font-size: 14px; }
+  .bubble .q { font-weight: 700; }
+  .bubble .r { display: block; margin-top: 4px; }
+  .bars { display: flex; flex-direction: column; gap: 8px; }
+  .bar { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); align-items: center; gap: 8px; font-size: 13.5px; }
+  .bar .track { height: 26px; border-radius: 6px; background: var(--chip); position: relative; overflow: hidden; }
+  .bar .fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; color: #fff; font-weight: 800; font-size: 13px; white-space: nowrap; }
+  .timeline { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 3px solid var(--accent-soft); }
+  .timeline li { position: relative; padding: 0 0 12px 6px; font-size: 14.5px; }
+  .timeline li::before { content: ""; position: absolute; left: -26px; top: 6px; width: 13px; height: 13px; border-radius: 50%; background: var(--accent); }
+  .timeline .t { font-weight: 800; color: var(--accent); display: block; font-size: 13px; }
+  .cmp td, .cmp th { border: 1px solid var(--line); padding: 6px 8px; font-size: 13.5px; vertical-align: top; }
+  .cmp { border-collapse: collapse; width: 100%; }
+  .cmp th { background: var(--chip); }
+
+  /* 下の操作ボタン（親指で押せる位置） */
+  .nav { flex: none; display: grid; grid-template-columns: 1fr 1.4fr 1.4fr 1fr; gap: 8px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--card); }
+  .nav button { font: inherit; font-size: 14.5px; font-weight: 700; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); padding: 10px 4px; cursor: pointer; }
+  .nav #n-show { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nav #n-mark.ng { background: var(--ng); border-color: var(--ng); color: #fff; }
+  .nav #n-mark.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .nav button:disabled { opacity: .4; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 16px; }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>A社スライド</h1>
+  <button type="button" id="f-ng" title="「まだ」の印を付けたスライドだけを回す">まだだけ</button>
+  <a href="pm2_tree.html">ツリー</a>
+  <span class="cnt" id="cnt"></span>
+</div>
+
+<main class="deck" id="deck">
+
+<section class="slide" data-id="nums"><div class="sc">
+  <div class="kicker">会社と私</div><h2>A社の数字（4が3回出てくる会社）</h2>
+  <div class="tiles">
+    <div class="tile"><svg class="i" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M5 17l4-10h22l4 10"/><path d="M7 17v16h26V17"/><path d="M16 33v-9h8v9"/></svg>店舗<span class="num b">40店</span></div>
+    <div class="tile"><svg class="i" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="20" cy="20" r="15"/><path d="M14 12l6 8 6-8M13 21h14M13 26h14M20 20v11"/></svg>売上<span class="num b">800億円</span></div>
+    <div class="tile"><svg class="i" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="14" cy="13" r="5"/><circle cx="27" cy="13" r="5"/><path d="M5 33c0-6 4-10 9-10s9 4 9 10M18 33c0-6 4-10 9-10s9 4 9 10"/></svg>従業員<span class="num b">4,000人</span><small>（うちパート <span class="b">3,000人</span>）</small></div>
+    <div class="tile"><svg class="i" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20c6-10 22-10 28 0-6 10-22 10-28 0z"/><path d="M34 20l4-5v10z"/><circle cx="13" cy="19" r="1.4"/></svg>生鮮の割合<span class="num b">4割</span></div>
+    <div class="tile"><svg class="i" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="5" y="10" width="30" height="20" rx="3"/><path d="M5 16h30M10 25h8"/></svg>会員<span class="num b">60万人</span><small>購買履歴は<span class="b long">使えていない</span></small></div>
+  </div>
+  <div class="use">論文で使う場所：設問アの1.1（毎回同じ文）・概要欄</div>
+</div></section>
+
+<section class="slide" data-id="me"><div class="sc">
+  <div class="kicker">会社と私</div><h2>私の立場</h2>
+  <div class="hflow">
+    <div class="box"><h3>部署</h3><span class="b long">情報システム部（10名）</span></div>
+    <div class="box"><h3>役職</h3><span class="b long">システム企画担当課長</span></div>
+  </div>
+  <div class="arrow">↓ 協力する相手</div>
+  <div class="box" style="text-align:center"><span class="b long">経営企画部</span> と協力し、<span class="b long">経営層・店舗運営部・商品部</span>とITの橋渡しをする</div>
+  <div class="use">論文で使う場所：設問アの最後（私の立場）</div>
+</div></section>
+
+<section class="slide" data-id="trait"><div class="sc">
+  <div class="kicker">事業特性</div><h2>鮮・近・人 ―「だから何が必要か」まで言う</h2>
+  <div class="people">
+    <div class="box"><h3>鮮</h3>生鮮が売上の<span class="b">4割</span>。天候・曜日・行事で需要が変わる<br>→ だから <span class="b long">発注の精度が欠品と廃棄を左右し、利益に直結</span></div>
+    <div class="box"><h3>近</h3>来店客の多くは半径<span class="b">2km</span>以内の常連<br>→ だから <span class="b long">顧客を知り、来店頻度を上げる施策が効く</span></div>
+    <div class="box"><h3>人</h3>店舗業務の多くを<span class="b long">パート・アルバイト</span>が担い、人手不足<br>→ だから <span class="b long">現場の誰でも使える簡単なITでないと定着しない</span></div>
+  </div>
+  <div class="use">論文で使う場所：設問アの事業特性（テーマに合わせて2つ選ぶ）</div>
+</div></section>
+
+<section class="slide" data-id="issue"><div class="sc">
+  <div class="kicker">経営課題</div><h2>経営課題3つ（事業特性と1対1）</h2>
+  <div class="row3">
+    <div class="box warn"><h3>近 →</h3>客数が<span class="b">5年</span>で<span class="b">1割</span>減<br><small>ネット通販・ドラッグストアの出店</small></div>
+    <div class="box warn"><h3>鮮 →</h3>廃棄が売上の<span class="b">2%</span><br>＝年<span class="b">16億円</span></div>
+    <div class="box warn"><h3>人 →</h3><span class="b long">人員が集まらず残業・採用費が増加</span></div>
+  </div>
+  <div class="use">論文で使う場所：設問アの背景・経営課題</div>
+</div></section>
+
+<section class="slide" data-id="strategy"><div class="sc">
+  <div class="kicker">事業戦略</div><h2>何で勝つか（差別化）</h2>
+  <div class="ba">
+    <div class="box"><h3>✕ 勝てない</h3><span class="b long">価格</span>（ドラッグストア・ネット通販）</div>
+    <div class="ar">→</div>
+    <div class="box seme"><h3>◯ 勝負する</h3><span class="b long">生鮮の鮮度・品ぞろえ</span>と<span class="b long">地域密着の接客</span></div>
+  </div>
+  <div class="box" style="margin-top:10px"><h3>中期経営計画の目標</h3>3年で客数を<span class="b long">5年前の水準に戻す</span>／廃棄率 <span class="b">2%</span> → <span class="b">1.4%</span></div>
+  <div class="use">論文で使う場所：設問アの事業戦略（H24問1・H30問1・H30問2・R6問2）</div>
+</div></section>
+
+<section class="slide" data-id="change"><div class="sc">
+  <div class="kicker">目指す変革</div><h2>変革の前と後（アに書く。イの施策と混ぜない）</h2>
+  <div class="flow">
+    <div class="box warn"><h3>前</h3><span class="b long">勘と経験</span>の店舗運営</div>
+    <div class="arrow">↓ 変革</div>
+    <div class="box seme"><h3>後</h3>データで<span class="b long">地域の需要</span>を読み、<span class="b long">廃棄と欠品を同時に</span>減らす店舗運営。<br>仕入れ先と<span class="b">予測</span>を共有し、<span class="b long">売れる分だけ仕入れて作る</span></div>
+  </div>
+  <div class="use">論文で使う場所：設問アの最後（R7問2・R3問1）。効率化で終わらせない</div>
+</div></section>
+
+<section class="slide" data-id="map"><div class="sc">
+  <div class="kicker">施策の地図</div><h2>攻め3つ・守り2つ（守りの上に攻めが乗る）</h2>
+  <div class="layer seme"><div class="lab">攻め（売上と利益を伸ばす）</div>
+    <div class="row3">
+      <div class="box seme"><h3>攻め1</h3><span class="b long">需要予測AI</span></div>
+      <div class="box seme"><h3>攻め2</h3><span class="b long">会員アプリ</span></div>
+      <div class="box seme"><h3>攻め3</h3><span class="b long">ネットスーパー</span></div>
+    </div>
+  </div>
+  <div class="arrow">↑ 土台になる</div>
+  <div class="layer mamori"><div class="lab">守り（土台を作り直す）</div>
+    <div class="two">
+      <div class="box mamori"><h3>守り2</h3><span class="b long">データ基盤</span></div>
+      <div class="box mamori"><h3>守り1</h3><span class="b long">基幹システムの刷新</span></div>
+    </div>
+  </div>
+  <div class="use">論文で使う場所：設問イの施策の全体（①需要予測 ②予測の共有 ③会員データで品ぞろえ ④データ基盤）</div>
+</div></section>
+
+<section class="slide" data-id="ai"><div class="sc">
+  <div class="kicker">攻め1</div><h2>需要予測AIによる自動発注</h2>
+  <div class="hflow">
+    <div class="box"><h3>入力</h3><span class="b long">POS・天候・チラシ・行事</span></div>
+    <div class="ar">→</div>
+    <div class="box seme"><h3>AI</h3><span class="b long">生鮮と総菜</span>の需要を予測</div>
+    <div class="ar">→</div>
+    <div class="box"><h3>人</h3><span class="b long">店長</span>が確認して確定</div>
+  </div>
+  <div class="two" style="margin-top:10px">
+    <div class="box seme"><h3>効果1</h3>食品ロス<span class="b">3割</span>減（年<span class="b">5億円</span>）</div>
+    <div class="box seme"><h3>効果2</h3>発注作業時間を<span class="b">半減</span></div>
+  </div>
+  <div class="use">書けるテーマ：R7問2・R6問1・R5問2・R3問2・R1問1・H30問1 ほか多数</div>
+</div></section>
+
+<section class="slide" data-id="aiflow"><div class="sc">
+  <div class="kicker">攻め1の具体化</div><h2>1日の流れ（システムの流れ）</h2>
+  <ul class="timeline">
+    <li><span class="t">毎晩</span>POS → <span class="b long">データ基盤</span>に集める</li>
+    <li><span class="t">毎朝 <span class="b">5時</span></span>需要を予測し、発注画面に提案を出す</li>
+    <li><span class="t">朝</span><span class="b">店長</span>が確認・修正（修正は<span class="b long">学習に戻す</span>）</li>
+    <li><span class="t">発注</span>仕入れ先へ<span class="b">EDI</span>で送る。予測は<span class="b long">商品部・仕入れ先</span>も見る</li>
+  </ul>
+  <div class="box"><h3>置き場所</h3>クラウドの機械学習サービスを自社のクラウド環境で使う。販売データは<span class="b long">外部に提供しない契約</span>、<span class="b long">個人を特定できる会員情報は使わない</span></div>
+  <div class="use">論文で使う場所：設問イの「技術・置き場所・システムの流れ」</div>
+</div></section>
+
+<section class="slide" data-id="plan"><div class="sc">
+  <div class="kicker">攻め1の具体化</div><h2>導入の計画（小さく試してから広げる）</h2>
+  <ul class="timeline">
+    <li><span class="t">初年度 4月</span><span class="b">3店舗</span>で試行（<span class="b">3か月</span>）</li>
+    <li><span class="t">7月</span><span class="b long">経営会議</span>で判断</li>
+    <li><span class="t">10月</span><span class="b long">生鮮・総菜</span>で全店へ</li>
+    <li><span class="t">翌年 4月</span><span class="b">日配品</span>に拡大・<span class="b long">仕入れ先と予測を共有</span></li>
+  </ul>
+  <div class="use">論文で使う場所：設問イの個別システム化計画・工夫1</div>
+</div></section>
+
+<section class="slide" data-id="money"><div class="sc">
+  <div class="kicker">お金</div><h2>投資の数字（経営層への説明）</h2>
+  <div class="bars">
+    <div class="bar"><span>投資</span><div class="track"><div class="fill" style="width:100%;background:var(--warn)"><span class="b" style="color:#fff">12億円</span></div></div></div>
+    <div class="bar"><span>効果（毎年）</span><div class="track"><div class="fill" style="width:42%;background:var(--ok)"><span class="b" style="color:#fff">5億円</span></div></div></div>
+  </div>
+  <div class="box" style="margin-top:10px">対象は <span class="b long">攻め1 ＋ 守り2</span>。効果は食品ロス削減＋作業時間削減で、<span class="b long">約3年で回収</span></div>
+  <div class="box" style="margin-top:8px"><h3>攻め2（会員アプリ）は別</h3>投資<span class="b">5億円</span>＋運営費 年1億円 → <span class="b long">約1年半で回収</span></div>
+  <div class="use">論文で使う場所：設問イの投資効果・設問ウの経営層への説明</div>
+</div></section>
+
+<section class="slide" data-id="app"><div class="sc">
+  <div class="kicker">攻め2</div><h2>会員アプリ（顧客・接点・価値・データ）</h2>
+  <div class="box seme"><h3>狙う顧客</h3><span class="b long">共働きの子育て世帯</span>（会員の約3割・<span class="b">18万人</span>）</div>
+  <div class="hflow" style="margin-top:8px">
+    <div class="box"><h3>来店前</h3><span class="b long">献立・特売・クーポン</span></div>
+    <div class="box"><h3>店内</h3><span class="b long">アプリの会員証</span></div>
+    <div class="box"><h3>来店後</h3><span class="b long">レシピ・次回の提案</span></div>
+  </div>
+  <div class="box seme" style="margin-top:8px"><h3>新たな価値</h3>「<span class="b long">献立に迷わず、短時間で、お得に買える</span>」</div>
+  <div class="box" style="margin-top:8px"><h3>指標</h3>来店頻度 月<span class="b">4回</span>→<span class="b">5回</span>／アプリ会員<span class="b">20万人</span></div>
+  <div class="use">書けるテーマ：R4問1・R3問1・R1問2・H30問2・H28問1</div>
+</div></section>
+
+<section class="slide" data-id="net"><div class="sc">
+  <div class="kicker">攻め3</div><h2>ネットスーパー（ビジネスモデル）</h2>
+  <div class="two">
+    <div class="box seme"><h3>顧客</h3><span class="b long">店に来るのが難しい高齢者</span>と<span class="b long">時間のない子育て世帯</span></div>
+    <div class="box seme"><h3>提供価値</h3>いつもの店の生鮮を<span class="b long">その日のうちに</span>自宅へ・店で受け取り</div>
+  </div>
+  <div class="box" style="margin-top:8px"><h3>収益</h3>配送料 1回<span class="b">300円</span>／月額会員 月<span class="b">500円</span>で配送無料 → 3年で売上<span class="b">20億円</span></div>
+  <div class="box mamori" style="margin-top:8px"><h3>既存事業の変革</h3>店舗を<span class="b long">出荷・受け取りの拠点</span>に変える</div>
+  <div class="use">書けるテーマ：R6問2・R3問1・H25問2</div>
+</div></section>
+
+<section class="slide" data-id="core"><div class="sc">
+  <div class="kicker">守り1</div><h2>基幹システムの刷新（2案の比較）</h2>
+  <table class="cmp">
+    <tr><th></th><th>A案</th><th>B案（選んだ）</th></tr>
+    <tr><th>中身</th><td><span class="b long">自社で再開発</span></td><td><span class="b long">クラウド型パッケージ＋業務の標準化</span></td></tr>
+    <tr><th>期間</th><td><span class="b">3年以上</span></td><td>約<span class="b">1年半</span></td></tr>
+    <tr><th>弱み・強み</th><td>再び<span class="b long">属人化</span>する</td><td>保守費<span class="b">3割</span>減</td></tr>
+  </table>
+  <div class="box warn" style="margin-top:10px"><h3>なぜ今か</h3>仕組みを知る社員<span class="b">2名</span>が数年で定年／改修要望が年<span class="b">200件</span>超で滞留</div>
+  <div class="use">書けるテーマ：R7問1・R4問2・H26問2・H23問2</div>
+</div></section>
+
+<section class="slide" data-id="order"><div class="sc">
+  <div class="kicker">守り1の進め方</div><h2>移す順番と、その理由</h2>
+  <div class="flow">
+    <div class="box mamori"><h3>1. <span class="b long">会計</span></h3><span class="b long">リスクが小さく、標準化しやすい</span></div>
+    <div class="arrow">↓</div>
+    <div class="box mamori"><h3>2. <span class="b long">発注・在庫</span></h3><span class="b long">効果が大きく、データ基盤の前提</span></div>
+    <div class="arrow">↓ <small><span class="b long">年末の繁忙期</span>を避ける</small></div>
+    <div class="box mamori"><h3>3. <span class="b long">店舗</span></h3><span class="b long">現場への影響が大きいので最後</span></div>
+  </div>
+  <div class="box" style="margin-top:8px"><h3>基準</h3><span class="b long">効果の大きさ・移行リスクの小ささ・依存関係</span></div>
+  <div class="use">論文で使う場所：R4問2の優先順位・工夫3</div>
+</div></section>
+
+<section class="slide" data-id="risk"><div class="sc">
+  <div class="kicker">守り2</div><h2>データ基盤と、止まったときの備え</h2>
+  <div class="box mamori"><h3>データ基盤</h3><span class="b long">POS・会員・在庫</span>を1か所に集め、<span class="b">週次</span>→<span class="b">日次</span>で分析（攻めの土台）</div>
+  <div class="flow" style="margin-top:8px">
+    <div class="box warn"><h3>インシデント</h3>朝5時までに予測が出ない → 全<span class="b">40店</span>で欠品と廃棄が増える</div>
+    <div class="arrow">↓</div>
+    <div class="two">
+      <div class="box"><h3>予防策</h3>朝<span class="b">4時</span>に自動確認／<span class="b long">2つの地域で冗長化</span></div>
+      <div class="box"><h3>発生時対策</h3>朝<span class="b">6時</span>までに出なければ<span class="b long">前週同曜日の実績</span>で発注</div>
+    </div>
+  </div>
+  <div class="use">書けるテーマ：R5問2・H24問2・H25問1</div>
+</div></section>
+
+<section class="slide" data-id="kufu"><div class="sc">
+  <div class="kicker">工夫</div><h2>工夫の部品4つ</h2>
+  <div class="two">
+    <div class="box"><h3>1. <span class="b long">小さく試す</span></h3>立地の違う<span class="b">3店舗</span>で<span class="b">3か月</span>試行</div>
+    <div class="box"><h3>2. <span class="b long">現場の知恵</span></h3>ベテラン店長のコツを補正ルールに。<span class="b long">店長が画面で修正できる</span></div>
+    <div class="box"><h3>3. <span class="b long">段階的に移す</span></h3><span class="b">会計</span>から。年末の繁忙期を避ける</div>
+    <div class="box"><h3>4. <span class="b long">数字で見せる</span></h3>KPIを<span class="b long">毎月の経営会議</span>で報告</div>
+  </div>
+  <div class="use">論文で使う場所：「特に重要と考えて工夫したこと」</div>
+</div></section>
+
+<section class="slide" data-id="talk"><div class="sc">
+  <div class="kicker">設問ウ</div><h2>反対と対応（指摘 → 対応 → 改善）</h2>
+  <div class="people">
+    <div class="person"><div class="who"><svg class="i" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="20" cy="13" r="7"/><path d="M6 36c0-8 6-13 14-13s14 5 14 13"/></svg>店舗運営部</div>
+      <div class="bubble"><span class="q">「AIに任せると<span class="b long">欠品が増える</span>」</span><span class="r">→ 3店舗の試行で<span class="b long">欠品率が増えない</span>と示す → <span class="b long">欠品率もKPIに追加</span></span></div></div>
+    <div class="person"><div class="who"><svg class="i" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="20" cy="13" r="7"/><path d="M6 36c0-8 6-13 14-13s14 5 14 13"/></svg>商品部</div>
+      <div class="bubble"><span class="q">「<span class="b long">仕入れは商品部の仕事</span>」</span><span class="r">→ 同じ予測を見られるようにする → <span class="b long">週1回、予測と実績を確認する場</span></span></div></div>
+    <div class="person"><div class="who"><svg class="i" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="20" cy="13" r="7"/><path d="M6 36c0-8 6-13 14-13s14 5 14 13"/><path d="M17 23l3 5 3-5"/></svg>経営層</div>
+      <div class="bubble"><span class="q">「<span class="b">12億円</span>に見合うのか」</span><span class="r">→ 年5億円・約3年で回収と説明 → <span class="b long">一括投資をやめ3段階で投資</span></span></div></div>
+  </div>
+  <div class="use">論文で使う場所：設問ウ（誰から → 指摘 → 対応 → 改善）</div>
+</div></section>
+
+<section class="slide" data-id="eval"><div class="sc">
+  <div class="kicker">評価</div><h2>試行3店舗の実施結果（比較3店舗と比べて評価）</h2>
+  <div class="bars">
+    <div class="bar"><span>廃棄率（前）</span><div class="track"><div class="fill" style="width:100%;background:var(--warn)"><span class="b" style="color:#fff">2.1%</span></div></div></div>
+    <div class="bar"><span>廃棄率（後）</span><div class="track"><div class="fill" style="width:67%;background:var(--ok)"><span class="b" style="color:#fff">1.4%</span></div></div></div>
+    <div class="bar"><span>発注（前）</span><div class="track"><div class="fill" style="width:100%;background:var(--warn)"><span class="b" style="color:#fff">1日90分</span></div></div></div>
+    <div class="bar"><span>発注（後）</span><div class="track"><div class="fill" style="width:44%;background:var(--ok)"><span class="b" style="color:#fff">40分</span></div></div></div>
+  </div>
+  <div class="box" style="margin-top:10px">欠品率は<span class="b long">変わらず</span>。全店で年約<span class="b">4億円</span>の改善（目標の5億円には届かず）</div>
+  <div class="box" style="margin-top:8px"><h3>残った課題</h3><span class="b long">予測が外れた日（天候急変・行事）への対策</span></div>
+  <div class="use">論文で使う場所：設問ウの評価と今後（H29問2）</div>
+</div></section>
+
+<section class="slide" data-id="u-form"><div class="sc">
+  <div class="kicker">設問ウの型</div><h2>4つの箱で書く</h2>
+  <div class="flow">
+    <div class="box"><h3>1. <span class="b long">誰から</span></h3>経営層・事業部門（店舗運営部・商品部）</div>
+    <div class="arrow">↓</div>
+    <div class="box warn"><h3>2. <span class="b long">どんな反対・指摘</span></h3>「 」でせりふのように書く</div>
+    <div class="arrow">↓</div>
+    <div class="box"><h3>3. <span class="b long">私はどう説明・調整したか</span></h3>数字や試行の結果で示す</div>
+    <div class="arrow">↓</div>
+    <div class="box seme"><h3>4. <span class="b long">何を改善したか</span></h3>指摘を受けて計画や仕組みを変えたこと</div>
+  </div>
+  <div class="use">令和6・7年度の4問すべてで、評価・指摘・意思をどう反映したかが問われている</div>
+</div></section>
+
+</main>
+
+<div class="nav">
+  <button type="button" id="n-prev">← 前</button>
+  <button type="button" id="n-show">答えを見る</button>
+  <button type="button" id="n-mark">印を付ける</button>
+  <button type="button" id="n-next">次 →</button>
+</div>
+
+<script>
+"use strict";
+var deck = document.getElementById("deck");
+var slides = Array.prototype.slice.call(deck.querySelectorAll(".slide"));
+var MARK_KEY = "pm2_slides_marks";
+var marks = {};
+try { marks = JSON.parse(localStorage.getItem(MARK_KEY)) || {}; } catch (e) { marks = {}; }
+function saveMarks() { try { localStorage.setItem(MARK_KEY, JSON.stringify(marks)); } catch (e) { /* 保存できなくても表示はできる */ } }
+var onlyNg = false;
+
+function visible() { return slides.filter(function (s) { return !s.hidden; }); }
+function curIndex() {
+  var v = visible(), w = deck.clientWidth || 1;
+  return Math.max(0, Math.min(v.length - 1, Math.round(deck.scrollLeft / w)));
+}
+function cur() { return visible()[curIndex()]; }
+function go(i) {
+  var v = visible();
+  if (!v.length) return;
+  i = Math.max(0, Math.min(v.length - 1, i));
+  deck.scrollTo({ left: i * deck.clientWidth, behavior: "smooth" });
+}
+function paintTags() {
+  slides.forEach(function (s) {
+    var old = s.querySelector(".mark-tag");
+    if (old) old.remove();
+    var m = marks[s.dataset.id];
+    if (m) s.querySelector(".kicker").insertAdjacentHTML("afterend", '<span class="mark-tag ' + m + '">' + (m === "ok" ? "覚えた" : "まだ") + '</span>');
+  });
+}
+function paint() {
+  var v = visible(), s = cur(), i = curIndex();
+  document.getElementById("cnt").textContent = v.length ? (i + 1) + " / " + v.length : "0 / 0";
+  document.getElementById("n-prev").disabled = i <= 0;
+  document.getElementById("n-next").disabled = i >= v.length - 1;
+  document.getElementById("n-show").textContent = s && s.classList.contains("open") ? "隠す" : "答えを見る";
+  var m = s ? marks[s.dataset.id] : "", mb = document.getElementById("n-mark");
+  mb.className = m || "";
+  mb.textContent = m === "ok" ? "覚えた ✓" : m === "ng" ? "まだ" : "印を付ける";
+}
+// まだだけ: 「まだ」の印のスライドだけを残す
+function applyFilter() {
+  var any = slides.some(function (s) { return marks[s.dataset.id] === "ng"; });
+  if (onlyNg && !any) {
+    onlyNg = false;
+    var c = document.getElementById("cnt");
+    c.textContent = "「まだ」の印がありません";
+    setTimeout(paint, 2000);
+  }
+  slides.forEach(function (s) { s.hidden = onlyNg && marks[s.dataset.id] !== "ng"; });
+  document.getElementById("f-ng").classList.toggle("on", onlyNg);
+  deck.scrollLeft = 0;
+  if (onlyNg || any) paint();
+}
+
+document.getElementById("n-prev").addEventListener("click", function () { go(curIndex() - 1); });
+document.getElementById("n-next").addEventListener("click", function () { go(curIndex() + 1); });
+document.getElementById("n-show").addEventListener("click", function () { var s = cur(); if (s) { s.classList.toggle("open"); paint(); } });
+// 印: なし → まだ → 覚えた → なし
+document.getElementById("n-mark").addEventListener("click", function () {
+  var s = cur(); if (!s) return;
+  var id = s.dataset.id, m = marks[id];
+  if (!m) marks[id] = "ng"; else if (m === "ng") marks[id] = "ok"; else delete marks[id];
+  saveMarks(); paintTags(); paint();
+});
+document.getElementById("f-ng").addEventListener("click", function () { onlyNg = !onlyNg; applyFilter(); });
+// スライドのどこを押しても答えが出る（もう一度押すと隠れる）
+deck.addEventListener("click", function (e) {
+  var s = e.target.closest(".slide");
+  if (s && !e.target.closest("a")) { s.classList.toggle("open"); paint(); }
+});
+var t = null;
+deck.addEventListener("scroll", function () { clearTimeout(t); t = setTimeout(paint, 60); });
+window.addEventListener("resize", function () { go(curIndex()); });
+document.addEventListener("keydown", function (e) {
+  if (e.key === "ArrowRight") go(curIndex() + 1);
+  else if (e.key === "ArrowLeft") go(curIndex() - 1);
+  else if (e.key === " " || e.key === "Enter") { e.preventDefault(); var s = cur(); if (s) { s.classList.toggle("open"); paint(); } }
+});
+paintTags();
+paint();
+</script>
+</body>
+</html>
