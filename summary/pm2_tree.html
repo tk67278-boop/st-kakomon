@@ -131,6 +131,15 @@
 
   /* 施策のタブ: ほかの施策でも使う部品と、つながる施策 */
   .also { font-size: 12px; font-weight: 700; color: var(--muted); margin-left: 6px; }
+  /* 部品を使う設問（ア・イ・ウ）の印。見本の骨子でその設問に使った部品に付く */
+  .qk { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: 1px; }
+  .qk i { font-style: normal; font-size: 11.5px; font-weight: 800; line-height: 1; padding: 3px 5px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); }
+  .qk i.a { color: #b45309; border-color: #f2c48d; background: #fff7ec; }
+  .qk i.i { color: var(--seme); border-color: color-mix(in srgb, var(--seme) 40%, transparent); background: var(--seme-soft); }
+  .qk i.u { color: #7c3aed; border-color: #cdb8f6; background: #f4effe; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .qk i.a { background: #3a2a14; border-color: #7a5520; color: #fbbf68; } :root:not([data-theme="light"]) .qk i.u { background: #2a1f45; border-color: #5b46a0; color: #c4b0fb; } }
+  :root[data-theme="dark"] .qk i.a { background: #3a2a14; border-color: #7a5520; color: #fbbf68; }
+  :root[data-theme="dark"] .qk i.u { background: #2a1f45; border-color: #5b46a0; color: #c4b0fb; }
   .rel { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 12px 12px; font-size: 13.5px; }
   .rel button { font: inherit; font-size: 13px; font-weight: 700; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
   .measure.static > .m-head { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; }
@@ -144,7 +153,7 @@
   <header class="hero">
     <div class="eyebrow">ITストラテジスト 午後II（科目B-2）</div>
     <h1>A社の施策ツリー ― 攻め3つ・守り2つと部品</h1>
-    <p class="lead">「全体」のタブで施策どうしのつながりを見て、施策のタブで「なぜ必要か → 中身 → 数字 → 進め方と工夫 → 反対と対応 → 評価」の部品を覚えます。部品の中身は、事例設定シート・骨子の「部品を挿入」と同じです。施策の過去問は見本の骨子と同じで、点線の枠は、ほかの施策が中心で組み合わせて使う過去問です。</p>
+    <p class="lead">「全体」のタブで施策どうしのつながりを見て、施策のタブで「なぜ必要か → 中身 → 数字 → 進め方と工夫 → 反対と対応 → 評価」の部品を覚えます。部品の中身は、事例設定シート・骨子の「部品を挿入」と同じです。施策の過去問は見本の骨子と同じで、点線の枠は、ほかの施策が中心で組み合わせて使う過去問です。部品名の右の<b>ア・イ・ウ</b>は、見本の骨子でその部品を使う設問です。</p>
   </header>
 
   <div class="bar">
@@ -174,8 +183,14 @@
 <script>
 "use strict";
 // 部品の中身は pm2_parts.js から名前（label）で引く。ここでは「どの施策のどの枝に付くか」だけを決める
-var TEXT = {};
-(window.PM2_PARTS || []).forEach(function (g) { g.items.forEach(function (it) { TEXT[it.label] = it.text; }); });
+var TEXT = {}, QK = {};
+(window.PM2_PARTS || []).forEach(function (g) { g.items.forEach(function (it) { TEXT[it.label] = it.text; QK[it.label] = it.k || ""; }); });
+var KANA = { a: "ア", i: "イ", u: "ウ" };
+// 部品を使う設問の印（pm2_parts.js の k。見本の骨子でその設問に使った部品）
+function qkHtml(label) {
+  var k = QK[label] || "";
+  return k ? '<span class="qk" title="見本の骨子でこの部品を使う設問">' + k.split("").map(function (c) { return '<i class="' + c + '">' + KANA[c] + '</i>'; }).join("") + '</span>' : "";
+}
 
 var ICON = {
   ai: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 33h30"/><path d="M8 27l7-8 6 5 11-13"/><path d="M27 11h5v5"/></svg>',
@@ -249,7 +264,7 @@ function body(t) { var i = t.indexOf("："); return i > 0 && i < 16 ? t.slice(i 
 function partHtml(label) {
   var t = TEXT[label];
   if (t === undefined) { console.warn("pm2_tree: 部品がありません", label); return ""; } // 名前の書き間違いは画面に出さず、確認用にコンソールへ出す
-  return '<div class="part"><b>' + esc(label) + '</b><span class="txt">' + esc(body(t)) + '</span></div>';
+  return '<div class="part"><b>' + esc(label) + '</b>' + qkHtml(label) + '<span class="txt">' + esc(body(t)) + '</span></div>';
 }
 
 // どの部品がどの施策で使われるか（ほかの施策でも使う部品に印を付ける）
@@ -295,7 +310,7 @@ MEASURES.forEach(function (m) {
       return '<li><div class="cat">' + esc(c[0]) + (c[1] ? ' <small>' + esc(c[1]) + '</small>' : '') + '</div>' +
         '<ul>' + c[2].map(function (l) {
           var others = (USED[l] || []).filter(function (t) { return t !== m.tag; });
-          return '<li>' + partHtml(l).replace('</b>', '</b>' + (others.length ? '<span class="also">（' + others.join("・") + 'でも使う）</span>' : '')) + '</li>';
+          return '<li>' + partHtml(l).replace('<span class="txt">', (others.length ? '<span class="also">（' + others.join("・") + 'でも使う）</span>' : '') + '<span class="txt">') + '</li>';
         }).join("") + '</ul></li>';
     }).join("") + '</ul></div></section>';
   document.getElementById("panes").insertAdjacentHTML("beforeend", html);
