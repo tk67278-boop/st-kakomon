@@ -42,26 +42,16 @@
     border-radius: 999px; padding: 4px 12px; cursor: pointer; text-decoration: none; }
   .bar button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .bar .sp { flex: 1; }
+  @media (max-width: 480px) { .bar { gap: 6px; } .bar > button, .bar > a { font-size: 12.5px; padding: 3px 10px; } .bar .sp { display: none; } }
 
   /* 根: A社 */
   .root { background: var(--card); border: 2px solid var(--text); border-radius: 14px; padding: 12px 16px; box-shadow: var(--shadow); }
   .root h2 { font-size: 18px; margin: 0 0 6px; }
 
-  /* 攻め・守りの2本の枝 */
-  .branches { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-top: 16px; position: relative; }
-  .branch-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-weight: 800; font-size: 17px; margin: 0 0 8px; }
-  .branch-h span { flex: none; white-space: nowrap; color: #fff; border-radius: 8px; padding: 1px 10px; font-size: 14px; }
-  .seme .branch-h span { background: var(--seme); }
-  .mamori .branch-h span { background: var(--mamori); }
-  .branch-h small { font-weight: 600; color: var(--muted); font-size: 13px; }
-  @media (max-width: 860px) { .branches { grid-template-columns: minmax(0, 1fr); } }
-
   /* 施策のノード */
-  details.measure { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--c); border-radius: 12px; margin: 0 0 12px; box-shadow: var(--shadow); }
-  .seme details.measure { --c: var(--seme); --cs: var(--seme-soft); }
-  .mamori details.measure { --c: var(--mamori); --cs: var(--mamori-soft); }
-  details.measure > summary { list-style: none; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; }
-  details.measure > summary::-webkit-details-marker { display: none; }
+  .measure { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--c); border-radius: 12px; margin: 0 0 12px; box-shadow: var(--shadow); }
+  .measure.seme { --c: var(--seme); --cs: var(--seme-soft); }
+  .measure.mamori { --c: var(--mamori); --cs: var(--mamori-soft); }
   .icon { flex: none; width: 46px; height: 46px; border-radius: 10px; background: var(--cs); display: grid; place-items: center; }
   .icon svg { width: 34px; height: 34px; }
   .m-tag { display: inline-block; font-size: 12px; font-weight: 800; color: #fff; background: var(--c); border-radius: 6px; padding: 0 7px; margin-right: 6px; }
@@ -70,8 +60,6 @@
   .m-themes { font-size: 12.5px; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
   .m-themes span { background: var(--chip); border-radius: 999px; padding: 0 8px; }
   .m-themes span.sub { background: none; border: 1px dashed var(--line); color: var(--muted); }
-  .chev { flex: none; margin-left: auto; width: 18px; height: 18px; color: var(--muted); transition: transform .15s; }
-  details[open] > summary .chev { transform: rotate(90deg); }
   .link-note { margin: 0 12px 10px; font-size: 13px; background: var(--cs); border-radius: 8px; padding: 4px 10px; }
 
   /* 枝分かれ（線で結ぶ） */
@@ -91,6 +79,50 @@
   body.memorize .part .txt { color: transparent; background: var(--hide); border-radius: 6px; cursor: pointer; user-select: none; }
   body.memorize .part.show .txt { color: var(--text); background: none; }
 
+  /* タブ（全体・施策ごと） */
+  .tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 8px; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .bar .tabs { flex: 1 1 100%; min-width: 0; }
+  .tabs button { flex: none; font: inherit; font-size: 14px; font-weight: 700; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 10px; padding: 6px 12px; cursor: pointer; }
+  .tabs button.seme { border-color: var(--seme); color: var(--seme); }
+  .tabs button.mamori { border-color: var(--mamori); color: var(--mamori); }
+  .tabs button.on { color: #fff; background: var(--text); border-color: var(--text); }
+  .tabs button.seme.on { background: var(--seme); border-color: var(--seme); }
+  .tabs button.mamori.on { background: var(--mamori); border-color: var(--mamori); }
+  .pane[hidden] { display: none; }
+
+  /* 全体タブ: 守りの上に攻めが乗る地図 */
+  .map-h { font-size: 16px; margin: 18px 0 8px; }
+  .map-layer { border-radius: 14px; padding: 10px; }
+  .map-layer.seme { background: var(--seme-soft); }
+  .map-layer.mamori { background: var(--mamori-soft); }
+  .map-row { display: grid; gap: 10px; }
+  .map-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .map-row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 700px) { .map-row.three, .map-row.two { grid-template-columns: minmax(0, 1fr); } }
+  .map-lab { font-size: 13px; font-weight: 800; margin: 0 2px 6px; }
+  .map-layer.seme .map-lab { color: var(--seme); }
+  .map-layer.mamori .map-lab { color: var(--mamori); }
+  .map-card { text-align: left; font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--c);
+    border-radius: 12px; padding: 10px 12px; cursor: pointer; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 2px; }
+  .map-card.seme { --c: var(--seme); --cs: var(--seme-soft); }
+  .map-card.mamori { --c: var(--mamori); --cs: var(--mamori-soft); }
+  .map-card .go { font-size: 12.5px; color: var(--c); font-weight: 700; margin-top: 4px; }
+  .map-link { text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted); margin: 6px 0; }
+  .shared { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
+  .shared th, .shared td { border: 1px solid var(--line); padding: 6px 10px; font-size: 14px; text-align: left; vertical-align: top; }
+  .shared th { background: var(--chip); }
+  .tagchip { display: inline-block; font-size: 12px; font-weight: 800; color: #fff; border-radius: 6px; padding: 0 6px; margin: 1px 3px 1px 0; }
+  .tagchip.seme { background: var(--seme); }
+  .tagchip.mamori { background: var(--mamori); }
+
+  /* 施策のタブ: ほかの施策でも使う部品と、つながる施策 */
+  .also { font-size: 12px; font-weight: 700; color: var(--muted); margin-left: 6px; }
+  .rel { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 12px 12px; font-size: 13.5px; }
+  .rel button { font: inherit; font-size: 13px; font-weight: 700; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+  .measure.static > .m-head { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; }
+
   .hint { font-size: 13px; color: var(--muted); }
   footer { margin-top: 26px; font-size: 13px; color: var(--muted); }
 </style>
@@ -100,25 +132,28 @@
   <header class="hero">
     <div class="eyebrow">ITストラテジスト 午後II（科目B-2）</div>
     <h1>A社の施策ツリー ― 攻め3つ・守り2つと部品</h1>
-    <p class="lead">A社の施策ごとに、「なぜ必要か → 中身 → 数字 → 進め方と工夫 → 反対と対応 → 評価」の順で部品を枝分かれにしました。部品の中身は、事例設定シート・骨子の「部品を挿入」と同じです。施策の右下は、その施策で書ける過去問です（見本の骨子と同じ）。点線の枠は、ほかの施策が中心で、この施策を組み合わせて使う過去問です。</p>
+    <p class="lead">「全体」のタブで施策どうしのつながりを見て、施策のタブで「なぜ必要か → 中身 → 数字 → 進め方と工夫 → 反対と対応 → 評価」の部品を覚えます。部品の中身は、事例設定シート・骨子の「部品を挿入」と同じです。施策の過去問は見本の骨子と同じで、点線の枠は、ほかの施策が中心で組み合わせて使う過去問です。</p>
   </header>
 
   <div class="bar">
-    <button type="button" id="b-open">すべて開く</button>
-    <button type="button" id="b-close">すべて閉じる</button>
-    <button type="button" id="b-mem">中身を隠して覚える</button>
+    <div class="tabs" id="tabs" role="tablist"></div>
     <span class="sp"></span>
-    <a href="pm2_slides.html">スライドで覚える</a>
+    <button type="button" id="b-mem" title="部品の中身を隠し、押して確かめる">隠して覚える</button>
+    <a href="pm2_slides.html">スライド</a>
     <a href="pm2_case.html">事例設定シート</a>
   </div>
   <p class="hint" id="mem-hint" hidden>部品の名前を見て中身を言ってから、灰色の部分を押して確かめます。</p>
 
-  <section class="root" id="root"></section>
-
-  <div class="branches">
-    <section class="seme"><div class="branch-h"><span>攻め</span>売上と利益を伸ばす <small>（DX・新サービス）</small></div><div id="seme"></div></section>
-    <section class="mamori"><div class="branch-h"><span>守り</span>土台を作り直す <small>（基幹・データ・止めない）</small></div><div id="mamori"></div></section>
-  </div>
+  <section class="pane" id="p-all">
+    <section class="root" id="root"></section>
+    <h2 class="map-h">施策の地図（押すとその施策のタブへ）</h2>
+    <div class="map-layer seme"><div class="map-lab">攻め ― 売上と利益を伸ばす（DX・新サービス）</div><div class="map-row three" id="map-seme"></div></div>
+    <div class="map-link">↑ 攻め1・攻め2は守り2（データ基盤）の上で動く ／ 守り1の刷新で守り2・攻めに早く着手できる</div>
+    <div class="map-layer mamori"><div class="map-lab">守り ― 土台を作り直す（基幹・データ・止めない）</div><div class="map-row two" id="map-mamori"></div></div>
+    <h2 class="map-h">複数の施策で使う部品（横のつながり）</h2>
+    <table class="shared" id="shared"></table>
+  </section>
+  <div id="panes"></div>
 
   <footer>A社は練習用の架空の会社です。部品のデータは js/data/pm2_parts.js から読み込んでいます。</footer>
 </div>
@@ -141,7 +176,8 @@ var ICON = {
 var ROOT = ["会社の数字（40店・800億・4,000人）", "私の立場", "事業戦略（差別化）", "目指す変革（アに書く）", "施策の全体（イに書く）", "推進体制"];
 
 var MEASURES = [
-  { side: "seme", tag: "攻め1", name: "需要予測AIによる自動発注", icon: "ai", main: "攻め1 需要予測AIによる自動発注",
+  { id: "s1", side: "seme", tag: "攻め1", short: "需要予測AI", name: "需要予測AIによる自動発注", icon: "ai", main: "攻め1 需要予測AIによる自動発注",
+    rel: [["m2", "データ基盤に集めたPOSで予測する"], ["m1", "基幹の刷新で発注・在庫と連携しやすくなる"]],
     themes: ["R7問2", "R6問1", "R5問1", "R5問2", "R3問2", "R1問1", "H30問1", "H29問1・2", "H28問2", "H27問2", "H26問1", "H24問1", "H23問1", "H22問2", "H21問1・2", "+H25問1"],
     cats: [
       ["なぜ必要か", "設問ア", ["鮮：生鮮4割で需要が変動", "食品ロス（鮮）", "人：店舗業務がパート頼み", "人手不足（人）"]],
@@ -154,7 +190,8 @@ var MEASURES = [
       ["阻害要因と取り入れた意思", "R7問2", ["阻害要因と対応策（R7問2）", "取り入れた意思（R7問2）"]],
       ["評価と今後", "設問ウ", ["実施結果の評価（数字と比較）", "業務面・システム面の課題（H29問2）", "残った課題と今後"]]
     ] },
-  { side: "seme", tag: "攻め2", name: "会員アプリ", icon: "app", main: "攻め2 会員アプリ",
+  { id: "s2", side: "seme", tag: "攻め2", short: "会員アプリ", name: "会員アプリ", icon: "app", main: "攻め2 会員アプリ",
+    rel: [["m2", "会員の購買履歴はデータ基盤に集める"], ["s3", "R3問1では攻め3と組み合わせる"]],
     themes: ["R4問1", "R3問1", "R1問2", "H30問2", "H28問1", "H24問1"],
     cats: [
       ["なぜ必要か", "設問ア", ["近：近隣の常連が多い", "客数の減少（近）", "背景（顧客の声と接点の少なさ）"]],
@@ -162,7 +199,8 @@ var MEASURES = [
       ["数字", "", ["顧客の指標と目標（KPI）", "収益の得方", "投資と効果（5億円・約1年半で回収）"]],
       ["提案と評価・指摘", "設問ウ", ["経営層への提案と評価", "経営層「値引きで利益が減る」", "経営層「アプリを使わない高齢の常連は」", "経営層「満足度をアンケートだけで測るのか」"]]
     ] },
-  { side: "seme", tag: "攻め3", name: "ネットスーパー", icon: "truck", main: "攻め3 ネットスーパー",
+  { id: "s3", side: "seme", tag: "攻め3", short: "ネットスーパー", name: "ネットスーパー", icon: "truck", main: "攻め3 ネットスーパー",
+    rel: [["s2", "R3問1では攻め2と組み合わせる"]],
     themes: ["R6問2", "R3問1", "H25問2"],
     cats: [
       ["なぜ必要か", "設問ア", ["客数の減少（近）", "事業戦略（差別化）"]],
@@ -170,7 +208,8 @@ var MEASURES = [
       ["検証とかい離", "設問ウ", ["確認・検証（H25問2）", "当初の要件とのかい離（R6問2）"]],
       ["反対・指摘と対応", "設問ウ", ["店舗運営部「商品集めで人手が足りない」"]]
     ] },
-  { side: "mamori", tag: "守り1", name: "基幹システムの刷新", icon: "server", main: "守り1 基幹システムの刷新",
+  { id: "m1", side: "mamori", tag: "守り1", short: "基幹刷新", name: "基幹システムの刷新", icon: "server", main: "守り1 基幹システムの刷新",
+    rel: [["m2", "刷新するとデータ基盤を作りやすくなる"], ["s1", "刷新が需要予測など攻めの土台になる"]],
     note: "刷新すると、守り2・攻めの施策に早く着手できる（経営上の有効性）",
     themes: ["R7問1", "R4問2", "H26問2", "H23問2", "+H27問2", "+H22問1"],
     cats: [
@@ -179,11 +218,13 @@ var MEASURES = [
       ["進め方と工夫", "設問イ", ["優先順位の基準", "移行リスクと対応", "工夫3 段階的に移す"]],
       ["反対・指摘と対応", "設問ウ", ["店舗運営部「パッケージに合わせると混乱」", "商品部「例外ルールが使えなくなる」", "経営層「発注・在庫を先に」", "経営層「12億円に見合うのか」"]]
     ] },
-  { side: "mamori", tag: "守り2", name: "データ基盤", icon: "db", main: "守り2 データ基盤",
+  { id: "m2", side: "mamori", tag: "守り2", short: "データ基盤", name: "データ基盤", icon: "db", main: "守り2 データ基盤",
+    rel: [["s1", "需要予測はこの上で動く"], ["s2", "会員アプリのデータもここに集める"], ["m1", "基幹の刷新とあわせて作る"]],
     note: "攻め1（需要予測）と攻め2（会員アプリ）は、このデータ基盤の上で動く",
     themes: ["R5問2", "H25問1", "H24問2", "H22問1", "+R7問1", "+R7問2", "+H30問1", "+H29問1", "+H24問1"],
     cats: [
       ["なぜ必要か", "設問ア", ["データの分断"]],
+      ["数字", "攻め1と合わせた投資", ["投資の数字（12億円・約3年で回収）"]],
       ["止まったとき（システムリスク）", "R5問2", ["インシデントとインパクト", "予防策", "発生時対策"]],
       ["事業継続", "H24問2", ["社会的責任（BCP）"]],
       ["反対・指摘と対応", "設問ウ", ["店舗運営部「代替手順を覚えられない」", "経営層「冗長化の費用が過剰」"]]
@@ -199,37 +240,87 @@ function partHtml(label) {
   return '<div class="part"><b>' + esc(label) + '</b><span class="txt">' + esc(body(t)) + '</span></div>';
 }
 
+// どの部品がどの施策で使われるか（ほかの施策でも使う部品に印を付ける）
+var USED = {};
+MEASURES.forEach(function (m) {
+  m.cats.forEach(function (c) { c[2].forEach(function (l) { (USED[l] = USED[l] || []).indexOf(m.tag) < 0 && USED[l].push(m.tag); }); });
+});
+var BY_ID = {};
+MEASURES.forEach(function (m) { BY_ID[m.id] = m; });
+function sideOf(tag) { return tag.indexOf("攻め") === 0 ? "seme" : "mamori"; }
+function themesHtml(m) {
+  return '<span class="m-themes">' + m.themes.map(function (t) {
+    return t.charAt(0) === "+" ? '<span class="sub">' + esc(t.slice(1)) + '</span>' : '<span>' + esc(t) + '</span>';
+  }).join("") + '</span>';
+}
+
+// 全体タブ: A社の前提・施策の地図・複数の施策で使う部品
 document.getElementById("root").innerHTML = '<h2>A社 ― 地方の食品スーパー（全施策の前提）</h2><ul class="tree" style="padding:0">' +
   ROOT.map(function (l) { return '<li>' + partHtml(l) + '</li>'; }).join("") + '</ul>';
-
 MEASURES.forEach(function (m) {
-  var html = '<details class="measure" open><summary>' +
+  document.getElementById("map-" + m.side).insertAdjacentHTML("beforeend",
+    '<button type="button" class="map-card ' + m.side + '" data-go="' + m.id + '">' +
+      '<span><span class="m-tag">' + m.tag + '</span><span class="m-name">' + esc(m.name) + '</span></span>' +
+      '<span class="m-one">' + esc(body(TEXT[m.main] || "")) + '</span>' + themesHtml(m) +
+      '<span class="go">部品を見る →</span></button>');
+});
+document.getElementById("shared").innerHTML = '<tr><th>部品</th><th>使う施策</th></tr>' +
+  Object.keys(USED).filter(function (l) { return USED[l].length > 1; }).map(function (l) {
+    return '<tr><td>' + esc(l) + '</td><td>' + USED[l].map(function (t) { return '<span class="tagchip ' + sideOf(t) + '">' + t + '</span>'; }).join("") + '</td></tr>';
+  }).join("");
+
+// 施策のタブ
+MEASURES.forEach(function (m) {
+  var html = '<section class="pane" id="p-' + m.id + '" hidden><div class="measure static ' + m.side + '"><div class="m-head">' +
     '<span class="icon" style="color:var(--c)">' + ICON[m.icon] + '</span>' +
     '<span><span class="m-tag">' + m.tag + '</span><span class="m-name">' + esc(m.name) + '</span>' +
-      '<span class="m-one" style="display:block">' + esc(body(TEXT[m.main] || "")) + '</span>' +
-      '<span class="m-themes">' + m.themes.map(function (t) { return t.charAt(0) === "+" ? '<span class="sub">' + esc(t.slice(1)) + '</span>' : '<span>' + esc(t) + '</span>'; }).join("") + '</span></span>' +
-    '<svg class="chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l6 6-6 6"/></svg></summary>' +
+      '<span class="m-one" style="display:block">' + esc(body(TEXT[m.main] || "")) + '</span>' + themesHtml(m) + '</span></div>' +
     (m.note ? '<div class="link-note">' + esc(m.note) + '</div>' : '') +
+    '<div class="rel"><b>つながる施策</b>' + m.rel.map(function (r) {
+      return '<button type="button" data-go="' + r[0] + '">' + BY_ID[r[0]].tag + '：' + esc(r[1]) + '</button>';
+    }).join("") + '</div>' +
     '<ul class="tree">' + m.cats.map(function (c) {
       return '<li><div class="cat">' + esc(c[0]) + (c[1] ? ' <small>' + esc(c[1]) + '</small>' : '') + '</div>' +
-        '<ul>' + c[2].map(function (l) { return '<li>' + partHtml(l) + '</li>'; }).join("") + '</ul></li>';
-    }).join("") + '</ul></details>';
-  document.getElementById(m.side).insertAdjacentHTML("beforeend", html);
+        '<ul>' + c[2].map(function (l) {
+          var others = (USED[l] || []).filter(function (t) { return t !== m.tag; });
+          return '<li>' + partHtml(l).replace('</b>', '</b>' + (others.length ? '<span class="also">（' + others.join("・") + 'でも使う）</span>' : '')) + '</li>';
+        }).join("") + '</ul></li>';
+    }).join("") + '</ul></div></section>';
+  document.getElementById("panes").insertAdjacentHTML("beforeend", html);
 });
 
+// タブの切り替え（URLの #s1 などで開くタブを覚える）
+var TABS = [{ id: "all", label: "全体", side: "" }].concat(MEASURES.map(function (m) { return { id: m.id, label: m.tag + " " + m.short, side: m.side }; }));
+document.getElementById("tabs").innerHTML = TABS.map(function (t) {
+  return '<button type="button" role="tab" class="' + t.side + '" data-tab="' + t.id + '">' + esc(t.label) + '</button>';
+}).join("");
 function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
-document.getElementById("b-open").addEventListener("click", function () { all("details.measure").forEach(function (d) { d.open = true; }); });
-document.getElementById("b-close").addEventListener("click", function () { all("details.measure").forEach(function (d) { d.open = false; }); });
+function show(id, push) {
+  if (!document.getElementById("p-" + id)) id = "all";
+  all(".pane").forEach(function (p) { p.hidden = p.id !== "p-" + id; });
+  all("#tabs button").forEach(function (b) {
+    var on = b.dataset.tab === id;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");
+    if (on && b.scrollIntoView) b.scrollIntoView({ block: "nearest", inline: "nearest" });
+  });
+  if (push && history.replaceState) history.replaceState(null, "", "#" + id);
+}
+document.addEventListener("click", function (e) {
+  var t = e.target.closest && e.target.closest("[data-tab],[data-go]");
+  if (t) { show(t.dataset.tab || t.dataset.go, true); window.scrollTo(0, 0); return; }
+  if (!document.body.classList.contains("memorize")) return;
+  var p = e.target.closest && e.target.closest(".part");
+  if (p) p.classList.toggle("show");
+});
+window.addEventListener("hashchange", function () { show(location.hash.slice(1), false); });
+show(location.hash.slice(1) || "all", false);
+
 document.getElementById("b-mem").addEventListener("click", function () {
   var on = document.body.classList.toggle("memorize");
   this.classList.toggle("on", on);
   document.getElementById("mem-hint").hidden = !on;
   all(".part.show").forEach(function (p) { p.classList.remove("show"); });
-});
-document.addEventListener("click", function (e) {
-  if (!document.body.classList.contains("memorize")) return;
-  var p = e.target.closest && e.target.closest(".part");
-  if (p) p.classList.toggle("show");
 });
 </script>
 </body>
