@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A社の施策ツリー</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd;
+    --seme: #2563eb; --seme-soft: #e5edfd; --mamori: #0f8a5f; --mamori-soft: #e2f5ec;
+    --chip: #eef2f7; --hide: #d9e0e9; --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50;
+      --seme: #5b93ff; --seme-soft: #1c2f50; --mamori: #34c48b; --mamori-soft: #12301f;
+      --chip: #222d3a; --hide: #2f3c4b; --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50;
+    --seme: #5b93ff; --seme-soft: #1c2f50; --mamori: #34c48b; --mamori-soft: #12301f;
+    --chip: #222d3a; --hide: #2f3c4b; --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 16px; line-height: 1.7; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 60px; }
+  header.hero { padding: 28px 0 6px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 26px; line-height: 1.4; margin: 6px 0 8px; }
+  .lead { color: var(--muted); margin: 0 0 10px; font-size: 15px; }
+  a { color: var(--accent); }
+
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: var(--bg); padding: 8px 0; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .bar button, .bar a { font: inherit; font-size: 13.5px; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 999px; padding: 4px 12px; cursor: pointer; text-decoration: none; }
+  .bar button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .bar .sp { flex: 1; }
+
+  /* 根: A社 */
+  .root { background: var(--card); border: 2px solid var(--text); border-radius: 14px; padding: 12px 16px; box-shadow: var(--shadow); }
+  .root h2 { font-size: 18px; margin: 0 0 6px; }
+
+  /* 攻め・守りの2本の枝 */
+  .branches { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-top: 16px; position: relative; }
+  .branch-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-weight: 800; font-size: 17px; margin: 0 0 8px; }
+  .branch-h span { flex: none; white-space: nowrap; color: #fff; border-radius: 8px; padding: 1px 10px; font-size: 14px; }
+  .seme .branch-h span { background: var(--seme); }
+  .mamori .branch-h span { background: var(--mamori); }
+  .branch-h small { font-weight: 600; color: var(--muted); font-size: 13px; }
+  @media (max-width: 860px) { .branches { grid-template-columns: minmax(0, 1fr); } }
+
+  /* 施策のノード */
+  details.measure { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--c); border-radius: 12px; margin: 0 0 12px; box-shadow: var(--shadow); }
+  .seme details.measure { --c: var(--seme); --cs: var(--seme-soft); }
+  .mamori details.measure { --c: var(--mamori); --cs: var(--mamori-soft); }
+  details.measure > summary { list-style: none; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; }
+  details.measure > summary::-webkit-details-marker { display: none; }
+  .icon { flex: none; width: 46px; height: 46px; border-radius: 10px; background: var(--cs); display: grid; place-items: center; }
+  .icon svg { width: 34px; height: 34px; }
+  .m-tag { display: inline-block; font-size: 12px; font-weight: 800; color: #fff; background: var(--c); border-radius: 6px; padding: 0 7px; margin-right: 6px; }
+  .m-name { font-weight: 800; font-size: 16.5px; }
+  .m-one { font-size: 14px; color: var(--muted); line-height: 1.6; margin-top: 2px; }
+  .m-themes { font-size: 12.5px; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .m-themes span { background: var(--chip); border-radius: 999px; padding: 0 8px; }
+  .chev { flex: none; margin-left: auto; width: 18px; height: 18px; color: var(--muted); transition: transform .15s; }
+  details[open] > summary .chev { transform: rotate(90deg); }
+  .link-note { margin: 0 12px 10px; font-size: 13px; background: var(--cs); border-radius: 8px; padding: 4px 10px; }
+
+  /* 枝分かれ（線で結ぶ） */
+  ul.tree { list-style: none; margin: 0; padding: 0 12px 12px 12px; }
+  ul.tree ul { list-style: none; margin: 0; padding: 0 0 0 18px; }
+  ul.tree li { position: relative; padding-left: 18px; }
+  ul.tree li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 2px solid var(--line); }
+  ul.tree li:last-child::before { bottom: auto; height: 18px; }
+  ul.tree li::after { content: ""; position: absolute; left: 0; top: 18px; width: 14px; border-top: 2px solid var(--line); }
+  .cat { font-weight: 800; font-size: 14px; color: var(--c); padding: 6px 0 2px; }
+  .cat small { color: var(--muted); font-weight: 600; }
+
+  /* 部品 */
+  .part { padding: 3px 0 5px; }
+  .part b { font-size: 14px; }
+  .part .txt { display: block; font-size: 13.5px; line-height: 1.65; color: var(--text); }
+  body.memorize .part .txt { color: transparent; background: var(--hide); border-radius: 6px; cursor: pointer; user-select: none; }
+  body.memorize .part.show .txt { color: var(--text); background: none; }
+  .part.missing b { color: #b91c1c; }
+
+  .hint { font-size: 13px; color: var(--muted); }
+  footer { margin-top: 26px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">ITストラテジスト 午後II（科目B-2）</div>
+    <h1>A社の施策ツリー ― 攻め3つ・守り2つと部品</h1>
+    <p class="lead">A社の施策ごとに、「なぜ必要か → 中身 → 数字 → 進め方と工夫 → 反対と対応 → 評価」の順で部品を枝分かれにしました。部品の中身は、事例設定シート・骨子の「部品を挿入」と同じです。施策の右下は、その施策で書ける過去問です。</p>
+  </header>
+
+  <div class="bar">
+    <button type="button" id="b-open">すべて開く</button>
+    <button type="button" id="b-close">すべて閉じる</button>
+    <button type="button" id="b-mem">中身を隠して覚える</button>
+    <span class="sp"></span>
+    <a href="pm2_case.html">事例設定シート</a>
+  </div>
+  <p class="hint" id="mem-hint" hidden>部品の名前を見て中身を言ってから、灰色の部分を押して確かめます。</p>
+
+  <section class="root" id="root"></section>
+
+  <div class="branches">
+    <section class="seme"><div class="branch-h"><span>攻め</span>売上と利益を伸ばす <small>（DX・新サービス）</small></div><div id="seme"></div></section>
+    <section class="mamori"><div class="branch-h"><span>守り</span>土台を作り直す <small>（基幹・データ・止めない）</small></div><div id="mamori"></div></section>
+  </div>
+
+  <footer>A社は練習用の架空の会社です。部品のデータは js/data/pm2_parts.js から読み込んでいます。</footer>
+</div>
+
+<script src="../js/data/pm2_parts.js"></script>
+<script>
+"use strict";
+// 部品の中身は pm2_parts.js から名前（label）で引く。ここでは「どの施策のどの枝に付くか」だけを決める
+var TEXT = {};
+(window.PM2_PARTS || []).forEach(function (g) { g.items.forEach(function (it) { TEXT[it.label] = it.text; }); });
+
+var ICON = {
+  ai: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 33h30"/><path d="M8 27l7-8 6 5 11-13"/><path d="M27 11h5v5"/></svg>',
+  app: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="11" y="4" width="18" height="32" rx="3"/><path d="M17 31h6"/><path d="M15 12h10M15 17h10M15 22h6"/></svg>',
+  truck: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h20v17H3z"/><path d="M23 16h8l5 6v5H23"/><circle cx="10" cy="30" r="3"/><circle cx="29" cy="30" r="3"/></svg>',
+  server: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="28" height="9" rx="2"/><rect x="6" y="16" width="28" height="9" rx="2"/><rect x="6" y="27" width="28" height="9" rx="2"/><path d="M11 9.5h.01M11 20.5h.01M11 31.5h.01"/></svg>',
+  db: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="20" cy="9" rx="13" ry="5"/><path d="M7 9v22c0 2.8 5.8 5 13 5s13-2.2 13-5V9"/><path d="M7 20c0 2.8 5.8 5 13 5s13-2.2 13-5"/></svg>'
+};
+
+var ROOT = ["会社の数字（40店・800億・4,000人）", "私の立場", "事業戦略（差別化）", "目指す変革（アに書く）", "施策の全体（イに書く）", "推進体制"];
+
+var MEASURES = [
+  { side: "seme", tag: "攻め1", name: "需要予測AIによる自動発注", icon: "ai", main: "攻め1 需要予測AIによる自動発注",
+    themes: ["R7問2", "R6問1", "R5問1", "R5問2", "R3問2", "R1問1", "H30問1", "H29問1・2", "H26問1", "H23問1", "H21問1・2"],
+    cats: [
+      ["なぜ必要か", "設問ア", ["鮮：生鮮4割で需要が変動", "食品ロス（鮮）", "人：店舗業務がパート頼み", "人手不足（人）"]],
+      ["前段：改修要望の分析", "R5問1", ["店舗運営部の改修要望", "利用部門の問題認識", "収集した情報と分析", "特定した問題の真因", "対応方針（解決手段・体制・投資）"]],
+      ["中身の具体化", "設問イ", ["使う技術", "どこで動かすか", "システムの流れ", "個別システム化計画"]],
+      ["採用前の確認", "R6問1", ["机上確認", "技術検証", "リスクと対策"]],
+      ["数字", "", ["投資の数字（12億円・約3年で回収）"]],
+      ["工夫", "", ["工夫1 小さく試す", "工夫2 現場の知恵を取り込む", "工夫4 数字で効果を見せる"]],
+      ["反対・指摘と対応", "設問ウ", ["店舗運営部「AIに任せると欠品」", "商品部「仕入れは商品部の仕事」", "経営層「12億円に見合うのか」", "経営層「AIの根拠が分からない」"]],
+      ["阻害要因と取り入れた意思", "R7問2", ["阻害要因と対応策（R7問2）", "取り入れた意思（R7問2）"]],
+      ["評価と今後", "設問ウ", ["実施結果の評価（数字と比較）", "業務面・システム面の課題（H29問2）", "残った課題と今後"]]
+    ] },
+  { side: "seme", tag: "攻め2", name: "会員アプリ", icon: "app", main: "攻め2 会員アプリ",
+    themes: ["R4問1", "R3問1", "R1問2", "H30問2", "H28問1", "H24問1"],
+    cats: [
+      ["なぜ必要か", "設問ア", ["近：近隣の常連が多い", "客数の減少（近）", "背景（顧客の声と接点の少なさ）"]],
+      ["顧客と価値", "設問イ", ["狙う顧客（共働きの子育て世帯）", "接点と関係性（買い物の前・中・後）", "新たな価値（献立に迷わず短時間で買える）", "扱うデータ"]],
+      ["数字", "", ["顧客の指標と目標（KPI）", "収益の得方", "投資と効果（5億円・約1年半で回収）"]],
+      ["提案と評価・指摘", "設問ウ", ["経営層への提案と評価", "経営層「値引きで利益が減る」", "経営層「アプリを使わない高齢の常連は」", "経営層「満足度をアンケートだけで測るのか」"]]
+    ] },
+  { side: "seme", tag: "攻め3", name: "ネットスーパー", icon: "truck", main: "攻め3 ネットスーパー",
+    themes: ["R6問2", "R3問1", "H25問2"],
+    cats: [
+      ["なぜ必要か", "設問ア", ["客数の減少（近）", "事業戦略（差別化）"]],
+      ["ビジネスモデル", "設問イ", ["顧客", "提供価値とサービス", "収益の獲得方法", "ITで新たに実現したこと"]],
+      ["検証とかい離", "設問ウ", ["確認・検証（H25問2）", "当初の要件とのかい離（R6問2）"]],
+      ["反対・指摘と対応", "設問ウ", ["店舗運営部「商品集めで人手が足りない」"]]
+    ] },
+  { side: "mamori", tag: "守り1", name: "基幹システムの刷新", icon: "server", main: "守り1 基幹システムの刷新",
+    note: "刷新すると、守り2・攻めの施策に早く着手できる（経営上の有効性）",
+    themes: ["R7問1", "R4問2", "H27問2", "H26問2", "H23問2"],
+    cats: [
+      ["なぜ必要か", "設問ア", ["20年前の基幹システム", "属人化（2名・定年）", "改修要望の滞留（年200件）", "経営への影響（新施策に着手できない）"]],
+      ["方針", "設問イ", ["刷新方針（2案の比較と選択）", "刷新の必要性", "経営上の有効性"]],
+      ["進め方と工夫", "設問イ", ["優先順位の基準", "移行リスクと対応", "工夫3 段階的に移す"]],
+      ["反対・指摘と対応", "設問ウ", ["店舗運営部「パッケージに合わせると混乱」", "商品部「例外ルールが使えなくなる」", "経営層「発注・在庫を先に」", "経営層「12億円に見合うのか」"]]
+    ] },
+  { side: "mamori", tag: "守り2", name: "データ基盤", icon: "db", main: "守り2 データ基盤",
+    note: "攻め1（需要予測）と攻め2（会員アプリ）は、このデータ基盤の上で動く",
+    themes: ["R5問2", "H25問1", "H24問2", "H22問1"],
+    cats: [
+      ["なぜ必要か", "設問ア", ["データの分断"]],
+      ["止まったとき（システムリスク）", "R5問2", ["インシデントとインパクト", "予防策", "発生時対策"]],
+      ["事業継続", "H24問2", ["社会的責任（BCP）"]],
+      ["反対・指摘と対応", "設問ウ", ["店舗運営部「代替手順を覚えられない」", "経営層「冗長化の費用が過剰」"]]
+    ] }
+];
+
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+// 部品の中身は「見出し：本文」なので、名前と重なる先頭の見出しは落として本文だけ出す
+function body(t) { var i = t.indexOf("："); return i > 0 && i < 16 ? t.slice(i + 1) : t; }
+function partHtml(label) {
+  var t = TEXT[label];
+  if (t === undefined) return '<div class="part missing"><b>' + esc(label) + '</b><span class="txt">（部品が見つかりません）</span></div>';
+  return '<div class="part"><b>' + esc(label) + '</b><span class="txt">' + esc(body(t)) + '</span></div>';
+}
+
+document.getElementById("root").innerHTML = '<h2>A社 ― 地方の食品スーパー（全施策の前提）</h2><ul class="tree" style="padding:0">' +
+  ROOT.map(function (l) { return '<li>' + partHtml(l) + '</li>'; }).join("") + '</ul>';
+
+MEASURES.forEach(function (m) {
+  var html = '<details class="measure" open><summary>' +
+    '<span class="icon" style="color:var(--c)">' + ICON[m.icon] + '</span>' +
+    '<span><span class="m-tag">' + m.tag + '</span><span class="m-name">' + esc(m.name) + '</span>' +
+      '<span class="m-one" style="display:block">' + esc(body(TEXT[m.main] || "")) + '</span>' +
+      '<span class="m-themes">' + m.themes.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join("") + '</span></span>' +
+    '<svg class="chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l6 6-6 6"/></svg></summary>' +
+    (m.note ? '<div class="link-note">' + esc(m.note) + '</div>' : '') +
+    '<ul class="tree">' + m.cats.map(function (c) {
+      return '<li><div class="cat">' + esc(c[0]) + (c[1] ? ' <small>' + esc(c[1]) + '</small>' : '') + '</div>' +
+        '<ul>' + c[2].map(function (l) { return '<li>' + partHtml(l) + '</li>'; }).join("") + '</ul></li>';
+    }).join("") + '</ul></details>';
+  document.getElementById(m.side).insertAdjacentHTML("beforeend", html);
+});
+
+function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+document.getElementById("b-open").addEventListener("click", function () { all("details.measure").forEach(function (d) { d.open = true; }); });
+document.getElementById("b-close").addEventListener("click", function () { all("details.measure").forEach(function (d) { d.open = false; }); });
+document.getElementById("b-mem").addEventListener("click", function () {
+  var on = document.body.classList.toggle("memorize");
+  this.classList.toggle("on", on);
+  document.getElementById("mem-hint").hidden = !on;
+  all(".part.show").forEach(function (p) { p.classList.remove("show"); });
+});
+document.addEventListener("click", function (e) {
+  if (!document.body.classList.contains("memorize")) return;
+  var p = e.target.closest && e.target.closest(".part");
+  if (p) p.classList.toggle("show");
+});
+</script>
+</body>
+</html>
