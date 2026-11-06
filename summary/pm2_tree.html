@@ -69,6 +69,7 @@
   .m-one { font-size: 14px; color: var(--muted); line-height: 1.6; margin-top: 2px; }
   .m-themes { font-size: 12.5px; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
   .m-themes span { background: var(--chip); border-radius: 999px; padding: 0 8px; }
+  .m-themes span.sub { background: none; border: 1px dashed var(--line); color: var(--muted); }
   .chev { flex: none; margin-left: auto; width: 18px; height: 18px; color: var(--muted); transition: transform .15s; }
   details[open] > summary .chev { transform: rotate(90deg); }
   .link-note { margin: 0 12px 10px; font-size: 13px; background: var(--cs); border-radius: 8px; padding: 4px 10px; }
@@ -99,7 +100,7 @@
   <header class="hero">
     <div class="eyebrow">ITストラテジスト 午後II（科目B-2）</div>
     <h1>A社の施策ツリー ― 攻め3つ・守り2つと部品</h1>
-    <p class="lead">A社の施策ごとに、「なぜ必要か → 中身 → 数字 → 進め方と工夫 → 反対と対応 → 評価」の順で部品を枝分かれにしました。部品の中身は、事例設定シート・骨子の「部品を挿入」と同じです。施策の右下は、その施策で書ける過去問です。</p>
+    <p class="lead">A社の施策ごとに、「なぜ必要か → 中身 → 数字 → 進め方と工夫 → 反対と対応 → 評価」の順で部品を枝分かれにしました。部品の中身は、事例設定シート・骨子の「部品を挿入」と同じです。施策の右下は、その施策で書ける過去問です（見本の骨子と同じ）。点線の枠は、ほかの施策が中心で、この施策を組み合わせて使う過去問です。</p>
   </header>
 
   <div class="bar">
@@ -141,7 +142,7 @@ var ROOT = ["会社の数字（40店・800億・4,000人）", "私の立場", "�
 
 var MEASURES = [
   { side: "seme", tag: "攻め1", name: "需要予測AIによる自動発注", icon: "ai", main: "攻め1 需要予測AIによる自動発注",
-    themes: ["R7問2", "R6問1", "R5問1", "R5問2", "R3問2", "R1問1", "H30問1", "H29問1・2", "H26問1", "H23問1", "H21問1・2"],
+    themes: ["R7問2", "R6問1", "R5問1", "R5問2", "R3問2", "R1問1", "H30問1", "H29問1・2", "H28問2", "H27問2", "H26問1", "H24問1", "H23問1", "H22問2", "H21問1・2", "+H25問1"],
     cats: [
       ["なぜ必要か", "設問ア", ["鮮：生鮮4割で需要が変動", "食品ロス（鮮）", "人：店舗業務がパート頼み", "人手不足（人）"]],
       ["前段：改修要望の分析", "R5問1", ["店舗運営部の改修要望", "利用部門の問題認識", "収集した情報と分析", "特定した問題の真因", "対応方針（解決手段・体制・投資）"]],
@@ -171,7 +172,7 @@ var MEASURES = [
     ] },
   { side: "mamori", tag: "守り1", name: "基幹システムの刷新", icon: "server", main: "守り1 基幹システムの刷新",
     note: "刷新すると、守り2・攻めの施策に早く着手できる（経営上の有効性）",
-    themes: ["R7問1", "R4問2", "H27問2", "H26問2", "H23問2"],
+    themes: ["R7問1", "R4問2", "H26問2", "H23問2", "+H27問2", "+H22問1"],
     cats: [
       ["なぜ必要か", "設問ア", ["20年前の基幹システム", "属人化（2名・定年）", "改修要望の滞留（年200件）", "経営への影響（新施策に着手できない）"]],
       ["方針", "設問イ", ["刷新方針（2案の比較と選択）", "刷新の必要性", "経営上の有効性"]],
@@ -180,7 +181,7 @@ var MEASURES = [
     ] },
   { side: "mamori", tag: "守り2", name: "データ基盤", icon: "db", main: "守り2 データ基盤",
     note: "攻め1（需要予測）と攻め2（会員アプリ）は、このデータ基盤の上で動く",
-    themes: ["R5問2", "H25問1", "H24問2", "H22問1"],
+    themes: ["R5問2", "H25問1", "H24問2", "H22問1", "+R7問1", "+R7問2", "+H30問1", "+H29問1", "+H24問1"],
     cats: [
       ["なぜ必要か", "設問ア", ["データの分断"]],
       ["止まったとき（システムリスク）", "R5問2", ["インシデントとインパクト", "予防策", "発生時対策"]],
@@ -206,7 +207,7 @@ MEASURES.forEach(function (m) {
     '<span class="icon" style="color:var(--c)">' + ICON[m.icon] + '</span>' +
     '<span><span class="m-tag">' + m.tag + '</span><span class="m-name">' + esc(m.name) + '</span>' +
       '<span class="m-one" style="display:block">' + esc(body(TEXT[m.main] || "")) + '</span>' +
-      '<span class="m-themes">' + m.themes.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join("") + '</span></span>' +
+      '<span class="m-themes">' + m.themes.map(function (t) { return t.charAt(0) === "+" ? '<span class="sub">' + esc(t.slice(1)) + '</span>' : '<span>' + esc(t) + '</span>'; }).join("") + '</span></span>' +
     '<svg class="chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l6 6-6 6"/></svg></summary>' +
     (m.note ? '<div class="link-note">' + esc(m.note) + '</div>' : '') +
     '<ul class="tree">' + m.cats.map(function (c) {
