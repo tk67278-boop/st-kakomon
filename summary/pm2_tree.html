@@ -45,7 +45,7 @@
   @media (max-width: 480px) { .bar { gap: 6px; } .bar > button, .bar > a { font-size: 12.5px; padding: 3px 10px; } .bar .sp { display: none; } }
 
   /* 根: A社 */
-  .root { background: var(--card); border: 2px solid var(--text); border-radius: 14px; padding: 12px 16px; box-shadow: var(--shadow); }
+  .root { --c: var(--text); --cs: var(--chip); background: var(--card); border: 2px solid var(--text); border-radius: 14px; padding: 12px 16px; box-shadow: var(--shadow); }
   .root h2 { font-size: 18px; margin: 0 0 6px; }
 
   /* 施策のノード */
@@ -63,18 +63,28 @@
   .link-note { margin: 0 12px 10px; font-size: 13px; background: var(--cs); border-radius: 8px; padding: 4px 10px; }
 
   /* 枝分かれ（線で結ぶ） */
-  ul.tree { list-style: none; margin: 0; padding: 0 12px 12px 12px; }
-  ul.tree ul { list-style: none; margin: 0; padding: 0 0 0 18px; }
-  ul.tree li { position: relative; padding-left: 18px; }
-  ul.tree li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 2px solid var(--line); }
-  ul.tree li:last-child::before { bottom: auto; height: 18px; }
-  ul.tree li::after { content: ""; position: absolute; left: 0; top: 18px; width: 14px; border-top: 2px solid var(--line); }
-  .cat { font-weight: 800; font-size: 14px; color: var(--c); padding: 6px 0 2px; }
+  /* 線は施策の色（攻め=青・守り=緑）を薄めて使う。分類（札）の真ん中と部品名の真ん中に枝が付く */
+  ul.tree { --tl: color-mix(in srgb, var(--c) 45%, var(--line)); list-style: none; margin: 0; padding: 0 12px 12px 14px; }
+  ul.tree > li { position: relative; padding-left: 22px; }
+  ul.tree > li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 2px solid var(--tl); }
+  ul.tree > li:last-child::before { bottom: auto; height: 23px; }
+  ul.tree > li::after { content: ""; position: absolute; left: 0; top: 23px; width: 20px; border-top: 2px solid var(--tl); }
+  ul.tree.flat { padding: 0 0 0 4px; }
+  ul.tree.flat > li { padding-left: 20px; }
+  ul.tree.flat > li:last-child::before { height: 18px; }
+  ul.tree.flat > li::after { top: 18px; width: 14px; }
+  ul.tree ul { list-style: none; margin: 0 0 4px 14px; padding: 0; }
+  ul.tree ul > li { position: relative; padding-left: 20px; }
+  ul.tree ul > li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 2px solid var(--tl); }
+  ul.tree ul > li:last-child::before { bottom: auto; height: 18px; }
+  ul.tree ul > li::after { content: ""; position: absolute; left: 0; top: 18px; width: 14px; border-top: 2px solid var(--tl); }
+  .cat { display: inline-block; font-weight: 800; font-size: 14px; line-height: 1.7; color: var(--c); background: var(--cs); border-radius: 8px; padding: 3px 10px; margin: 8px 0 2px; }
   .cat small { color: var(--muted); font-weight: 600; }
 
   /* 部品 */
   .part { padding: 3px 0 5px; }
-  .part b { font-size: 14px; }
+  .part b { font-size: 14px; line-height: 1.7; }
+  .part b::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); margin: 0 6px 1px 0; vertical-align: middle; }
   .part .txt { display: block; font-size: 13.5px; line-height: 1.65; color: var(--text); }
   body.memorize .part .txt { color: transparent; background: var(--hide); border-radius: 6px; cursor: pointer; user-select: none; }
   body.memorize .part.show .txt { color: var(--text); background: none; }
@@ -109,7 +119,9 @@
   .map-card.seme { --c: var(--seme); --cs: var(--seme-soft); }
   .map-card.mamori { --c: var(--mamori); --cs: var(--mamori-soft); }
   .map-card .go { font-size: 12.5px; color: var(--c); font-weight: 700; margin-top: 4px; }
-  .map-link { text-align: center; font-size: 13.5px; font-weight: 700; color: var(--muted); margin: 6px 0; }
+  .map-link { text-align: center; font-size: 13.5px; font-weight: 700; color: var(--text); margin: 8px 0; padding: 6px 10px;
+    border-radius: 10px; background: linear-gradient(180deg, var(--seme-soft), var(--mamori-soft)); }
+  .map-link b { font-size: 18px; color: var(--mamori); margin-right: 4px; }
   .shared { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
   .shared th, .shared td { border: 1px solid var(--line); padding: 6px 10px; font-size: 14px; text-align: left; vertical-align: top; }
   .shared th { background: var(--chip); }
@@ -148,7 +160,7 @@
     <section class="root" id="root"></section>
     <h2 class="map-h">施策の地図（押すとその施策のタブへ）</h2>
     <div class="map-layer seme"><div class="map-lab">攻め ― 売上と利益を伸ばす（DX・新サービス）</div><div class="map-row three" id="map-seme"></div></div>
-    <div class="map-link">↑ 攻め1・攻め2は守り2（データ基盤）の上で動く ／ 守り1の刷新で守り2・攻めに早く着手できる</div>
+    <div class="map-link"><b>▲</b>攻め1・攻め2は守り2（データ基盤）の上で動く ／ 守り1の刷新で守り2・攻めに早く着手できる</div>
     <div class="map-layer mamori"><div class="map-lab">守り ― 土台を作り直す（基幹・データ・止めない）</div><div class="map-row two" id="map-mamori"></div></div>
     <h2 class="map-h">複数の施策で使う部品（横のつながり）</h2>
     <table class="shared" id="shared"></table>
@@ -255,7 +267,7 @@ function themesHtml(m) {
 }
 
 // 全体タブ: A社の前提・施策の地図・複数の施策で使う部品
-document.getElementById("root").innerHTML = '<h2>A社 ― 地方の食品スーパー（全施策の前提）</h2><ul class="tree" style="padding:0">' +
+document.getElementById("root").innerHTML = '<h2>A社 ― 地方の食品スーパー（全施策の前提）</h2><ul class="tree flat">' +
   ROOT.map(function (l) { return '<li>' + partHtml(l) + '</li>'; }).join("") + '</ul>';
 MEASURES.forEach(function (m) {
   document.getElementById("map-" + m.side).insertAdjacentHTML("beforeend",
