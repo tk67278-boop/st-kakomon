@@ -55,8 +55,13 @@
 
   /* 空欄（押すと答え） */
   .b { display: inline-block; min-width: 2.6em; padding: 0 4px; border-radius: 6px; font-weight: 800; color: var(--accent); }
-  .slide:not(.open) .b { color: transparent; background: var(--hide); user-select: none; }
-  .slide:not(.open) .b.long { min-width: 6em; }
+  .b:not(.on) { color: transparent !important; background: var(--hide); user-select: none; cursor: pointer; }
+  .b.long:not(.on) { min-width: 6em; }
+  .theme { font-size: 17px; font-weight: 800; line-height: 1.5; background: var(--chip); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .theme small { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+  .kw td, .kw th { border: 1px solid var(--line); padding: 6px 8px; font-size: 14px; vertical-align: top; }
+  .kw { border-collapse: collapse; width: 100%; }
+  .kw th { background: var(--chip); text-align: left; }
 
   /* 図の部品 */
   svg.i { width: 34px; height: 34px; flex: none; }
@@ -375,11 +380,120 @@
   <div class="use">令和6・7年度の4問すべてで、評価・指摘・意思をどう反映したかが問われている</div>
 </div></section>
 
+<section class="slide" data-id="t-kw"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>見分け方：テーマの言葉 → 施策</h2>
+  <table class="kw">
+    <tr><th>テーマに出てくる言葉</th><th>使う施策</th></tr>
+    <tr><td>DX・新たな情報技術・AI・業務プロセス・意見調整・投資効果</td><td><span class="b long">攻め1 需要予測AI</span></td></tr>
+    <tr><td>顧客満足・新サービス・顧客との接点・データ活用（顧客）</td><td><span class="b long">攻め2 会員アプリ</span></td></tr>
+    <tr><td>ビジネスモデル・新たな収益源・売上拡大</td><td><span class="b long">攻め3 ネットスーパー</span></td></tr>
+    <tr><td>基幹システム・刷新・再構築・優先順位・システム選定</td><td><span class="b long">守り1 基幹システムの刷新</span></td></tr>
+    <tr><td>システムリスク・事業継続・インシデント</td><td><span class="b long">守り2 データ基盤（止まったとき）</span></td></tr>
+  </table>
+  <div class="use">次のスライドから、過去問のテーマを見て施策を答えます。</div>
+</div></section>
+
+<section class="slide" data-id="t-r7-1"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和7年度 問1</small>基幹システムの刷新方針の策定について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">守り1（＋守り2）</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">属人化した20年前の基幹を、段階的に移して刷新</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">刷新の必要性・経営上の有効性</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r7-2"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和7年度 問2</small>DXの企画策定について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">攻め1（＋守り2）</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">勘と経験の店舗運営を、データで需要を読む店舗運営に変える</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">阻害要因と対応策・取り入れた意思</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r6-1"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和6年度 問1</small>DXの実現に向けた新たな情報技術の採用について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">攻め1</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">需要予測AIを、机上確認と技術検証で確かめてから採用</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">机上確認・技術検証・リスクと対策</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r6-2"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和6年度 問2</small>新しいビジネスモデルの策定について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">攻め3</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">ネットスーパーで、店舗を出荷・受け取りの拠点に変える</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">顧客・提供価値・収益・当初の要件とのかい離</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r5-1"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和5年度 問1</small>ITシステムに関わる改修要望の分析と対応方針の立案について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">攻め1の前段</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">発注画面の改修要望から、真因（特売・行事の情報が店舗に届かない）を特定</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">収集した情報と分析・特定した問題の真因</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r5-2"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和5年度 問2</small>個別システム化計画におけるシステムリスク対応方針の立案について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">守り2（＋攻め1）</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">需要予測が止まると全店で欠品と廃棄、という事態への備え</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">インシデントとインパクト・予防策・発生時対策</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r4-1"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和4年度 問1</small>ITを活用した顧客満足度を向上させる新商品や新サービスの企画について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">攻め2</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">共働きの子育て世帯に、会員アプリで献立と買い物リストを提案</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">狙う顧客・接点と関係性・新たな価値・扱うデータ</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r4-2"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和4年度 問2</small>基幹システムの再構築における開発の優先順位付けについて</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">守り1</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">会計 → 発注・在庫 → 店舗 の順番と、その基準</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">優先順位の基準・経営層「発注・在庫を先に」</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r3-1"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和3年度 問1</small>デジタルトランスフォーメーションを実現するための新サービスの企画について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">攻め2・攻め3</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">アプリとネットスーパーで、新しい買い物の体験を作る</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">狙う顧客・顧客（ネットスーパー）・扱うデータ</span></div>
+</div></section>
+
+<section class="slide" data-id="t-r3-2"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>令和3年度 問2</small>個別システム化構想におけるステークホルダの意見調整について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">攻め1</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">店舗運営部と商品部の意見の違いを調整する</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">店舗運営部「AIに任せると欠品」・商品部「仕入れは商品部の仕事」</span></div>
+</div></section>
+
+<section class="slide" data-id="t-h29-1"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>平成29年度 問1</small>IT導入の企画における投資効果の検討について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">攻め1（＋守り2）</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">投資12億円・年5億円・約3年回収と、KPIの目標値</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">投資の数字・工夫4・リスクと対策</span></div>
+</div></section>
+
+<section class="slide" data-id="t-h24-2"><div class="sc">
+  <div class="kicker">テーマから施策を選ぶ</div><h2>このテーマはどの施策で書く？</h2>
+  <div class="theme"><small>平成24年度 問2</small>事業継続計画の策定について</div>
+  <div class="box seme"><h3>施策</h3><span class="b long">守り2</span></div>
+  <div class="box" style="margin-top:8px"><h3>一言で</h3><span class="b long">地域の食を止めない社会的責任と、止まったときの代替手順</span></div>
+  <div class="box" style="margin-top:8px"><h3>中心になる部品</h3><span class="b long">社会的責任（BCP）・予防策・発生時対策</span></div>
+</div></section>
+
 </main>
 
 <div class="nav">
   <button type="button" id="n-prev">← 前</button>
-  <button type="button" id="n-show">答えを見る</button>
+  <button type="button" id="n-show">全部見る</button>
   <button type="button" id="n-mark">印を付ける</button>
   <button type="button" id="n-next">次 →</button>
 </div>
@@ -419,7 +533,7 @@ function paint() {
   document.getElementById("cnt").textContent = v.length ? (i + 1) + " / " + v.length : "0 / 0";
   document.getElementById("n-prev").disabled = i <= 0;
   document.getElementById("n-next").disabled = i >= v.length - 1;
-  document.getElementById("n-show").textContent = s && s.classList.contains("open") ? "隠す" : "答えを見る";
+  document.getElementById("n-show").textContent = s && !s.querySelector(".b:not(.on)") ? "全部隠す" : "全部見る";
   var m = s ? marks[s.dataset.id] : "", mb = document.getElementById("n-mark");
   mb.className = m || "";
   mb.textContent = m === "ok" ? "覚えた ✓" : m === "ng" ? "まだ" : "印を付ける";
@@ -441,7 +555,15 @@ function applyFilter() {
 
 document.getElementById("n-prev").addEventListener("click", function () { go(curIndex() - 1); });
 document.getElementById("n-next").addEventListener("click", function () { go(curIndex() + 1); });
-document.getElementById("n-show").addEventListener("click", function () { var s = cur(); if (s) { s.classList.toggle("open"); paint(); } });
+// そのスライドの空欄を全部出す（全部出ていれば全部隠す）
+function toggleAll(s) {
+  if (!s) return;
+  var bs = Array.prototype.slice.call(s.querySelectorAll(".b"));
+  var show = bs.some(function (b) { return !b.classList.contains("on"); });
+  bs.forEach(function (b) { b.classList.toggle("on", show); });
+  paint();
+}
+document.getElementById("n-show").addEventListener("click", function () { toggleAll(cur()); });
 // 印: なし → まだ → 覚えた → なし
 document.getElementById("n-mark").addEventListener("click", function () {
   var s = cur(); if (!s) return;
@@ -450,10 +572,10 @@ document.getElementById("n-mark").addEventListener("click", function () {
   saveMarks(); paintTags(); paint();
 });
 document.getElementById("f-ng").addEventListener("click", function () { onlyNg = !onlyNg; applyFilter(); });
-// スライドのどこを押しても答えが出る（もう一度押すと隠れる）
+// 空欄を押すと、その1つだけ答えが出る（もう一度押すと隠れる）
 deck.addEventListener("click", function (e) {
-  var s = e.target.closest(".slide");
-  if (s && !e.target.closest("a")) { s.classList.toggle("open"); paint(); }
+  var b = e.target.closest(".b");
+  if (b) { b.classList.toggle("on"); paint(); }
 });
 var t = null;
 deck.addEventListener("scroll", function () { clearTimeout(t); t = setTimeout(paint, 60); });
@@ -461,7 +583,7 @@ window.addEventListener("resize", function () { go(curIndex()); });
 document.addEventListener("keydown", function (e) {
   if (e.key === "ArrowRight") go(curIndex() + 1);
   else if (e.key === "ArrowLeft") go(curIndex() - 1);
-  else if (e.key === " " || e.key === "Enter") { e.preventDefault(); var s = cur(); if (s) { s.classList.toggle("open"); paint(); } }
+  else if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggleAll(cur()); }
 });
 paintTags();
 paint();
