@@ -119,7 +119,17 @@
   .qx-body { display: grid; gap: 4px; margin: 6px 0 2px; font-size: 13.5px; }
   .qx-body div { padding-left: 10px; border-left: 3px solid var(--c); }
   .qx-body .qa { --c: var(--qa-soft); } .qx-body .qi { --c: var(--qi-soft); } .qx-body .qu { --c: var(--qu-soft); }
-  .qx-body b { margin-right: 6px; }
+  .qx-body > div > b { display: block; font-size: 12.5px; color: var(--muted); }
+  .qx-list { list-style: none; margin: 0; padding: 0; }
+  .qx-list li { padding: 2px 0 4px; }
+  .qx-h { display: block; font-weight: 700; }
+  .qx-k { display: block; color: var(--muted); line-height: 1.6; }
+  .qx-k::before { content: "→ "; }
+  .qx-only { display: inline-block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--qa); background: var(--qa-soft); border-radius: 5px; padding: 1px 7px; }
+  .qx-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
+  .qx-tools button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 2px 12px; cursor: pointer; }
+  .qx-tools button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .diff-only .qx-list li.same { display: none; }
 
   .hint { font-size: 13px; color: var(--muted); }
   footer { margin-top: 26px; font-size: 13px; color: var(--muted); }
@@ -332,9 +342,18 @@ TYPES.forEach(function (t) {
   var qx = t.qs.map(function (k) {
     var m = MODEL[k];
     if (!m || m.skip) return "";
-    return '<details class="qx"><summary>' + esc(QN[k] || k) + '<small>見本の見出し</small></summary><div class="qx-body">' +
+    // 見出しの下に、見本の骨子の要の1文（中身の要約）を出す。「隠して覚える」では隠れる
+    // 型の骨子（同じ設問）にない部品を使う見出しを「型との差」とし、その部品名を出す（「型と違う見出しだけ」で絞れる）
+    return '<details class="qx"><summary>' + esc(QN[k] || k) + '<small>見本の見出しと中身</small></summary><div class="qx-body">' +
       SETSU.map(function (s) {
-        return '<div class="' + s[1] + '"><b>' + s[2].slice(2) + '</b>' + (m[s[0]] || []).map(function (h) { return esc(h[0]); }).join("　／　") + '</div>';
+        var base = {};
+        t[s[0]].forEach(function (h) { h[2].forEach(function (l) { base[l] = true; }); });
+        return '<div class="' + s[1] + '"><b>設問' + s[2].slice(2) + '</b><ul class="qx-list">' + (m[s[0]] || []).map(function (h) {
+          var extra = h[2].filter(function (l) { return !base[l]; });
+          return '<li class="' + (extra.length ? 'diff' : 'same') + '"><span class="qx-h">' + esc(h[0]) + '</span>' +
+            '<span class="qx-k hid">' + esc(h[1]) + '</span>' +
+            (extra.length ? '<span class="qx-only">型との差：' + esc(extra.join("、")) + '</span>' : '') + '</li>';
+        }).join("") + '</ul></div>';
       }).join("") + '</div></details>';
   }).join("");
   var html = '<section class="pane" id="p-' + t.id + '" hidden>' +
@@ -344,7 +363,8 @@ TYPES.forEach(function (t) {
       '<div class="t-row"><b>この型の過去問</b>' + chips(t.qs.map(function (k) { return QN[k] || k; })) + '</div></div>' +
     '<div class="card"><h2>骨子の型（見出し → 要の1文 → 部品）</h2>' + tree + '</div>' +
     '<div class="card"><h2>この型で気をつけること</h2><ul class="notes">' + t.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join("") + '</ul></div>' +
-    '<div class="card"><h2>過去問ごとの見出し（見本の骨子）</h2><p class="hint" style="margin:0 0 4px">型の見出しを、問題ごとにどう言い換えているかを見ます。</p>' + qx + '</div>' +
+    '<div class="card"><h2>過去問ごとの見出し（見本の骨子）</h2><p class="hint" style="margin:0 0 4px">型の見出しを、問題ごとにどう言い換えているかと、その見出しで書く中身（見本の要の1文）を見ます。<b>型との差</b>は、型の骨子（同じ設問）にない部品を使う見出しと、その部品です。</p>' +
+      '<div class="qx-tools"><button type="button" class="qx-open">すべて開く</button><button type="button" class="qx-diff">型と違う見出しだけ</button></div>' + qx + '</div>' +
     '</section>';
   document.getElementById("panes").insertAdjacentHTML("beforeend", html);
 });
@@ -372,6 +392,20 @@ document.addEventListener("click", function (e) {
   if (!document.body.classList.contains("memorize")) return;
   var h = e.target.closest && e.target.closest(".hid");
   if (h) h.classList.toggle("show");
+});
+// 過去問ごとの見出し: すべて開く／型と違う見出しだけ
+document.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest(".qx-open, .qx-diff");
+  if (!b) return;
+  var card = b.closest(".card");
+  if (b.classList.contains("qx-open")) {
+    var open = !b.classList.contains("on");
+    b.classList.toggle("on", open);
+    b.textContent = open ? "すべて閉じる" : "すべて開く";
+    Array.prototype.forEach.call(card.querySelectorAll("details.qx"), function (d) { d.open = open; });
+  } else {
+    b.classList.toggle("on", card.classList.toggle("diff-only"));
+  }
 });
 window.addEventListener("hashchange", function () { show(location.hash.slice(1), false); });
 show(location.hash.slice(1) || "all", false);
