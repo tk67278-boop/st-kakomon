@@ -481,7 +481,7 @@
     if (!m || m.skip) return "";
     return PARTS.map(function (p) {
       return "設問" + p[1] + "\n" + (m[p[0]] || []).map(function (h) {
-        return h[0] + "\n　要：" + h[1] + "\n　部品：" + h[2].join("、");
+        return h[0] + "\n　要：" + h[1] + "\n　部品：" + (h[2].length ? h[2].join("、") : "（なし。要の1文で書く）");
       }).join("\n");
     }).join("\n\n");
   }
