@@ -129,7 +129,10 @@
   .qx-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
   .qx-tools button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 2px 12px; cursor: pointer; }
   .qx-tools button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .diff-only .qx-list li.same { display: none; }
+  /* 型と違う見出しだけ: 型どおりの見出しは見出しだけ残し（薄く・「型どおり」の印）、中身は差のある見出しだけに出す */
+  .diff-only .qx-list li.same .qx-k { display: none; }
+  .diff-only .qx-list li.same .qx-h { color: var(--muted); font-weight: 600; }
+  .diff-only .qx-list li.same .qx-h::after { content: "型どおり"; margin-left: 6px; font-size: 11.5px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
 
   .hint { font-size: 13px; color: var(--muted); }
   footer { margin-top: 26px; font-size: 13px; color: var(--muted); }
@@ -364,7 +367,7 @@ TYPES.forEach(function (t) {
     '<div class="card"><h2>骨子の型（見出し → 要の1文 → 部品）</h2>' + tree + '</div>' +
     '<div class="card"><h2>この型で気をつけること</h2><ul class="notes">' + t.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join("") + '</ul></div>' +
     '<div class="card"><h2>過去問ごとの見出し（見本の骨子）</h2><p class="hint" style="margin:0 0 4px">型の見出しを、問題ごとにどう言い換えているかと、その見出しで書く中身（見本の要の1文）を見ます。<b>型との差</b>は、型の骨子（同じ設問）にない部品を使う見出しと、その部品です。</p>' +
-      '<div class="qx-tools"><button type="button" class="qx-open">すべて開く</button><button type="button" class="qx-diff">型と違う見出しだけ</button></div>' + qx + '</div>' +
+      '<div class="qx-tools"><button type="button" class="qx-open">すべて開く</button><button type="button" class="qx-diff">型との差だけ中身を出す</button></div>' + qx + '</div>' +
     '</section>';
   document.getElementById("panes").insertAdjacentHTML("beforeend", html);
 });
