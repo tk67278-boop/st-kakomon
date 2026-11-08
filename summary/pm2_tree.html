@@ -136,7 +136,12 @@
   .qx-h { display: block; font-weight: 700; }
   .qx-k { display: block; color: var(--muted); line-height: 1.6; }
   .qx-k::before { content: "→ "; }
-  .qx-only { display: inline-block; margin-top: 2px; font-size: 12px; font-weight: 700; color: var(--qa); background: var(--qa-soft); border-radius: 5px; padding: 1px 7px; }
+  .qx-only { margin-top: 3px; font-size: 13px; color: var(--text); background: var(--qa-soft); border-radius: 8px; padding: 4px 8px; }
+  .qx-only > b { display: block; font-size: 12px; color: var(--qa); }
+  .qx-extra { display: block; line-height: 1.6; }
+  .qx-extra i { font-style: normal; font-weight: 700; margin-right: 6px; }
+  .qx-extra i::after { content: "："; }
+  .qx-map { margin-left: 6px; font-size: 11.5px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
   .qx-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
   .qx-tools button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 2px 12px; cursor: pointer; }
   .qx-tools button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -456,16 +461,22 @@ TYPES.forEach(function (t) {
     var m = MODEL[k];
     if (!m || m.skip) return "";
     // 見出しの下に、見本の骨子の要の1文（中身の要約）を出す。「隠して覚える」では隠れる
-    // 型の骨子（同じ設問）にない部品を使う見出しを「型との差」とし、その部品名を出す（「型と違う見出しだけ」で絞れる）
+    // 型の骨子（同じ設問）にない部品を使う見出しを「型との差」とし、その部品の中身まで出す（「型と違う見出しだけ」で絞れる）
+    // 型の見出しと部品が重なる見出しには「型の2.2」のように対応する型の見出し番号を出し、列挙の中身は型の側で覚える
     return '<details class="qx"><summary>' + esc(QN[k] || k) + '<small>見本の見出しと中身</small></summary><div class="qx-body">' +
       SETSU.map(function (s) {
-        var base = {};
-        t[s[0]].forEach(function (h) { h[2].forEach(function (l) { base[l] = true; }); });
+        var base = {}, owner = {};
+        t[s[0]].forEach(function (h) { h[2].forEach(function (l) { base[l] = true; owner[l] = h[0].split(" ")[0]; }); });
         return '<div class="' + s[1] + '"><b>設問' + s[2].slice(2) + '</b><ul class="qx-list">' + (m[s[0]] || []).map(function (h) {
           var extra = h[2].filter(function (l) { return !base[l]; });
-          return '<li class="' + (extra.length ? 'diff' : 'same') + '"><span class="qx-h">' + esc(h[0]) + '</span>' +
+          var nos = [];
+          h[2].forEach(function (l) { if (owner[l] && nos.indexOf(owner[l]) < 0) nos.push(owner[l]); });
+          return '<li class="' + (extra.length ? 'diff' : 'same') + '"><span class="qx-h">' + esc(h[0]) +
+              (nos.length ? '<span class="qx-map">型の' + esc(nos.join("・")) + '</span>' : '') + '</span>' +
             '<span class="qx-k hid">' + esc(h[1]) + '</span>' +
-            (extra.length ? '<span class="qx-only">型との差：' + esc(extra.join("、")) + '</span>' : '') + '</li>';
+            (extra.length ? '<div class="qx-only"><b>型との差</b>' + extra.map(function (l) {
+              return '<span class="qx-extra"><i>' + esc(l) + '</i><span class="hid">' + esc(body(TEXT[l] || "")) + '</span></span>';
+            }).join("") + '</div>' : '') + '</li>';
         }).join("") + '</ul></div>';
       }).join("") + '</div></details>';
   }).join("");
