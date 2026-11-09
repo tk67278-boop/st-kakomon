@@ -48,7 +48,7 @@
     pm2: {
       title: "午後II",
       // 課題の4番目: [examId, 問番号, 開くタブ]。タブは steps（段階学習）・outline（骨子）・write（執筆）
-      // 文字列のときは画面を開く: blind（初見骨子20分）・para（段落練習）・text（午後II 教科書）・case（事例設定シート）
+      // 文字列のときは画面を開く: blind（初見骨子20分）・blind:問題キー（初見骨子20分のその問題）・para（段落練習）・text（午後II 教科書）・case（事例設定シート）・tree（骨子の型ツリー）
       weeks: [
         { start: "2026-10-20", end: "2026-10-26", goal: "事例設定を作り、論文の型を覚える", tasks: [
           ["case1", "todo", "事例設定シート（A社・食品スーパー）を読み、設問アのひな形を声に出して読む", null],
@@ -74,24 +74,29 @@
           ["b2", "b", "初見骨子20分（2回目）", "blind"],
           ["x1", "w", "通し執筆1本目（120分）：令和7年度 問1 基幹刷新 → AI採点 → 指摘された段落だけ書き直す", ["2025r07h", 1, "write"]]
         ] },
-        { start: "2026-11-10", end: "2026-11-16", goal: "書く量を増やす。平日は段階学習と段落練習、週末に通し執筆2本目", tasks: [
-          ["s-2024r06h-1b", "s", "段階学習：令和6年度 問1（段階4：見出しごとに書く）", ["2024r06h", 1, "steps"]],
-          ["s-2024r06h-2a", "s", "段階学習：令和6年度 問2 新しいビジネスモデル（段階1〜3）", ["2024r06h", 2, "steps"]],
-          ["s-2024r06h-2b", "s", "段階学習：令和6年度 問2（段階4）", ["2024r06h", 2, "steps"]],
-          ["s-2023r05h-1a", "s", "段階学習：令和5年度 問1 改修要望の分析と対応方針（段階1〜3）", ["2023r05h", 1, "steps"]],
-          ["p3", "todo", "段落練習を毎日1つ（設問イの「施策の具体化」「工夫」「調整」、設問ウの「指摘と対応」から）", "para"],
-          ["tb3w", "todo", "教科書 第3章の記入問題（16問）を解き、×と△を解き直す", "text"],
-          ["b3", "b", "初見骨子20分（3回目）", "blind"],
-          ["b4", "b", "初見骨子20分（4回目）", "blind"],
-          ["x2", "w", "通し執筆2本目（120分）：令和6年度 問2 ビジネスモデル → AI採点（前回の「次に向けたポイント」を反映）→ 書き直し", ["2024r06h", 2, "write"]]
+        { start: "2026-11-10", end: "2026-11-15", goal: "型ツリーを覚え、7つの型を初見骨子で1周する。毎回「初見骨子20分 → AI採点 → 見本と比べる → 差が大きかった見出しを段落練習で1つ書く」。週末に通し練習1回目", tasks: [
+          ["tree1", "todo", "型ツリー：7つの型の見分け方（テーマ→型）と、①〜⑦の見出し・列挙の中身を「隠して覚える」で言えるようにする（毎日10分）", "tree"],
+          ["bk-2018h30a-2", "bk", "11/10 初見骨子：①新サービス型 平成30年度 問2 → AI採点 → 見本と比べる", "blind:2018h30a-2"],
+          ["bk-2019r01a-2", "bk", "11/10 初見骨子：②ビジネスモデル型 令和元年度 問2 → AI採点 → 見本と比べる", "blind:2019r01a-2"],
+          ["bk-2019r01a-1", "bk", "11/11 初見骨子：③DX・業務改革型 令和元年度 問1 → AI採点 → 見本と比べる", "blind:2019r01a-1"],
+          ["bk-2013h25a-1", "bk", "11/11 初見骨子：④分析・真因型 平成25年度 問1 → AI採点 → 見本と比べる", "blind:2013h25a-1"],
+          ["bk-2022r04h-2", "bk", "11/12 初見骨子：⑤基幹・刷新型 令和4年度 問2 → AI採点 → 見本と比べる", "blind:2022r04h-2"],
+          ["bk-2012h24a-2", "bk", "11/12 初見骨子：⑥リスク・事業継続型 平成24年度 問2 → AI採点 → 見本と比べる", "blind:2012h24a-2"],
+          ["bk-2017h29a-1", "bk", "11/13 初見骨子：⑦評価・投資効果型 平成29年度 問1 → AI採点 → 見本と比べる", "blind:2017h29a-1"],
+          ["bk-2014h26a-1", "bk", "11/13 初見骨子：③DX・業務改革型（2問目）平成26年度 問1 → AI採点 → 見本と比べる", "blind:2014h26a-1"],
+          ["tx1", "w", "11/14か11/15 通し練習1回目：平成30年度 問1 IT戦略を本番どおり120分（骨子も時間内）→ AI採点 → 字数・時間配分の反省を書く", ["2018h30a", 1, "write"]]
         ] },
-        { start: "2026-11-17", end: "2026-11-22", goal: "本番と同じ時間配分で2本書いて仕上げる。11/22は新しいことをしない", tasks: [
-          ["x3", "w", "通し執筆3本目（120分）：令和7年度 問2 DX → AI採点（11/18ごろまでに）", ["2025r07h", 2, "write"]],
-          ["x4", "w", "通し執筆4本目（120分）：令和5年度 問2 システムリスク。段階学習なしの初見テーマとして書く → AI採点（11/20ごろまでに）", ["2023r05h", 2, "write"]],
-          ["b5", "b", "初見骨子20分（5回目）", "blind"],
-          ["b6", "b", "初見骨子20分（6回目）", "blind"],
-          ["review2", "todo", "11/21：段階学習の暗唱（要の1文）、A社の数字、本番の時間配分（教科書 第9章）を確認する", null],
-          ["rest", "todo", "11/22：新しいことはせず、教科書 付録の提出前チェックリストを読んで早く寝る", null]
+        { start: "2026-11-16", end: "2026-11-22", goal: "7つの型を2周目。1周目で点の低かった型から先に。11/19に通し練習2回目。11/20からは新しい問題をやらない", tasks: [
+          ["bk-2023r05h-2", "bk", "11/16 初見骨子：⑥リスク・事業継続型 令和5年度 問2 → AI採点 → 見本と比べる", "blind:2023r05h-2"],
+          ["bk-2013h25a-2", "bk", "11/16 初見骨子：②ビジネスモデル型 平成25年度 問2 → AI採点 → 見本と比べる", "blind:2013h25a-2"],
+          ["bk-2010h22a-2", "bk", "11/17 初見骨子：④分析・真因型 平成22年度 問2 → AI採点 → 見本と比べる", "blind:2010h22a-2"],
+          ["bk-2014h26a-2", "bk", "11/17 初見骨子：⑤基幹・刷新型 平成26年度 問2 → AI採点 → 見本と比べる", "blind:2014h26a-2"],
+          ["bk-2017h29a-2", "bk", "11/18 初見骨子：⑦評価・投資効果型 平成29年度 問2 → AI採点 → 見本と比べる", "blind:2017h29a-2"],
+          ["bk-2016h28a-1", "bk", "11/18 初見骨子：①新サービス型 平成28年度 問1 → AI採点 → 見本と比べる", "blind:2016h28a-1"],
+          ["tx2", "w", "11/19 通し練習2回目：令和3年度 問1 を本番どおり120分 → AI採点 → 通し1回目の反省が直ったか確かめる", ["2021r03h", 1, "write"]],
+          ["rv20", "todo", "11/20：型ツリーの全型を「隠して覚える」で通しで言う。自分の骨子とAI採点の指摘を読み返し、よく指摘された点を3つ書き出す", "tree"],
+          ["rv21", "todo", "11/21：A社の数字、本番の時間配分（教科書 第9章）、11/20に書き出した3つの点を確認する", null],
+          ["rest22", "todo", "11/22：新しいことはせず、教科書 付録の提出前チェックリストを読んで早く寝る", null]
         ] }
       ]
     }
@@ -122,10 +127,18 @@
     return Object.keys(records).filter(function (k) { return k.indexOf("blind#") === 0 && records[k] && records[k].s === "done"; }).length >= n;
   }
 
+  // 初見骨子（特定の問題）は、その問題の骨子を作り終えていれば自動でチェック
+  function blindKeyDone(task, records) {
+    var key = String(task[3] || "").replace(/^blind:/, "");
+    var r = records["blind#" + key];
+    return !!(r && r.s === "done");
+  }
+
   function isDone(mode, task, records) {
     var m = records["sched#" + mode + "#" + task[0]];
     if (m && m.s === "done") return true;
     if (task[1] === "b" && blindAuto(task, records)) return true;
+    if (task[1] === "bk" && blindKeyDone(task, records)) return true;
     if (task[1] === "q" && task[3]) {
       var r = records[task[3][0] + "#pm1#" + task[3][1]];
       if (r && r.s === "done") return true;
@@ -135,6 +148,8 @@
 
   function openScreen(go) {
     if (go === "blind" && window.PmBlind) window.PmBlind.open();
+    else if (go.indexOf("blind:") === 0 && window.PmBlind) window.PmBlind.open(go.slice(6));
+    else if (go === "tree") window.open("summary/pm2_tree.html", "_blank", "noopener");
     else if (go === "para" && window.PmPara) window.PmPara.open();
     else if (go === "text") { var t = document.getElementById("pm-text-link"); if (t) t.click(); }
     else if (go === "case") window.open("summary/pm2_case.html#numtest", "_blank", "noopener");
@@ -149,7 +164,7 @@
   function taskHtml(mode, tk, records) {
     var d = isDone(mode, tk, records);
     var auto = (tk[1] === "q" && tk[3] && (records[tk[3][0] + "#pm1#" + tk[3][1]] || {}).s === "done") ||
-      (tk[1] === "b" && blindAuto(tk, records));
+      (tk[1] === "b" && blindAuto(tk, records)) || (tk[1] === "bk" && blindKeyDone(tk, records));
     return '<li class="' + (d ? "done" : "") + '"><label><input type="checkbox" data-task="' + esc(tk[0]) + '"' + (d ? " checked" : "") + (auto ? " disabled title=\"記録があるので自動でチェック済み\"" : "") + '> ' +
       '<span>' + esc(tk[2]) + '</span></label>' +
       (typeof tk[3] === "string" ? ' <button type="button" class="linkbtn sch-go" data-go="' + esc(tk[3]) + '">開く</button>' :
