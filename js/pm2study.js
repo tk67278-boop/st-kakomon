@@ -372,6 +372,7 @@
           return '<button type="button" class="pm2s-stage' + (st.n === stage ? ' active' : '') + '" data-n="' + st.n + '">' + escapeHtml(st.label) + '</button>';
         }).join("") + '</div>' +
         '<p class="stats-note">' + escapeHtml(info.desc) + '</p>' +
+        '<p class="stats-note"><a href="summary/pm2_models.html#' + encodeURIComponent(state.examId + "-" + state.no) + '" target="_blank" rel="noopener">見本の全文だけを通して読む（別タブ）</a></p>' +
       '</div>' +
       '<div id="pm2s-body"></div>';
     $all(body, ".pm2s-stage").forEach(function (b) {

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>見本の全文</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd; --mark: #fff3b0; --chip: #eef2f7;
+    --qa: #c2620a; --qi: #2563eb; --qu: #7c3aed;
+    --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50; --mark: #4a3f12; --chip: #222d3a;
+      --qa: #fbaa55; --qi: #7aa7ff; --qu: #b79cfb; --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50; --mark: #4a3f12; --chip: #222d3a;
+    --qa: #fbaa55; --qi: #7aa7ff; --qu: #b79cfb; --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 16px; line-height: 1.9; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 60px; }
+  header { padding: 22px 0 4px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 24px; line-height: 1.4; margin: 4px 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 8px; font-size: 14px; line-height: 1.7; }
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: var(--bg); padding: 8px 0; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  select { font: inherit; font-size: 15px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--card); color: var(--text); flex: 1 1 320px; min-width: 0; max-width: 100%; }
+  .bar label { font-size: 13.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
+  .bar button { font: inherit; font-size: 13.5px; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .title { font-size: 19px; font-weight: 800; line-height: 1.5; margin: 0; }
+  .title small { display: block; font-size: 13px; color: var(--muted); font-weight: 700; }
+  .total { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .part-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 6px; }
+  .part-head h2 { font-size: 18px; margin: 0; }
+  .part-head .cnt { font-size: 13px; color: var(--muted); }
+  .card.a .part-head h2 { color: var(--qa); }
+  .card.i .part-head h2 { color: var(--qi); }
+  .card.u .part-head h2 { color: var(--qu); }
+  .q { font-size: 14px; color: var(--muted); background: var(--chip); border-radius: 8px; padding: 6px 10px; margin: 0 0 10px; line-height: 1.7; }
+  body.no-q .q { display: none; }
+  h3 { font-size: 16px; margin: 16px 0 2px; }
+  h3:first-of-type { margin-top: 6px; }
+  p.para { margin: 0; text-indent: 1em; }
+  mark { background: transparent; color: inherit; }
+  body.show-key mark { background: var(--mark); border-radius: 3px; }
+  .empty { color: var(--muted); }
+  @media (max-width: 600px) {
+    .bar { position: static; }
+    .card { padding: 14px 14px; }
+    body { font-size: 15.5px; }
+  }
+  @media print {
+    .bar, header .lead { display: none; }
+    body { background: #fff; }
+    .card { box-shadow: none; border: none; padding: 0; }
+  }
+</style>
+</head>
+<body class="show-key">
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ITストラテジスト 午後II</div>
+    <h1>見本の全文</h1>
+    <p class="lead">A社の見本の論文を、見出しと文章だけで通して読みます。黄色の文は各段落の「要の1文」です。問題を選ぶと切り替わります。</p>
+  </header>
+  <div class="bar">
+    <select id="sel" aria-label="問題を選ぶ"></select>
+    <label><input type="checkbox" id="opt-key" checked> 要の1文に色</label>
+    <label><input type="checkbox" id="opt-q" checked> 設問文</label>
+    <button type="button" id="prev" aria-label="前の見本">前へ</button>
+    <button type="button" id="next" aria-label="次の見本">次へ</button>
+  </div>
+  <main id="out"><p class="empty">読み込み中…</p></main>
+</div>
+
+<script src="../js/data/pm2_steps.js"></script>
+<script src="../js/data/pm2/2025r07h_pm2.js"></script>
+<script src="../js/data/pm2/2024r06h_pm2.js"></script>
+<script src="../js/data/pm2/2023r05h_pm2.js"></script>
+<script src="../js/data/pm2/2022r04h_pm2.js"></script>
+<script src="../js/data/pm2/2021r03h_pm2.js"></script>
+<script src="../js/data/pm2/2019r01a_pm2.js"></script>
+<script src="../js/data/pm2/2018h30a_pm2.js"></script>
+<script src="../js/data/pm2/2017h29a_pm2.js"></script>
+<script src="../js/data/pm2/2016h28a_pm2.js"></script>
+<script src="../js/data/pm2/2015h27a_pm2.js"></script>
+<script src="../js/data/pm2/2014h26a_pm2.js"></script>
+<script src="../js/data/pm2/2013h25a_pm2.js"></script>
+<script src="../js/data/pm2/2012h24a_pm2.js"></script>
+<script src="../js/data/pm2/2011h23a_pm2.js"></script>
+<script src="../js/data/pm2/2010h22a_pm2.js"></script>
+<script src="../js/data/pm2/2009h21a_pm2.js"></script>
+<script>
+(function () {
+  "use strict";
+  var STEPS = window.PM2_STEPS || {}, TEXT = window.PM2_TEXT || {};
+  var PREF = "st_pm2_models";
+  var PK = { "ア": "a", "イ": "i", "ウ": "u" };
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function chars(t) { return String(t || "").replace(/\r?\n/g, "").length; }
+  function load(k, d) { try { var v = localStorage.getItem(PREF + k); return v === null ? d : v; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(PREF + k, v); } catch (e) { /* 保存できなくても表示はできる */ } }
+
+  // 新しい年度から並べる（キーは「試験ID-問番号」）
+  var keys = Object.keys(STEPS).sort(function (a, b) { return a < b ? 1 : a > b ? -1 : 0; });
+  var sel = document.getElementById("sel"), out = document.getElementById("out");
+  sel.innerHTML = keys.map(function (k) { return '<option value="' + esc(k) + '">' + esc(STEPS[k].title) + '</option>'; }).join("");
+
+  function question(key) {
+    var p = key.split("-"), e = TEXT[p[0]];
+    if (!e) return null;
+    return (e.questions || []).filter(function (q) { return String(q.no) === p[1]; })[0] || null;
+  }
+
+  function render(key) {
+    var d = STEPS[key];
+    if (!d) { out.innerHTML = '<p class="empty">見本がありません。</p>'; return; }
+    var q = question(key) || {}, qq = q.q || {};
+    var sum = 0;
+    var parts = ["ア", "イ", "ウ"].map(function (part) {
+      var secs = d.sections.filter(function (s) { return s.part === part; });
+      if (!secs.length) return "";
+      var n = secs.reduce(function (a, s) { return a + chars(s.text); }, 0);
+      sum += n;
+      return '<section class="card ' + PK[part] + '"><div class="part-head"><h2>設問' + part + '</h2><span class="cnt">' + n + '字</span></div>' +
+        (qq[PK[part]] ? '<div class="q">' + esc(qq[PK[part]]) + '</div>' : '') +
+        secs.map(function (s) {
+          var body = String(s.text).split(/\r?\n/).map(function (line) {
+            var t = esc(line), k = esc(s.key || "");
+            if (k && t.indexOf(k) >= 0) t = t.replace(k, '<mark>' + k + '</mark>');
+            return '<p class="para">' + t + '</p>';
+          }).join("");
+          return '<h3>' + esc(s.id + " " + s.head) + '</h3>' + body;
+        }).join("") + '</section>';
+    }).join("");
+    var m = d.title.match(/^(\S+年度 問\d)\s+(.*)$/);
+    out.innerHTML = '<div class="card"><p class="title">' + (m ? '<small>' + esc(m[1]) + '</small>' + esc(m[2]) : esc(d.title)) + '</p>' +
+      '<div class="total">合計 ' + sum + '字</div></div>' + parts;
+  }
+
+  function go(key, push) {
+    if (keys.indexOf(key) < 0) key = keys[0];
+    sel.value = key;
+    save("key", key);
+    if (push && location.hash !== "#" + key) history.replaceState(null, "", "#" + key);
+    render(key);
+    window.scrollTo(0, 0);
+  }
+  function step(d) {
+    var i = keys.indexOf(sel.value) + d;
+    if (i >= 0 && i < keys.length) go(keys[i], true);
+  }
+
+  sel.addEventListener("change", function () { go(sel.value, true); });
+  document.getElementById("prev").addEventListener("click", function () { step(-1); });
+  document.getElementById("next").addEventListener("click", function () { step(1); });
+  var optKey = document.getElementById("opt-key"), optQ = document.getElementById("opt-q");
+  optKey.checked = load("key-on", "1") === "1";
+  optQ.checked = load("q-on", "1") === "1";
+  function applyOpts() {
+    document.body.classList.toggle("show-key", optKey.checked);
+    document.body.classList.toggle("no-q", !optQ.checked);
+  }
+  optKey.addEventListener("change", function () { save("key-on", optKey.checked ? "1" : "0"); applyOpts(); });
+  optQ.addEventListener("change", function () { save("q-on", optQ.checked ? "1" : "0"); applyOpts(); });
+  applyOpts();
+  window.addEventListener("hashchange", function () { go(location.hash.slice(1), false); });
+
+  go(location.hash.slice(1) || load("key", keys[0]), true);
+})();
+</script>
+</body>
+</html>

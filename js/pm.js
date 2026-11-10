@@ -139,6 +139,8 @@
       if (treeLink) treeLink.hidden = mode !== "pm2"; // 午後IIだけ「骨子の型ツリー」（summary/pm2_tree.html）を表示
       var slidesLink = $("#pm-slides-link");
       if (slidesLink) slidesLink.hidden = mode !== "pm2"; // 午後IIだけ「A社スライド」（summary/pm2_slides.html）を表示
+      var modelsLink = $("#pm-models-link");
+      if (modelsLink) modelsLink.hidden = mode !== "pm2"; // 午後IIだけ「見本の全文」（summary/pm2_models.html）を表示
       var textLink = $("#pm-text-link");
       if (textLink) textLink.hidden = mode !== "pm2"; // 午後IIだけ「午後II 教科書」を表示
       var tools = $("#pm-res-tools");
