@@ -57,6 +57,31 @@
   mark { background: transparent; color: inherit; }
   body.show-key mark { background: var(--mark); border-radius: 3px; }
   .empty { color: var(--muted); }
+
+  /* 表示の切り替え（全文・骨格・書き起こす） */
+  .modes { display: flex; gap: 6px; flex: 1 1 100%; flex-wrap: wrap; }
+  .modes button { font: inherit; font-size: 14px; font-weight: 700; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 10px; padding: 5px 12px; cursor: pointer; }
+  .modes button.on { color: #fff; background: var(--text); border-color: var(--text); }
+  .mode-note { font-size: 13.5px; color: var(--muted); background: var(--accent-soft); border-radius: 10px; padding: 8px 12px; margin: 0 0 12px; line-height: 1.7; }
+  .opt-kw { display: none !important; }
+  body.m-write .opt-kw { display: inline-flex !important; }
+  /* 骨格（書く順番のラベル＋キーワード） */
+  .frame { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 4px; }
+  .frame li { display: grid; grid-template-columns: 8.5em 1fr; gap: 8px; font-size: 14.5px; line-height: 1.65;
+    background: var(--chip); border-radius: 8px; padding: 5px 10px; }
+  .frame .lb { font-weight: 800; color: var(--accent); }
+  .frame .kw span { white-space: normal; }
+  .frame .kw span + span::before { content: "｜"; color: var(--muted); margin: 0 2px; }
+  body.hide-kw .frame li:not(.open) .kw { color: transparent; background: var(--line); border-radius: 4px; cursor: pointer; user-select: none; }
+  body.hide-kw .frame li:not(.open) .kw span + span::before { color: transparent; }
+  @media (max-width: 600px) { .frame li { grid-template-columns: 1fr; gap: 0; } }
+  details.body { margin: 4px 0 2px; }
+  details.body > summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--muted); }
+  details.body[open] > summary { margin-bottom: 4px; }
+  textarea.draft { width: 100%; min-height: 7.5em; font: inherit; font-size: 15px; line-height: 1.8; padding: 8px 10px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--text); resize: vertical; margin-top: 4px; }
+  .draft-cnt { font-size: 12.5px; color: var(--muted); text-align: right; }
   @media (max-width: 600px) {
     .bar { position: static; }
     .card { padding: 14px 14px; }
@@ -74,12 +99,18 @@
   <header>
     <div class="eyebrow">ITストラテジスト 午後II</div>
     <h1>見本の全文</h1>
-    <p class="lead">A社の見本の論文を、見出しと文章だけで通して読みます。黄色の文は各段落の「要の1文」です。問題を選ぶと切り替わります。</p>
+    <p class="lead">見本を一字一句覚えるのではなく、見出しごとの「骨格＋キーワード」を覚えて、その場で文章に戻します。全文で流れをつかみ、骨格で覚え、書き起こすで文章に戻す練習をします。</p>
   </header>
   <div class="bar">
+    <div class="modes" role="tablist">
+      <button type="button" data-mode="full">全文</button>
+      <button type="button" data-mode="frame">骨格（キーワード）</button>
+      <button type="button" data-mode="write">書き起こす</button>
+    </div>
     <select id="sel" aria-label="問題を選ぶ"></select>
     <label><input type="checkbox" id="opt-key" checked> 要の1文に色</label>
     <label><input type="checkbox" id="opt-q" checked> 設問文</label>
+    <label class="opt-kw"><input type="checkbox" id="opt-hide"> キーワードを隠す</label>
     <button type="button" id="prev" aria-label="前の見本">前へ</button>
     <button type="button" id="next" aria-label="次の見本">次へ</button>
   </div>
@@ -87,6 +118,7 @@
 </div>
 
 <script src="../js/data/pm2_steps.js"></script>
+<script src="../js/data/pm2_frames.js"></script>
 <script src="../js/data/pm2/2025r07h_pm2.js"></script>
 <script src="../js/data/pm2/2024r06h_pm2.js"></script>
 <script src="../js/data/pm2/2023r05h_pm2.js"></script>
@@ -125,6 +157,41 @@
     return (e.questions || []).filter(function (q) { return String(q.no) === p[1]; })[0] || null;
   }
 
+  var FRAMES = window.PM2_FRAMES || {};
+  var MODES = { full: 1, frame: 1, write: 1 };
+  var mode = MODES[load("mode", "full")] ? load("mode", "full") : "full";
+  var NOTE = {
+    frame: "見出しごとの書く順番（ラベル）とキーワードです。覚えるのはこちらで、文章はここから毎回つくります。見出しの下の「本文を見る」で見本の文章を確かめられます。",
+    write: "キーワードだけを見て、欄に文章を書きます（本番のCBTと同じく打ち込みます）。詰まったところだけ「本文を見る」で確かめます。慣れたら「キーワードを隠す」でラベルだけから書きます（隠したキーワードは押すと出ます）。書いた文章はこの端末に残ります。"
+  };
+  function draftKey(key, id) { return "draft:" + key + ":" + id; }
+
+  function bodyHtml(s) {
+    return String(s.text).split(/\r?\n/).map(function (line) {
+      var t = esc(line), k = esc(s.key || "");
+      if (k && t.indexOf(k) >= 0) t = t.replace(k, '<mark>' + k + '</mark>');
+      return '<p class="para">' + t + '</p>';
+    }).join("");
+  }
+  function frameHtml(key, s) {
+    var f = (FRAMES[key] || {})[s.id];
+    if (!f) return '<p class="empty">この見出しの骨格はまだありません。</p>';
+    return '<ul class="frame">' + f.map(function (r) {
+      return '<li><span class="lb">' + esc(r[0]) + '</span><span class="kw">' +
+        String(r[1]).split("｜").map(function (w) { return '<span>' + esc(w) + '</span>'; }).join("") + '</span></li>';
+    }).join("") + '</ul>';
+  }
+  function secHtml(key, s) {
+    var h = '<h3>' + esc(s.id + " " + s.head) + '</h3>';
+    if (mode === "full") return h + bodyHtml(s);
+    var body = '<details class="body"><summary>本文を見る（' + chars(s.text) + '字）</summary>' + bodyHtml(s) + '</details>';
+    if (mode === "frame") return h + frameHtml(key, s) + body;
+    var dv = load(draftKey(key, s.id), "");
+    return h + frameHtml(key, s) +
+      '<textarea class="draft" data-sec="' + esc(s.id) + '" placeholder="キーワードを見て、この見出しの文章を書く">' + esc(dv) + '</textarea>' +
+      '<div class="draft-cnt" data-cnt="' + esc(s.id) + '">' + chars(dv) + ' / 見本 ' + chars(s.text) + '字</div>' + body;
+  }
+
   function render(key) {
     var d = STEPS[key];
     if (!d) { out.innerHTML = '<p class="empty">見本がありません。</p>'; return; }
@@ -135,20 +202,35 @@
       if (!secs.length) return "";
       var n = secs.reduce(function (a, s) { return a + chars(s.text); }, 0);
       sum += n;
-      return '<section class="card ' + PK[part] + '"><div class="part-head"><h2>設問' + part + '</h2><span class="cnt">' + n + '字</span></div>' +
+      return '<section class="card ' + PK[part] + '"><div class="part-head"><h2>設問' + part + '</h2><span class="cnt">見本 ' + n + '字</span></div>' +
         (qq[PK[part]] ? '<div class="q">' + esc(qq[PK[part]]) + '</div>' : '') +
-        secs.map(function (s) {
-          var body = String(s.text).split(/\r?\n/).map(function (line) {
-            var t = esc(line), k = esc(s.key || "");
-            if (k && t.indexOf(k) >= 0) t = t.replace(k, '<mark>' + k + '</mark>');
-            return '<p class="para">' + t + '</p>';
-          }).join("");
-          return '<h3>' + esc(s.id + " " + s.head) + '</h3>' + body;
-        }).join("") + '</section>';
+        secs.map(function (s) { return secHtml(key, s); }).join("") + '</section>';
     }).join("");
     var m = d.title.match(/^(\S+年度 問\d)\s+(.*)$/);
-    out.innerHTML = '<div class="card"><p class="title">' + (m ? '<small>' + esc(m[1]) + '</small>' + esc(m[2]) : esc(d.title)) + '</p>' +
+    out.innerHTML = (NOTE[mode] ? '<p class="mode-note">' + esc(NOTE[mode]) + '</p>' : '') +
+      '<div class="card"><p class="title">' + (m ? '<small>' + esc(m[1]) + '</small>' + esc(m[2]) : esc(d.title)) + '</p>' +
       '<div class="total">合計 ' + sum + '字</div></div>' + parts;
+    Array.prototype.forEach.call(out.querySelectorAll("textarea.draft"), function (ta) {
+      ta.addEventListener("input", function () {
+        save(draftKey(key, ta.dataset.sec), ta.value);
+        var c = out.querySelector('[data-cnt="' + ta.dataset.sec + '"]');
+        var s = d.sections.filter(function (x) { return x.id === ta.dataset.sec; })[0];
+        if (c && s) c.textContent = chars(ta.value) + " / 見本 " + chars(s.text) + "字";
+      });
+    });
+  }
+  // キーワードを隠しているときは、押した行だけ出す
+  out.addEventListener("click", function (e) {
+    var li = e.target.closest && e.target.closest(".frame li");
+    if (li && document.body.classList.contains("hide-kw")) li.classList.toggle("open");
+  });
+  function setMode(m) {
+    mode = MODES[m] ? m : "full";
+    save("mode", mode);
+    Array.prototype.forEach.call(document.querySelectorAll(".modes button"), function (b) { b.classList.toggle("on", b.dataset.mode === mode); });
+    document.body.classList.toggle("m-write", mode === "write");
+    applyOpts();
+    render(sel.value);
   }
 
   function go(key, push) {
@@ -170,16 +252,29 @@
   var optKey = document.getElementById("opt-key"), optQ = document.getElementById("opt-q");
   optKey.checked = load("key-on", "1") === "1";
   optQ.checked = load("q-on", "1") === "1";
+  var optHide = document.getElementById("opt-hide");
+  optHide.checked = load("hide-on", "0") === "1";
   function applyOpts() {
     document.body.classList.toggle("show-key", optKey.checked);
     document.body.classList.toggle("no-q", !optQ.checked);
+    document.body.classList.toggle("hide-kw", mode === "write" && optHide.checked);
   }
   optKey.addEventListener("change", function () { save("key-on", optKey.checked ? "1" : "0"); applyOpts(); });
   optQ.addEventListener("change", function () { save("q-on", optQ.checked ? "1" : "0"); applyOpts(); });
-  applyOpts();
+  optHide.addEventListener("change", function () {
+    save("hide-on", optHide.checked ? "1" : "0");
+    Array.prototype.forEach.call(out.querySelectorAll(".frame li.open"), function (li) { li.classList.remove("open"); });
+    applyOpts();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".modes button"), function (b) {
+    b.addEventListener("click", function () { setMode(b.dataset.mode); });
+  });
   window.addEventListener("hashchange", function () { go(location.hash.slice(1), false); });
 
-  go(location.hash.slice(1) || load("key", keys[0]), true);
+  var first = location.hash.slice(1) || load("key", keys[0]);
+  sel.value = keys.indexOf(first) >= 0 ? first : keys[0];
+  setMode(mode);
+  go(sel.value, true);
 })();
 </script>
 </body>

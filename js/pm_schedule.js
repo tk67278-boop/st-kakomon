@@ -74,8 +74,9 @@
           ["b2", "b", "初見骨子20分（2回目）", "blind"],
           ["x1", "w", "通し執筆1本目（120分）：令和7年度 問1 基幹刷新 → AI採点 → 指摘された段落だけ書き直す", ["2025r07h", 1, "write"]]
         ] },
-        { start: "2026-11-10", end: "2026-11-15", goal: "型ツリーを覚え、7つの型を初見骨子で1周する。毎回「初見骨子20分 → AI採点 → 見本と比べる → 差が大きかった見出しを段落練習で1つ書く」。週末に通し練習1回目", tasks: [
+        { start: "2026-11-10", end: "2026-11-15", goal: "型ツリーを覚え、7つの型を初見骨子で1周する。毎回「初見骨子20分 → AI採点 → 見本と比べる → 差が大きかった見出しを、見本の全文の「書き起こす」で骨格（キーワード）から文章に戻す」。週末に通し練習1回目", tasks: [
           ["tree1", "todo", "型ツリー：7つの型の見分け方（テーマ→型）と、①〜⑦の見出し・列挙の中身を「隠して覚える」で言えるようにする（毎日10分）", "tree"],
+          ["frame1", "todo", "見本の全文「骨格（キーワード）」：見本のある9問のうち、その日の初見骨子と同じ型の見本の骨格を読み、「書き起こす」で1見出し書く（毎日10分）", "models"],
           ["bk-2018h30a-2", "bk", "11/10 初見骨子：①新サービス型 平成30年度 問2 → AI採点 → 見本と比べる", "blind:2018h30a-2"],
           ["bk-2019r01a-2", "bk", "11/10 初見骨子：②ビジネスモデル型 令和元年度 問2 → AI採点 → 見本と比べる", "blind:2019r01a-2"],
           ["bk-2019r01a-1", "bk", "11/11 初見骨子：③DX・業務改革型 令和元年度 問1 → AI採点 → 見本と比べる", "blind:2019r01a-1"],
@@ -150,6 +151,7 @@
     if (go === "blind" && window.PmBlind) window.PmBlind.open();
     else if (go.indexOf("blind:") === 0 && window.PmBlind) window.PmBlind.open(go.slice(6));
     else if (go === "tree") window.open("summary/pm2_tree.html", "_blank", "noopener");
+    else if (go === "models") window.open("summary/pm2_models.html", "_blank", "noopener");
     else if (go === "para" && window.PmPara) window.PmPara.open();
     else if (go === "text") { var t = document.getElementById("pm-text-link"); if (t) t.click(); }
     else if (go === "case") window.open("summary/pm2_case.html#numtest", "_blank", "noopener");
