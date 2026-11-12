@@ -843,8 +843,14 @@
     state.flat.forEach(function (fp) {
       var full = String(fp.setsumon.text || ""), sub = partQuestionText(fp);
       if (fp.isFirstInSetsumon && sub !== full) html += '<div class="pm1x-setumon-lead">' + escapeHtml(trimStr(full.split("\n")[0])) + '</div>';
+      // 小問（(1)(2)…）は、どの設問・どの〔節〕の問題かが分かるよう、頭に「設問2〔店舗の取組〕」を付ける
+      var ctx = "";
+      if (sub !== full) {
+        var no = /^設問\s*\d+/.exec(String(fp.part.label || "")), sec = /〔([^〕]+)〕/.exec(full.split("\n")[0]);
+        ctx = (no ? no[0].replace(/\s/g, "") : "") + (sec ? "〔" + sec[1] + "〕" : "");
+      }
       html += '<div class="pm2-field">' +
-        '<div class="pm1x-part-q">' + escapeHtml(sub) + '</div>' +
+        '<div class="pm1x-part-q">' + (ctx ? '<span class="pm1x-q-ctx">' + escapeHtml(ctx) + '</span>' : '') + escapeHtml(sub) + '</div>' +
         '<label class="pm2-field-label" for="pm1-ans-' + fp.idx + '">' + escapeHtml(fp.part.label || "") +
           (fp.part.limit ? '（' + escapeHtml(String(fp.part.limit)) + '字以内）' : '') +
           '<span class="pm1-pt">' + state.points[fp.idx] + '点</span></label>' +
