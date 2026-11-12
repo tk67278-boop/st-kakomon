@@ -67,7 +67,8 @@
     var splitKey = "st_cbt_split_" + (root.dataset.cbtKey || "am");
 
     /* ---------- 白黒反転 ---------- */
-    var invert = q(".cbt-invert input");
+    // 同じ見た目のスイッチ（午後Iの「ヒント」= .cbt-hintsw）を拾わないよう、白黒反転のスイッチだけを選ぶ
+    var invert = q(".cbt-invert:not(.cbt-hintsw) input");
     function applyInvert(on) { root.classList.toggle("invert", on); if (invert) invert.checked = on; }
     applyInvert(loadPref("st_cbt_invert", "0") === "1");
     if (invert) invert.addEventListener("change", function () { applyInvert(invert.checked); savePref("st_cbt_invert", invert.checked ? "1" : "0"); });
