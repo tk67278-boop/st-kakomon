@@ -844,10 +844,24 @@
       var full = String(fp.setsumon.text || ""), sub = partQuestionText(fp);
       if (fp.isFirstInSetsumon && sub !== full) html += '<div class="pm1x-setumon-lead">' + escapeHtml(trimStr(full.split("\n")[0])) + '</div>';
       // 小問（(1)(2)…）は、どの設問・どの〔節〕の問題かが分かるよう、頭に「設問2〔店舗の取組〕」を付ける
+      // 小問のない設問（設問1など）は、問題文の頭の「設問1　〔節〕について，」を札に出し、グレーの問題文は本題から始める
       var ctx = "";
       if (sub !== full) {
         var no = /^設問\s*\d+/.exec(String(fp.part.label || "")), sec = /〔([^〕]+)〕/.exec(full.split("\n")[0]);
         ctx = (no ? no[0].replace(/\s/g, "") : "") + (sec ? "〔" + sec[1] + "〕" : "");
+      } else {
+        var hm = /^(設問\s*\d+)[\s　]*〔([^〕]+)〕(について[，,、]?[\s　]*)?/.exec(sub);
+        if (hm) {
+          // 「〔節〕について，」で始まるときだけ札に〔節〕まで出して問題文から外す。
+          // 「〔節〕において，…」などは文の一部なので、札は「設問2」だけにし、問題文は〔節〕から始める
+          if (hm[3] && hm[0].length < sub.length) {
+            ctx = hm[1].replace(/[\s　]/g, "") + "〔" + hm[2] + "〕";
+            sub = sub.slice(hm[0].length);
+          } else {
+            ctx = hm[1].replace(/[\s　]/g, "");
+            sub = sub.replace(/^設問\s*\d+[\s　]*/, "");
+          }
+        }
       }
       html += '<div class="pm2-field">' +
         '<div class="pm1x-part-q">' + (ctx ? '<span class="pm1x-q-ctx">' + escapeHtml(ctx) + '</span>' : '') + escapeHtml(sub) + '</div>' +
