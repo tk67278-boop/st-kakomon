@@ -128,6 +128,7 @@
     if (data.essay) {
       if (data.essay.draft && typeof data.essay.draft === "object") d.essay.draft = data.essay.draft;
       if (Array.isArray(data.essay.versions)) d.essay.versions = data.essay.versions;
+      if (data.essay.gaiyo && typeof data.essay.gaiyo === "object") d.essay.gaiyo = data.essay.gaiyo; // 概要欄（15項目）の自分の答え
     }
     if (data.steps && typeof data.steps === "object") {
       if (data.steps.fill && typeof data.steps.fill === "object") d.steps.fill = data.steps.fill;
@@ -1119,33 +1120,165 @@
     if (!state.cbtShownOnce) { state.cbtShownOnce = true; openWriteCbt(); }
   }
 
-  // 概要欄（15項目）のA社の答え（js/data/pm2_gaiyo.js）。問題の型の答えを①〜⑮の順に並べる
-  var GAIYO_NUMS = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮"];
+  // 概要欄（15項目）。js/data/pm2_gaiyo.js の入力欄の形とA社の答えを使う
   var PREF_GAIYO_OPEN = "st_pm2_gaiyo_open";
-  function gaiyoRowsHtml(key, typeId) {
-    var G = window.PM2_GAIYO, t = G.types[typeId], ov = G.override[key] || {};
-    return GAIYO_NUMS.map(function (n) {
-      var label, ans;
-      if (n === "①") { label = G.labels[n]; ans = G.names[key] ? G.names[key] + "（" + G.names[key].length + "字）" : "（例なし）" + G.nameRule; }
-      else if (G.common[n]) { label = G.common[n][0]; ans = G.common[n][1]; }
-      else if (n === "⑮") { label = G.labels[n]; ans = (t ? t.a["⑩"] : "") + "（⑩と同じ）"; }
-      else { label = G.labels[n]; ans = ov[n] || (t ? t.a[n] : ""); }
-      return '<tr><th>' + n + ' ' + escapeHtml(label) + '</th><td>' + escapeHtml(ans) + '</td></tr>';
-    }).join("");
+  // 概要欄を自分で答える入力欄。答えは state.doc.essay.gaiyo に入力のたびに保存する
+  function gaiyoVal() { return (state.doc.essay.gaiyo = state.doc.essay.gaiyo || {}); }
+  function gaiyoInput(id, v, attrs) {
+    return '<input type="text" class="pm2g-in" data-g="' + id + '" value="' + escapeHtml(v == null ? "" : v) + '"' + (attrs || "") + '>';
+  }
+  function gaiyoChoices(it, v) {
+    var sel = v[it.n] || [];
+    return '<div class="pm2g-opts">' + it.opts.map(function (o, i) {
+      var no = i + 1, other = o === "その他";
+      return '<label class="pm2g-opt"><input type="checkbox" data-g="' + it.n + '" data-no="' + no + '"' + (sel.indexOf(no) >= 0 ? " checked" : "") + '>' +
+        no + '．' + escapeHtml(o) + '</label>' + (other ? '（' + gaiyoInput(it.n + "x", v[it.n + "x"], ' style="width:12em"') + '）' : '');
+    }).join("") + '</div>';
+  }
+  function gaiyoPeriod(n, v) {
+    var y = ' inputmode="numeric" maxlength="4" style="width:4.2em"', m = ' inputmode="numeric" maxlength="2" style="width:2.6em"';
+    return '（' + gaiyoInput(n + "y1", v[n + "y1"], y) + '年' + gaiyoInput(n + "m1", v[n + "m1"], m) + '月）〜（' +
+      gaiyoInput(n + "y2", v[n + "y2"], y) + '年' + gaiyoInput(n + "m2", v[n + "m2"], m) + '月）';
+  }
+  function gaiyoAI(id, v) {
+    return '<span class="pm2g-ai">' + ["ア．含む", "イ．含まない"].map(function (t) {
+      var c = t.charAt(0);
+      return '<label><input type="radio" name="pm2g-' + id + '" data-g="' + id + '" value="' + c + '"' + (v[id] === c ? " checked" : "") + '>' + t + '</label>';
+    }).join("") + '</span>';
+  }
+  function gaiyoFieldHtml(it, v) {
+    var num = ' inputmode="numeric" style="width:5em"';
+    if (it.type === "text") return gaiyoInput(it.n, v[it.n], ' maxlength="60" style="width:100%"') + '<span class="pm2g-cnt" data-gc="' + it.n + '">' + charLen(v[it.n] || "") + ' / ' + it.max + '字</span>';
+    if (it.type === "choice") return gaiyoChoices(it, v);
+    if (it.type === "system") return gaiyoChoices(it, v) + '<div class="pm2g-sub">サーバ約' + gaiyoInput("⑤srv", v["⑤srv"], num) + '台、クライアント約' + gaiyoInput("⑤cli", v["⑤cli"], num) + '台' +
+      '<label class="pm2g-opt"><input type="checkbox" data-g="⑤cliU"' + (v["⑤cliU"] ? " checked" : "") + '>クライアント分からない</label></div>';
+    if (it.type === "num") return it.pre + gaiyoInput(it.n, v[it.n], num) + it.unit;
+    if (it.type === "cost") return '約' + gaiyoInput("⑨", v["⑨"], num) + '百万円' +
+      '<div class="pm2g-sub">ハードウェアの費用を ' + gaiyoAI("⑨hw", v) + '</div><div class="pm2g-sub">ソフトウェアパッケージの費用を ' + gaiyoAI("⑨pk", v) +
+      '</div><div class="pm2g-sub">サービスの費用を ' + gaiyoAI("⑨sv", v) + '</div>';
+    if (it.type === "period") return gaiyoPeriod(it.n, v);
+    if (it.type === "range") return '約' + gaiyoInput("⑭a", v["⑭a"], num) + '〜' + gaiyoInput("⑭b", v["⑭b"], num) + it.unit;
+    return "";
   }
   function gaiyoHtml(key) {
     var G = window.PM2_GAIYO;
-    if (!G) return "";
-    var typeId = G.typeOf[key] || "t3";
-    var open = loadPref(PREF_GAIYO_OPEN, "0") === "1";
+    if (!G || !G.form) return "";
+    var typeId = G.typeOf[key] || "t3", v = gaiyoVal();
+    var open = loadPref(PREF_GAIYO_OPEN) !== "0"; // 初めては開いておく
     return '<details class="pm2cbt-gaiyo"' + (open ? " open" : "") + '>' +
-      '<summary>概要欄の答え（本番では設問アの前に15項目を記入）</summary>' +
-      '<div class="pm2cbt-gaiyo-type"><label>型 <select id="pm2cbt-gaiyo-type">' + Object.keys(G.types).map(function (id) {
-        return '<option value="' + id + '"' + (id === typeId ? " selected" : "") + '>' + escapeHtml(G.types[id].name) + (G.typeOf[key] === id ? "（この問題）" : "") + '</option>';
-      }).join("") + '</select></label></div>' +
-      '<table class="pm2cbt-gaiyo-tbl"><tbody id="pm2cbt-gaiyo-rows">' + gaiyoRowsHtml(key, typeId) + '</tbody></table>' +
-      '<p class="pm2cbt-gaiyo-note">⑨の総額と⑩の期間は、本文の数字と必ずそろえます。名称は「' + escapeHtml(G.nameRule) + '」' + escapeHtml(G.source) + '</p>' +
+      '<summary>概要欄（本番では設問アの前に15項目を答える）</summary>' +
+      '<p class="pm2cbt-gaiyo-note">①は記入、ほかは当てはまるものを選んで（複数あれば全部）、必要なら（）に記入します。⑨の総額と⑩の期間は本文の数字とそろえます。' + escapeHtml(G.source) + '</p>' +
+      '<table class="pm2cbt-gaiyo-tbl pm2g-form"><tbody>' + G.form.map(function (it) {
+        return '<tr><th>' + it.n + ' ' + escapeHtml(it.label) + '</th><td>' + gaiyoFieldHtml(it, v) + '</td></tr>';
+      }).join("") + '</tbody></table>' +
+      '<div class="pm2cbt-gaiyo-type">' +
+        '<button type="button" class="cbt-btn cbt-blue" id="pm2g-check">A社の答えと比べる</button> ' +
+        '<label>型 <select id="pm2cbt-gaiyo-type">' + Object.keys(G.types).map(function (id) {
+          return '<option value="' + id + '"' + (id === typeId ? " selected" : "") + '>' + escapeHtml(G.types[id].name) + (G.typeOf[key] === id ? "（この問題）" : "") + '</option>';
+        }).join("") + '</select></label> ' +
+        '<button type="button" class="cbt-btn cbt-gray" id="pm2g-clear">空にする</button>' +
+      '</div>' +
+      '<div id="pm2g-result"></div>' +
     '</details>';
+  }
+  // 入力欄から答えを集める
+  function gaiyoCollect(box) {
+    var g = {};
+    $all(box, "[data-g]").forEach(function (el) {
+      var id = el.dataset.g;
+      if (el.type === "checkbox" && el.dataset.no) { if (el.checked) (g[id] = g[id] || []).push(Number(el.dataset.no)); }
+      else if (el.type === "checkbox") { if (el.checked) g[id] = true; }
+      else if (el.type === "radio") { if (el.checked) g[id] = el.value; }
+      else if (trimStr(el.value)) g[id] = trimStr(el.value);
+    });
+    return g;
+  }
+  // A社の答え（文）から、比べるための値を取り出す
+  function gaiyoNums(s) {
+    return String(s || "").split(/、| と /).map(function (x) { var m = /^\s*(\d+)(?=[．\s（]|$)/.exec(x); return m ? Number(m[1]) : null; })
+      .filter(function (x) { return x != null; });
+  }
+  function gaiyoHalf(s) { return String(s == null ? "" : s).replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/[,，\s]/g, ""); }
+  function gaiyoAnswer(key, typeId, n) {
+    var G = window.PM2_GAIYO, t = G.types[typeId], ov = G.override[key] || {};
+    if (n === "①") return G.names[key] || "";
+    if (G.common[n]) return G.common[n][1];
+    if (n === "⑮") return t ? t.a["⑩"] : "";
+    return ov[n] || (t ? t.a[n] : "");
+  }
+  function gaiyoJudge(n, ans, g) {
+    var same = function (a, b) { return gaiyoHalf(a) === gaiyoHalf(b); };
+    var setEq = function (a, b) { a = (a || []).slice().sort(); b = (b || []).slice().sort(); return a.length === b.length && a.every(function (x, i) { return x === b[i]; }); };
+    var p = /(\d{4})年(\d+)月〜(\d{4})年(\d+)月/.exec(ans);
+    if (n === "①") return null;
+    if (n === "⑤") {
+      var sv = /サーバ約(\d+)台/.exec(ans), cl = /クライアント約(\d+)台/.exec(ans), clu = /クライアント分からない/.test(ans);
+      return setEq(g["⑤"], gaiyoNums(ans)) && (!sv || same(g["⑤srv"], sv[1])) && (cl ? same(g["⑤cli"], cl[1]) : true) && (!!g["⑤cliU"] === clu);
+    }
+    if (n === "⑧") { var w = /約([\d,]+)/.exec(ans); return !!w && same(g["⑧"], w[1]); }
+    if (n === "⑨") {
+      var c = /約([\d,]+)百万円/.exec(ans), hw = /ハードウェア ([アイ])/.exec(ans), pk = /パッケージ ([アイ])/.exec(ans), svc = /サービス ([アイ])/.exec(ans);
+      return !!c && same(g["⑨"], c[1]) && g["⑨hw"] === (hw && hw[1]) && g["⑨pk"] === (pk && pk[1]) && g["⑨sv"] === (svc && svc[1]);
+    }
+    if (n === "⑩" || n === "⑮") return !!p && same(g[n + "y1"], p[1]) && same(g[n + "m1"], p[2]) && same(g[n + "y2"], p[3]) && same(g[n + "m2"], p[4]);
+    if (n === "⑭") { var r = /約(\d+)〜(\d+)/.exec(ans); return !!r && same(g["⑭a"], r[1]) && same(g["⑭b"], r[2]); }
+    return setEq(g[n], gaiyoNums(ans));
+  }
+  function gaiyoCompareHtml(key, typeId, g) {
+    var G = window.PM2_GAIYO, okN = 0, all = 0;
+    var rows = G.form.map(function (it) {
+      var ans = gaiyoAnswer(key, typeId, it.n), j = gaiyoJudge(it.n, ans, g);
+      if (j !== null) { all++; if (j) okN++; }
+      if (it.n === "①") ans = ans ? ans + "（例・" + ans.length + "字）" : "（例なし）" + G.nameRule;
+      if (it.n === "⑮") ans += "（⑩と同じ）";
+      var mark = j === null ? '<span class="pm2g-mk">例</span>' : j ? '<span class="pm2g-mk ok">同じ</span>' : '<span class="pm2g-mk ng">違う</span>';
+      return '<tr><th>' + it.n + ' ' + escapeHtml(it.label) + '</th><td>' + mark + escapeHtml(ans) + '</td></tr>';
+    }).join("");
+    return '<p class="pm2cbt-gaiyo-note"><b>A社の答えと同じ：' + okN + ' / ' + all + '</b>（①の名称は例と見比べます）。「違う」でも、本文の数字や立場と矛盾していなければ構いません。</p>' +
+      '<table class="pm2cbt-gaiyo-tbl"><tbody>' + rows + '</tbody></table>';
+  }
+  function gaiyoBind(key) {
+    var box = $("#pm2-cbt .pm2cbt-gaiyo");
+    if (!box) return;
+    var timer = null;
+    function store() {
+      state.doc.essay.gaiyo = gaiyoCollect(box);
+      clearTimeout(timer);
+      timer = setTimeout(saveDoc, 400);
+      var c = box.querySelector('[data-gc="①"]'), nm = box.querySelector('input[data-g="①"]');
+      if (c && nm) { var len = charLen(nm.value); c.textContent = len + " / 30字"; c.classList.toggle("over", len > 30); }
+    }
+    box.addEventListener("input", store);
+    box.addEventListener("change", store);
+    box.addEventListener("toggle", function () { savePref(PREF_GAIYO_OPEN, box.open ? "1" : "0"); });
+    function check() { $("#pm2g-result").innerHTML = gaiyoCompareHtml(key, $("#pm2cbt-gaiyo-type").value, gaiyoCollect(box)); }
+    $("#pm2g-check").addEventListener("click", check);
+    $("#pm2cbt-gaiyo-type").addEventListener("change", function () { if (trimStr($("#pm2g-result").innerHTML)) check(); });
+    $("#pm2g-clear").addEventListener("click", function () {
+      if (!confirm("概要欄の入力をすべて消します。よろしいですか？")) return;
+      $all(box, "[data-g]").forEach(function (el) { if (el.type === "checkbox" || el.type === "radio") el.checked = false; else el.value = ""; });
+      $("#pm2g-result").innerHTML = "";
+      store();
+    });
+  }
+  // AI採点に渡す概要欄の答え（入力があるときだけ）
+  function gaiyoPromptLines() {
+    var G = window.PM2_GAIYO, g = (state.doc && state.doc.essay && state.doc.essay.gaiyo) || {};
+    if (!G || !G.form || !Object.keys(g).length) return [];
+    var y = function (n) { return g[n + "y1"] || g[n + "y2"] ? (g[n + "y1"] || "") + "年" + (g[n + "m1"] || "") + "月〜" + (g[n + "y2"] || "") + "年" + (g[n + "m2"] || "") + "月" : ""; };
+    return G.form.map(function (it) {
+      var s = "";
+      if (it.type === "text") s = g[it.n] || "";
+      else if (it.type === "choice" || it.type === "system") {
+        s = (g[it.n] || []).map(function (no) { var o = it.opts[no - 1]; return no + "．" + o + (o === "その他" && g[it.n + "x"] ? "（" + g[it.n + "x"] + "）" : ""); }).join("、");
+        if (it.type === "system" && (g["⑤srv"] || g["⑤cli"] || g["⑤cliU"])) s += "（サーバ約" + (g["⑤srv"] || "?") + "台、クライアント" + (g["⑤cliU"] ? "分からない" : "約" + (g["⑤cli"] || "?") + "台") + "）";
+      }
+      else if (it.type === "num") s = g[it.n] ? "約" + g[it.n] + it.unit : "";
+      else if (it.type === "cost") s = g["⑨"] ? "約" + g["⑨"] + "百万円（ハードウェア" + (g["⑨hw"] || "?") + "／パッケージ" + (g["⑨pk"] || "?") + "／サービス" + (g["⑨sv"] || "?") + "。ア＝含む、イ＝含まない）" : "";
+      else if (it.type === "period") s = y(it.n);
+      else if (it.type === "range") s = g["⑭a"] || g["⑭b"] ? "約" + (g["⑭a"] || "?") + "〜" + (g["⑭b"] || "?") + "人" : "";
+      return it.n + " " + it.label + "：" + (s || "（未記入）");
+    });
   }
 
   function openWriteCbt() {
@@ -1210,13 +1343,7 @@
     document.body.classList.add("cbt-mode");
     state.cbt = window.CBT ? window.CBT.mount($("#pm2-cbt")) : null;
 
-    var gz = $("#pm2-cbt .pm2cbt-gaiyo");
-    if (gz) {
-      gz.addEventListener("toggle", function () { savePref(PREF_GAIYO_OPEN, gz.open ? "1" : "0"); });
-      $("#pm2cbt-gaiyo-type").addEventListener("change", function (e) {
-        $("#pm2cbt-gaiyo-rows").innerHTML = gaiyoRowsHtml(state.examId + "-" + state.no, e.target.value);
-      });
-    }
+    gaiyoBind(state.examId + "-" + state.no);
 
     KEY_ORDER.forEach(function (k) {
       var ta = $("#pm2-essay-" + k);
@@ -1351,6 +1478,12 @@
     lines.push("■出題趣旨（採点観点として参照してください）:");
     lines.push(q.shushi || "（なし）");
     lines.push("");
+    var gl = gaiyoPromptLines();
+    if (gl.length) {
+      lines.push("■論述の対象とする構想，計画策定，システム開発などの概要（答案の最初に記入する15項目）:");
+      gl.forEach(function (x) { lines.push(x); });
+      lines.push("");
+    }
     lines.push("■あなたの論文:");
     lines.push("【設問ア】");
     lines.push(essay.a || "");
@@ -1366,6 +1499,7 @@
     lines.push("2. 出題趣旨とのギャップ（出題趣旨が求める観点に対し、論文で不足している点）");
     lines.push("3. 改善点（具体的に）");
     lines.push("4. 設問イの改善リライト例");
+    if (gl.length) lines.push("5. 概要欄（15項目）と本文の矛盾（名称と本文の内容、総額や期間と本文の数字、立場や役割と本文の記述など）。問題冊子には、項目に適切に答えていない場合や項目間に矛盾がある場合は減点するとある");
     lines.push("");
     lines.push("全体のまとめとして、見出し「次に向けたポイント」の下に、次の論文で意識すべきことを3つ、箇条書き（1行1項目）で出力してください。");
     lines.push("");
