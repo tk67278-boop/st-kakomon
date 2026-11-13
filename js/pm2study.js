@@ -1119,6 +1119,35 @@
     if (!state.cbtShownOnce) { state.cbtShownOnce = true; openWriteCbt(); }
   }
 
+  // 概要欄（15項目）のA社の答え（js/data/pm2_gaiyo.js）。問題の型の答えを①〜⑮の順に並べる
+  var GAIYO_NUMS = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮"];
+  var PREF_GAIYO_OPEN = "st_pm2_gaiyo_open";
+  function gaiyoRowsHtml(key, typeId) {
+    var G = window.PM2_GAIYO, t = G.types[typeId], ov = G.override[key] || {};
+    return GAIYO_NUMS.map(function (n) {
+      var label, ans;
+      if (n === "①") { label = G.labels[n]; ans = G.names[key] ? G.names[key] + "（" + G.names[key].length + "字）" : "（例なし）" + G.nameRule; }
+      else if (G.common[n]) { label = G.common[n][0]; ans = G.common[n][1]; }
+      else if (n === "⑮") { label = G.labels[n]; ans = (t ? t.a["⑩"] : "") + "（⑩と同じ）"; }
+      else { label = G.labels[n]; ans = ov[n] || (t ? t.a[n] : ""); }
+      return '<tr><th>' + n + ' ' + escapeHtml(label) + '</th><td>' + escapeHtml(ans) + '</td></tr>';
+    }).join("");
+  }
+  function gaiyoHtml(key) {
+    var G = window.PM2_GAIYO;
+    if (!G) return "";
+    var typeId = G.typeOf[key] || "t3";
+    var open = loadPref(PREF_GAIYO_OPEN, "0") === "1";
+    return '<details class="pm2cbt-gaiyo"' + (open ? " open" : "") + '>' +
+      '<summary>概要欄の答え（本番では設問アの前に15項目を記入）</summary>' +
+      '<div class="pm2cbt-gaiyo-type"><label>型 <select id="pm2cbt-gaiyo-type">' + Object.keys(G.types).map(function (id) {
+        return '<option value="' + id + '"' + (id === typeId ? " selected" : "") + '>' + escapeHtml(G.types[id].name) + (G.typeOf[key] === id ? "（この問題）" : "") + '</option>';
+      }).join("") + '</select></label></div>' +
+      '<table class="pm2cbt-gaiyo-tbl"><tbody id="pm2cbt-gaiyo-rows">' + gaiyoRowsHtml(key, typeId) + '</tbody></table>' +
+      '<p class="pm2cbt-gaiyo-note">⑨の総額と⑩の期間は、本文の数字と必ずそろえます。名称は「' + escapeHtml(G.nameRule) + '」' + escapeHtml(G.source) + '</p>' +
+    '</details>';
+  }
+
   function openWriteCbt() {
     if ($("#pm2-cbt")) return;
     var q = state.q, qq = q.q || {};
@@ -1155,6 +1184,7 @@
         '</div>' +
         '<div class="cbt-splitter" role="separator" aria-orientation="vertical" title="ドラッグで左右の幅を変更"></div>' +
         '<div class="cbt-right">' +
+          gaiyoHtml(state.examId + "-" + state.no) +
           KEY_ORDER.map(function (k) {
             return '<div class="pm2-field pm2cbt-field">' +
               '<label class="pm2-field-label" for="pm2-essay-' + k + '">' + KANA_LABEL[k] + '（' + escapeHtml(LIMITS[k].label) + '）</label>' +
@@ -1179,6 +1209,14 @@
     root.insertAdjacentHTML("beforeend", html);
     document.body.classList.add("cbt-mode");
     state.cbt = window.CBT ? window.CBT.mount($("#pm2-cbt")) : null;
+
+    var gz = $("#pm2-cbt .pm2cbt-gaiyo");
+    if (gz) {
+      gz.addEventListener("toggle", function () { savePref(PREF_GAIYO_OPEN, gz.open ? "1" : "0"); });
+      $("#pm2cbt-gaiyo-type").addEventListener("change", function (e) {
+        $("#pm2cbt-gaiyo-rows").innerHTML = gaiyoRowsHtml(state.examId + "-" + state.no, e.target.value);
+      });
+    }
 
     KEY_ORDER.forEach(function (k) {
       var ta = $("#pm2-essay-" + k);

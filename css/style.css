@@ -1584,3 +1584,14 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 .tbq-grade button.active[data-g="t"] { background: #d97706; border-color: #d97706; color: #fff; }
 .tbq-grade button.active[data-g="x"] { background: var(--ng); border-color: var(--ng); color: #fff; }
 .tbq-sum { font-size: 20px; font-weight: 800; margin: 8px 0 12px; }
+
+/* 午後II 執筆（CBT）：概要欄（15項目）のA社の答え */
+.pm2cbt-gaiyo { border: 1px solid var(--cbt-line); border-radius: 10px; padding: 6px 10px; margin: 0 0 12px; font-size: 13px; }
+.pm2cbt-gaiyo > summary { cursor: pointer; font-weight: 700; color: var(--cbt-blue); }
+.pm2cbt-gaiyo[open] > summary { margin-bottom: 6px; }
+.pm2cbt-gaiyo-type { margin: 0 0 6px; }
+.pm2cbt-gaiyo-type select { font: inherit; font-size: 13px; padding: 2px 6px; border: 1px solid var(--cbt-line); border-radius: 6px; background: var(--cbt-pane); color: var(--cbt-text); max-width: 100%; }
+.pm2cbt-gaiyo-tbl { width: 100%; border-collapse: collapse; }
+.pm2cbt-gaiyo-tbl th, .pm2cbt-gaiyo-tbl td { border: 1px solid var(--cbt-line); padding: 3px 7px; text-align: left; vertical-align: top; line-height: 1.55; }
+.pm2cbt-gaiyo-tbl th { width: 38%; font-weight: 700; white-space: normal; }
+.pm2cbt-gaiyo-note { margin: 6px 0 0; font-size: 12px; opacity: .8; line-height: 1.6; }
