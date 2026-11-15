@@ -76,6 +76,11 @@
   body.hide-kw .frame li:not(.open) .kw { color: transparent; background: var(--line); border-radius: 4px; cursor: pointer; user-select: none; }
   body.hide-kw .frame li:not(.open) .kw span + span::before { color: transparent; }
   @media (max-width: 600px) { .frame li { grid-template-columns: 1fr; gap: 0; } }
+  /* 全文と骨格を横に並べる */
+  body.m-side .wrap { max-width: 1440px; }
+  .side { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .side-frame .frame { margin-top: 0; }
+  @media (max-width: 900px) { .side { grid-template-columns: 1fr; gap: 6px; } .side-frame { order: -1; } }
   details.body { margin: 4px 0 2px; }
   details.body > summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--muted); }
   details.body[open] > summary { margin-bottom: 4px; }
@@ -105,6 +110,7 @@
     <div class="modes" role="tablist">
       <button type="button" data-mode="full">全文</button>
       <button type="button" data-mode="frame">骨格（キーワード）</button>
+      <button type="button" data-mode="side">全文と骨格を並べる</button>
       <button type="button" data-mode="write">書き起こす</button>
     </div>
     <select id="sel" aria-label="問題を選ぶ"></select>
@@ -158,9 +164,10 @@
   }
 
   var FRAMES = window.PM2_FRAMES || {};
-  var MODES = { full: 1, frame: 1, write: 1 };
+  var MODES = { full: 1, frame: 1, side: 1, write: 1 };
   var mode = MODES[load("mode", "full")] ? load("mode", "full") : "full";
   var NOTE = {
+    side: "見出しごとに、左に見本の全文、右に骨格を並べます。本文のどの文がどのキーワードになったかを見比べながら覚えます。画面が狭いときは、骨格が上、全文が下に並びます。",
     frame: "見出しごとの書く順番（ラベル）とキーワードです。覚えるのはこちらで、文章はここから毎回つくります。見出しの下の「本文を見る」で見本の文章を確かめられます。",
     write: "キーワードだけを見て、欄に文章を書きます（本番のCBTと同じく打ち込みます）。詰まったところだけ「本文を見る」で確かめます。慣れたら「キーワードを隠す」でラベルだけから書きます（隠したキーワードは押すと出ます）。書いた文章はこの端末に残ります。"
   };
@@ -184,6 +191,7 @@
   function secHtml(key, s) {
     var h = '<h3>' + esc(s.id + " " + s.head) + '</h3>';
     if (mode === "full") return h + bodyHtml(s);
+    if (mode === "side") return h + '<div class="side"><div class="side-text">' + bodyHtml(s) + '</div><div class="side-frame">' + frameHtml(key, s) + '</div></div>';
     var body = '<details class="body"><summary>本文を見る（' + chars(s.text) + '字）</summary>' + bodyHtml(s) + '</details>';
     if (mode === "frame") return h + frameHtml(key, s) + body;
     var dv = load(draftKey(key, s.id), "");
@@ -229,6 +237,7 @@
     save("mode", mode);
     Array.prototype.forEach.call(document.querySelectorAll(".modes button"), function (b) { b.classList.toggle("on", b.dataset.mode === mode); });
     document.body.classList.toggle("m-write", mode === "write");
+    document.body.classList.toggle("m-side", mode === "side");
     applyOpts();
     render(sel.value);
   }
