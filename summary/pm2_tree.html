@@ -142,6 +142,10 @@
   .qx-extra i { font-style: normal; font-weight: 700; margin-right: 6px; }
   .qx-extra i::after { content: "："; }
   .qx-map { margin-left: 6px; font-size: 11.5px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
+  .qx-go { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline dotted; }
+  .qx-go:hover { color: var(--accent); }
+  ul.tree li[data-no] { scroll-margin-top: calc(var(--barh, 0px) + 8px); }
+  ul.tree li.flash > .h-title { background: var(--accent-soft); border-radius: 6px; transition: background .3s; }
   .qx-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
   .qx-tools button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 2px 12px; cursor: pointer; }
   .qx-tools button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -151,6 +155,21 @@
   .diff-only .qx-list li.same .qx-h::after { content: "型どおり"; margin-left: 6px; font-size: 11.5px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
 
   .hint { font-size: 13px; color: var(--muted); }
+  /* 型と過去問を並べる: 左に骨子の型、右に過去問ごとの見出し。左右は別々にスクロールする（広い画面だけ） */
+  .col-hint { display: none; }
+  #b-side { display: none; }
+  @media (min-width: 900px) {
+    #b-side { display: inline-block; }
+    body.side .wrap { max-width: 1560px; }
+    body.side .wrap { padding-bottom: 0; }
+    body.side footer { display: none; }
+    body.side .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
+      height: calc(100vh - var(--barh, 60px) - 12px); margin-bottom: 0; }
+    body.side .col { height: 100%; overflow-y: auto; padding-right: 4px; }
+    body.side .col > .card:last-child { margin-bottom: 4px; }
+    body.side .col-hint { display: block; margin: 0 0 6px; }
+    body.side .t-head { margin-bottom: 10px; }
+  }
   footer { margin-top: 26px; font-size: 13px; color: var(--muted); }
 </style>
 </head>
@@ -165,6 +184,7 @@
   <div class="bar">
     <div class="tabs" id="tabs" role="tablist"></div>
     <span class="sp"></span>
+    <button type="button" id="b-side" title="左に骨子の型、右に過去問ごとの見出しを並べ、別々にスクロールして見比べる">型と過去問を並べる</button>
     <button type="button" id="b-mem" title="要の1文と部品の中身を隠し、押して確かめる">隠して覚える</button>
     <a href="pm2_slides.html">スライド</a>
     <a href="pm2_case.html">事例設定シート</a>
@@ -452,7 +472,7 @@ TYPES.forEach(function (t) {
   var tree = '<ul class="tree">' + SETSU.map(function (s) {
     return '<li class="' + s[1] + '"><span class="q-pill">' + s[2] + ' <small>' + s[3] + '</small></span><ul>' +
       t[s[0]].map(function (h) {
-        return '<li><div class="h-title">' + esc(h[0]) + '</div><span class="h-key hid">' + esc(h[1]) + '</span>' +
+        return '<li data-no="' + esc(h[0].split(" ")[0]) + '"><div class="h-title">' + esc(h[0]) + '</div><span class="h-key hid">' + esc(h[1]) + '</span>' +
           extraHtml(t, s[0], h) +
           '<details class="h-parts"><summary>部品の中身（' + h[2].length + '）</summary><div class="parts">' + h[2].map(partHtml).join("") + '</div></details></li>';
       }).join("") + '</ul></li>';
@@ -472,7 +492,7 @@ TYPES.forEach(function (t) {
           var nos = [];
           h[2].forEach(function (l) { if (owner[l] && nos.indexOf(owner[l]) < 0) nos.push(owner[l]); });
           return '<li class="' + (extra.length ? 'diff' : 'same') + '"><span class="qx-h">' + esc(h[0]) +
-              (nos.length ? '<span class="qx-map">型の' + esc(nos.join("・")) + '</span>' : '') + '</span>' +
+              (nos.length ? '<span class="qx-map">型の' + nos.map(function (n) { return '<button type="button" class="qx-go" data-no="' + esc(n) + '" title="左の型の' + esc(n) + 'を見る">' + esc(n) + '</button>'; }).join("・") + '</span>' : '') + '</span>' +
             '<span class="qx-k hid">' + esc(h[1]) + '</span>' +
             (extra.length ? '<div class="qx-only"><b>型との差</b>' + extra.map(function (l) {
               return '<span class="qx-extra"><i>' + esc(l) + '</i><span class="hid">' + esc(body(TEXT[l] || "")) + '</span></span>';
@@ -485,11 +505,14 @@ TYPES.forEach(function (t) {
       '<div class="t-row kw"><b>テーマの言葉</b>' + chips(t.kw) + '</div>' +
       '<div class="t-row"><b>中心の施策</b><span class="mtag ' + t.side + '">' + esc(t.measure) + '</span></div>' +
       '<div class="t-row"><b>この型の過去問</b>' + chips(t.qs.map(function (k) { return QN[k] || k; })) + '</div></div>' +
+    '<p class="hint col-hint">左が骨子の型、右が過去問ごとの見出しです。左右は別々にスクロールできます。右の見出しの「型の2.2」の印が、左の型のどの見出しに当たるかを示します。</p>' +
+    '<div class="cols"><div class="col col-l">' +
     '<div class="card"><h2>骨子の型（見出し → 要の1文 → 部品）</h2>' + tree + '</div>' +
     '<div class="card"><h2>この型で気をつけること</h2><ul class="notes">' + t.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join("") + '</ul></div>' +
+    '</div><div class="col col-r">' +
     '<div class="card"><h2>過去問ごとの見出し（見本の骨子）</h2><p class="hint" style="margin:0 0 4px">型の見出しを、問題ごとにどう言い換えているかと、その見出しで書く中身（見本の要の1文）を見ます。<b>型との差</b>は、型の骨子（同じ設問）にない部品を使う見出しと、その部品です。</p>' +
       '<div class="qx-tools"><button type="button" class="qx-open">すべて開く</button><button type="button" class="qx-diff">型との差だけ中身を出す</button></div>' + qx + '</div>' +
-    '</section>';
+    '</div></div></section>';
   document.getElementById("panes").insertAdjacentHTML("beforeend", html);
 });
 
@@ -512,7 +535,7 @@ function show(id, push) {
 }
 document.addEventListener("click", function (e) {
   var t = e.target.closest && e.target.closest("[data-tab],[data-go]");
-  if (t) { show(t.dataset.tab || t.dataset.go, true); window.scrollTo(0, 0); return; }
+  if (t) { show(t.dataset.tab || t.dataset.go, true); window.scrollTo(0, 0); if (document.body.classList.contains("side")) fitCols(); return; }
   if (!document.body.classList.contains("memorize")) return;
   var h = e.target.closest && e.target.closest(".hid");
   if (h) h.classList.toggle("show");
@@ -540,6 +563,62 @@ document.getElementById("b-mem").addEventListener("click", function () {
   document.getElementById("mem-hint").hidden = !on;
   all(".hid.show").forEach(function (p) { p.classList.remove("show"); });
 });
+
+// 右の「型の2.2」を押すと、左（並べないときは上）の型の見出しへ移る
+document.addEventListener("click", function (e) {
+  var b = e.target.closest && e.target.closest(".qx-go");
+  if (!b) return;
+  e.preventDefault();
+  var pane = b.closest(".pane");
+  var li = pane && pane.querySelector('ul.tree li[data-no="' + b.dataset.no + '"]');
+  if (!li) return;
+  var col = li.closest(".col-l");
+  if (document.body.classList.contains("side") && col && getComputedStyle(col).overflowY === "auto") {
+    col.scrollTo({ top: li.getBoundingClientRect().top - col.getBoundingClientRect().top + col.scrollTop - 8, behavior: "smooth" });
+  } else {
+    li.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  li.classList.add("flash");
+  setTimeout(function () { li.classList.remove("flash"); }, 1500);
+});
+
+// 型と過去問を並べる（左右を別々にスクロール）。選んだ状態はこの端末に覚える
+var SIDE_KEY = "st_pm2_tree_side";
+function setBarH() {
+  var bar = document.querySelector(".bar");
+  var h = bar && getComputedStyle(bar).position === "sticky" ? bar.offsetHeight : 0;
+  document.documentElement.style.setProperty("--barh", h + "px");
+}
+function setSide(on) {
+  document.body.classList.toggle("side", on);
+  var b = document.getElementById("b-side");
+  b.classList.toggle("on", on);
+  b.setAttribute("aria-pressed", on ? "true" : "false");
+  try { localStorage.setItem(SIDE_KEY, on ? "1" : "0"); } catch (e) {}
+  setBarH();
+  if (on) {
+    // 右の列で、どの過去問も開いていなければ最初の1問を開く
+    all(".col-r .card").forEach(function (card) {
+      var ds = card.querySelectorAll("details.qx");
+      if (ds.length && !card.querySelector("details.qx[open]")) ds[0].open = true;
+    });
+  }
+}
+// 並べたときは、左右の列が画面いっぱいになる位置までページを送る（列の中は別々にスクロール）
+function fitCols() {
+  var pane = document.querySelector(".pane:not([hidden]) .cols");
+  if (!pane || getComputedStyle(pane).display !== "grid") return;
+  var bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--barh")) || 0;
+  window.scrollTo(0, pane.getBoundingClientRect().top + window.scrollY - bar - 6);
+}
+document.getElementById("b-side").addEventListener("click", function () {
+  setSide(!document.body.classList.contains("side"));
+  if (document.body.classList.contains("side")) fitCols();
+});
+window.addEventListener("resize", setBarH);
+var sideSaved = null;
+try { sideSaved = localStorage.getItem(SIDE_KEY); } catch (e) {}
+setSide(sideSaved === "1");
 </script>
 </body>
 </html>
