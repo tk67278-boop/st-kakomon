@@ -325,6 +325,12 @@
   }
   function findPartText(label) {
     var groups = window.PM2_PARTS || [];
+    // 完全一致を先に探す（「顧客」が「顧客の指標と目標（KPI）」に当たらないように）
+    for (var e = 0; e < groups.length; e++) {
+      for (var j = 0; j < groups[e].items.length; j++) {
+        if (groups[e].items[j].label === label) return groups[e].items[j].text;
+      }
+    }
     for (var g = 0; g < groups.length; g++) {
       for (var i = 0; i < groups[g].items.length; i++) {
         if (groups[g].items[i].label.indexOf(label) === 0) return groups[g].items[i].text;
