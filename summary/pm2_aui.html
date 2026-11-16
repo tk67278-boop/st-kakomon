@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ア・イ・ウ暗記ドリル</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd; --chip: #eef2f7; --slot: #fff3b0;
+    --qa: #c2620a; --qi: #2563eb; --qu: #7c3aed;
+    --ok: #15803d; --ok-soft: #e3f5e9; --ng: #b91c1c; --ng-soft: #fde8e8; --mid: #b45309; --mid-soft: #fdf0e3;
+    --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50; --chip: #222d3a; --slot: #4a3f12;
+      --qa: #fbaa55; --qi: #7aa7ff; --qu: #b79cfb;
+      --ok: #4ade80; --ok-soft: #12301f; --ng: #f87171; --ng-soft: #3a1717; --mid: #fbbf24; --mid-soft: #3a2a14;
+      --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50; --chip: #222d3a; --slot: #4a3f12;
+    --qa: #fbaa55; --qi: #7aa7ff; --qu: #b79cfb;
+    --ok: #4ade80; --ok-soft: #12301f; --ng: #f87171; --ng-soft: #3a1717; --mid: #fbbf24; --mid-soft: #3a2a14;
+    --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 15.5px; line-height: 1.75; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 60px; }
+  header { padding: 20px 0 4px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 22px; line-height: 1.4; margin: 4px 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 8px; font-size: 14px; }
+  a { color: var(--accent); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0; }
+  .row .lb { font-size: 13px; font-weight: 700; color: var(--muted); width: 3.5em; flex: none; }
+  .chip { font: inherit; font-size: 13.5px; font-weight: 700; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 2px 11px; cursor: pointer; }
+  .chip.on { color: #fff; background: var(--text); border-color: var(--text); }
+  .chip small { font-weight: 400; margin-left: 3px; }
+  .btn { font: inherit; font-size: 15px; font-weight: 700; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 10px; padding: 7px 18px; cursor: pointer; }
+  .btn.sub { background: var(--card); color: var(--accent); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  label.opt { font-size: 13.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+  .stat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 4px; }
+  .stat div { background: var(--chip); border-radius: 10px; padding: 6px 10px; font-size: 13px; color: var(--muted); }
+  .stat b { display: block; font-size: 18px; color: var(--text); }
+  .bar { height: 6px; background: var(--chip); border-radius: 3px; overflow: hidden; margin: 6px 0 2px; }
+  .bar i { display: block; height: 100%; background: var(--ok); }
+  .q-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+  .q-tag { font-weight: 800; }
+  .q-tag.a { color: var(--qa); } .q-tag.i { color: var(--qi); } .q-tag.u { color: var(--qu); }
+  .frame { background: var(--chip); border-left: 4px solid var(--qu); border-radius: 8px; padding: 6px 10px; font-size: 13.5px; margin: 6px 0; }
+  .frame .slot { background: var(--slot); border-radius: 3px; padding: 0 2px; }
+  .frame .slot.ask { outline: 2px solid var(--qu); font-weight: 800; }
+  .prompt { font-size: 17px; font-weight: 800; margin: 8px 0 10px; line-height: 1.6; }
+  .choices { display: grid; gap: 8px; }
+  .choice { text-align: left; font: inherit; font-size: 14.5px; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 10px; padding: 8px 12px; cursor: pointer; line-height: 1.6; }
+  .choice:hover:not(:disabled) { border-color: var(--accent); }
+  .choice.right { background: var(--ok-soft); border-color: var(--ok); }
+  .choice.wrong { background: var(--ng-soft); border-color: var(--ng); }
+  .choice:disabled { cursor: default; }
+  .ans { background: var(--ok-soft); border-radius: 10px; padding: 10px 14px; margin: 8px 0; white-space: pre-wrap; font-size: 14.5px; }
+  .ans ol { margin: 0; padding-left: 1.3em; }
+  .self { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .self button { flex: 1 1 0; min-width: 90px; font: inherit; font-weight: 700; font-size: 14.5px; border-radius: 10px; padding: 8px; cursor: pointer; border: 1px solid; }
+  .self .s-ok { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+  .self .s-mid { background: var(--mid-soft); color: var(--mid); border-color: var(--mid); }
+  .self .s-ng { background: var(--ng-soft); color: var(--ng); border-color: var(--ng); }
+  .next { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
+  .done-list { margin: 8px 0 0; padding-left: 1.2em; font-size: 14px; }
+  .muted { color: var(--muted); font-size: 13.5px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 600px) { .card { padding: 12px; } h1 { font-size: 19px; } .prompt { font-size: 16px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ITストラテジスト 午後II</div>
+    <h1>ア・イ・ウ暗記ドリル</h1>
+    <p class="lead">「設問アとウの型」と「設問イの比較」の中身を、問題ごとに思い出す練習です。4択か、思い出してから答えを見る形で解きます。2回続けて正解した問題は「覚えた」になり、出にくくなります。<a href="pm2_au.html" target="_blank" rel="noopener">設問アとウの型</a>・<a href="pm2_i.html" target="_blank" rel="noopener">設問イの比較</a></p>
+  </header>
+
+  <section class="card" id="setup">
+    <div class="row"><span class="lb">設問</span><span id="f-sec"></span></div>
+    <div class="row"><span class="lb">中身</span><span id="f-grp"></span></div>
+    <div class="row"><span class="lb">型</span><span id="f-type"></span></div>
+    <div class="row"><span class="lb">出し方</span>
+      <button type="button" class="chip on" data-mode="choice">4択</button><button type="button" class="chip" data-mode="recall">思い出す</button>
+      <label class="opt" style="margin-left:8px"><input type="checkbox" id="o-new" checked> まだ覚えていないものだけ</label>
+    </div>
+    <div class="stat" id="stat"></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="next" style="justify-content:flex-start"><button type="button" class="btn" id="start">20問はじめる</button><button type="button" class="btn sub" id="reset" title="この端末の記録を消す">記録を消す</button></div>
+    <p class="muted" id="loadmsg">問題を読み込み中…</p>
+  </section>
+
+  <section class="card" id="quiz" hidden>
+    <div class="q-meta"><span class="q-tag" id="q-tag"></span><span id="q-count"></span></div>
+    <div id="q-frame"></div>
+    <div class="prompt" id="q-prompt"></div>
+    <div id="q-body"></div>
+    <div class="next"><button type="button" class="btn sub" id="quit">やめる</button><button type="button" class="btn" id="next" hidden>次へ</button></div>
+  </section>
+
+  <section class="card" id="result" hidden>
+    <h2 style="margin:0 0 6px;font-size:18px">結果</h2>
+    <p id="r-sum"></p>
+    <div id="r-miss"></div>
+    <div class="next" style="justify-content:flex-start"><button type="button" class="btn" id="again">もう一度（同じ条件）</button><button type="button" class="btn sub" id="back">条件を変える</button></div>
+  </section>
+</div>
+
+<script src="../js/data/pm2_model.js"></script>
+<script src="../js/data/pm2_gaiyo.js"></script>
+<script>
+"use strict";
+var MODEL = window.PM2_MODEL || {}, G = window.PM2_GAIYO || {};
+var KEY = "st_pm2_aui_v1";
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function txt(el) { return el ? el.textContent.replace(/\s+/g, " ").trim() : ""; }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+function save(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) { /* 保存できなくても解ける */ } }
+var REC = load();
+function mastered(id) { var r = REC[id]; return !!(r && r.s >= 2); }
+
+var TYPE_NAME = { "③": "③ DX・新技術", "④": "④ 分析・真因", "⑤": "⑤ 基幹・刷新", "⑥": "⑥ リスク・BCP", "⑦": "⑦ 評価・調整" };
+var T2C = { t3: "③", t4: "④", t5: "⑤", t6: "⑥", t7: "⑦" };
+var QS = {
+  "2025r07h-1": "R7問1", "2025r07h-2": "R7問2", "2024r06h-1": "R6問1", "2023r05h-1": "R5問1", "2023r05h-2": "R5問2", "2022r04h-2": "R4問2",
+  "2021r03h-2": "R3問2", "2019r01a-1": "R1問1", "2018h30a-1": "H30問1", "2017h29a-1": "H29問1", "2017h29a-2": "H29問2", "2016h28a-2": "H28問2",
+  "2015h27a-2": "H27問2", "2014h26a-1": "H26問1", "2014h26a-2": "H26問2", "2013h25a-1": "H25問1", "2012h24a-1": "H24問1", "2012h24a-2": "H24問2",
+  "2011h23a-1": "H23問1", "2011h23a-2": "H23問2", "2010h22a-1": "H22問1", "2010h22a-2": "H22問2", "2009h21a-1": "H21問1", "2009h21a-2": "H21問2"
+};
+var GROUPS = {
+  a: [["a-kumi", "アの組み方"], ["a-block", "1.1とブロックの文"], ["a-c", "Cの〔 〕"]],
+  i: [["i-list", "見出しを順に"], ["i-one", "見出し1つ"]],
+  u: [["u-kata", "ウの型（どれを使うか）"], ["u1", "型1の〔 〕"], ["u2", "型2の〔 〕"], ["u3", "型3の〔 〕"], ["u-talk", "指摘と改善"]]
+};
+var CARDS = [];
+
+// 選択肢：同じ列（同じ種類）の、ほかの答えから3つ
+function pickChoices(ans, pool) {
+  var others = shuffle(pool.filter(function (x) { return x && x !== ans && x !== "－"; }).filter(function (x, i, a) { return a.indexOf(x) === i; })).slice(0, 3);
+  return others.length >= 2 ? shuffle([ans].concat(others)) : null;
+}
+function add(c) { if (c.ans && c.ans !== "－") CARDS.push(c); }
+
+// ---- 設問アとウの型（pm2_au.html）の表から作る ----
+function buildFromAu(doc) {
+  var tables = Array.prototype.slice.call(doc.querySelectorAll("table"));
+  function rowsOf(t) { return Array.prototype.slice.call(t.rows).slice(1).map(function (tr) { return Array.prototype.map.call(tr.cells, txt); }); }
+  function heads(t) { return Array.prototype.map.call(t.rows[0].cells, txt); }
+  function typeOf(label) { var m = String(label).match(/[③④⑤⑥⑦]/); return m ? m[0] : ""; }
+
+  // 1.1とブロックの文（思い出す）
+  var secA = doc.getElementById("a");
+  Array.prototype.forEach.call(secA.querySelectorAll("h3"), function (h) {
+    var name = txt(h).replace(/(毎回同じ.*|③⑦.*|⑤⑥④.*|ほぼ全問.*)$/, "").trim();
+    var el = h.nextElementSibling;
+    if (el && el.classList.contains("txt") && !el.classList.contains("frame")) {
+      add({ id: "a-block|" + name, sec: "a", grp: "a-block", type: "", prompt: "設問アの「" + name + "」を、見ずに言う（書く）", ans: txt(el), recallOnly: true });
+    }
+  });
+  Array.prototype.forEach.call(secA.querySelectorAll("details.ex"), function (d) {
+    var sum = txt(d.querySelector("summary")), body = d.querySelector(".txt");
+    if (body && /基幹システム|需要予測による発注|店舗の発注業務/.test(sum)) add({ id: "a-block|B " + sum, sec: "a", grp: "a-block", type: "", prompt: "ブロックB「" + sum + "」を、見ずに言う（書く）", ans: txt(body), recallOnly: true });
+  });
+
+  tables.forEach(function (t) {
+    var hs = heads(t), rows = rowsOf(t), j;
+    // Cの〔 〕
+    if (hs.indexOf("〔テーマ（設問の言葉）〕") >= 0) {
+      var ik = hs.indexOf("〔きっかけ（事実と数字）〕"), it = hs.indexOf("〔テーマ（設問の言葉）〕"), iv = hs.indexOf("〔策定・立案・企画〕");
+      var themes = rows.map(function (r) { return r[it] + "を" + r[iv]; }), kk = rows.map(function (r) { return r[ik]; });
+      rows.forEach(function (r) {
+        var q = r[0] + " " + r[1], ty = typeOf(r[0]);
+        add({ id: "a-c|" + q + "|テーマ", sec: "a", grp: "a-c", type: ty, prompt: q + "：Cの「〔テーマ〕を〔策定・立案・企画〕する」は？", ans: r[it] + "を" + r[iv], pool: themes,
+          frame: "〔きっかけ（事実と数字）〕。そこで、<b>〔テーマ〕を〔策定・立案・企画〕</b>することになった。私は、情報システム部のシステム企画担当課長として、〔テーマ〕を担当した。" });
+        add({ id: "a-c|" + q + "|きっかけ", sec: "a", grp: "a-c", type: ty, prompt: q + "：Cの〔きっかけ（事実と数字）〕は？", ans: r[ik], pool: kk,
+          frame: "<b>〔きっかけ（事実と数字）〕</b>。そこで、〔テーマ〕を〔策定・立案・企画〕することになった。" });
+      });
+    }
+    // アの組み方（型別）
+    if (hs[1] === "組み方") {
+      var kumi = rows.map(function (r) { return r[1]; });
+      rows.forEach(function (r) { var ty = typeOf(r[0]); add({ id: "a-kumi|" + r[0], sec: "a", grp: "a-kumi", type: ty, prompt: r[0] + "の設問アの組み方は？（1.1・A・B・C）", ans: r[1], pool: kumi, note: "見出しの例：" + r[2] }); });
+    }
+    // 過去問の当てはめ（アの組み方・ウの型）
+    if (hs.indexOf("設問ア") >= 0 && hs.indexOf("設問ウ") >= 0) {
+      var ia = hs.indexOf("設問ア"), iu = hs.indexOf("設問ウ"), pa = rows.map(function (r) { return r[ia]; }), pu = rows.map(function (r) { return r[iu]; });
+      rows.forEach(function (r) {
+        var q = r[1] + " " + r[0];
+        add({ id: "u-kata|" + r[0], sec: "u", grp: "u-kata", type: r[1], prompt: q + "：設問ウはどの型で書く？", ans: r[iu], pool: pu });
+        add({ id: "a-kumi|" + r[0], sec: "a", grp: "a-kumi", type: r[1], prompt: q + "：設問アの組み方は？", ans: r[ia], pool: pa });
+      });
+    }
+    // 指摘と改善の一覧
+    if (hs.indexOf("誰の、どんな指摘") >= 0) {
+      var imp = rows.map(function (r) { return r[2]; });
+      rows.forEach(function (r) { add({ id: "u-talk|" + r[1], sec: "u", grp: "u-talk", type: "", prompt: r[0] + "：" + r[1] + " → 改善したことは？", ans: r[2], pool: imp, note: "使う型：" + r[3] }); });
+    }
+    // ウの型1〜3の〔 〕
+    if (t.classList.contains("qt")) {
+      var h3 = t.closest(".ugrp").previousElementSibling, kata = txt(h3).match(/型[123]/)[0];
+      var h4 = t.closest(".scroll").previousElementSibling; while (h4 && !(h4.tagName === "H4")) h4 = h4.previousElementSibling;
+      var frameEl = t.closest(".scroll").previousElementSibling;
+      var para = txt(h4), frameHtml = frameEl && frameEl.classList.contains("frame") ? frameEl.querySelector("p").innerHTML : "";
+      var grp = { "型1": "u1", "型2": "u2", "型3": "u3" }[kata];
+      for (j = 1; j < hs.length; j++) {
+        (function (col) {
+          var pool = rows.map(function (r) { return r[col]; });
+          rows.forEach(function (r) {
+            var slot = hs[col];
+            add({ id: grp + "|" + r[0] + "|" + slot, sec: "u", grp: grp, type: typeOf(r[0]), prompt: kata + "・" + para + "：" + r[0] + " の " + slot + " は？", ans: r[col], pool: pool,
+              frame: frameHtml, ask: slot });
+          });
+        })(j);
+      }
+    }
+  });
+}
+
+// ---- 設問イ（見本の骨子）から作る ----
+function buildI() {
+  Object.keys(QS).forEach(function (k) {
+    var m = MODEL[k], ty = T2C[(G.typeOf || {})[k]];
+    if (!m || !ty) return;
+    var q = ty + " " + QS[k];
+    add({ id: "i-list|" + k, sec: "i", grp: "i-list", type: ty, prompt: q + "：設問イの見出しを順に全部言う（要の1文も）", recallOnly: true,
+      ans: m.i.map(function (h) { return h[0] + "　" + h[1]; }).join("\n") });
+    var same = Object.keys(QS).filter(function (x) { return T2C[(G.typeOf || {})[x]] === ty && MODEL[x]; });
+    m.i.forEach(function (h, n) {
+      var pool = [];
+      same.forEach(function (x) { MODEL[x].i.forEach(function (hh) { pool.push(hh[0].replace(/^\d\.\d+\s*/, "")); }); });
+      var head = h[0].replace(/^\d\.\d+\s*/, "");
+      add({ id: "i-one|" + k + "|" + n, sec: "i", grp: "i-one", type: ty, prompt: q + "：設問イの " + h[0].split(" ")[0] + " の見出しは？", ans: head, pool: pool,
+        note: "要の1文：" + h[1] + (n > 0 ? "（前の見出し：" + m.i[n - 1][0] + "）" : "") });
+    });
+  });
+}
+
+// ---- 画面 ----
+var F = { sec: "all", grp: "all", type: "all", mode: "choice" };
+function chips(el, list, key) {
+  el.innerHTML = list.map(function (x) { return '<button type="button" class="chip' + (F[key] === x[0] ? " on" : "") + '" data-v="' + x[0] + '">' + esc(x[1]) + '</button>'; }).join("");
+}
+function pool() {
+  return CARDS.filter(function (c) {
+    return (F.sec === "all" || c.sec === F.sec) && (F.grp === "all" || c.grp === F.grp) && (F.type === "all" || !c.type || c.type === F.type);
+  });
+}
+function renderSetup() {
+  chips(document.getElementById("f-sec"), [["all", "すべて"], ["a", "設問ア"], ["i", "設問イ"], ["u", "設問ウ"]], "sec");
+  var g = F.sec === "all" ? [] : GROUPS[F.sec];
+  chips(document.getElementById("f-grp"), [["all", "すべて"]].concat(g), "grp");
+  document.getElementById("f-grp").parentElement.hidden = F.sec === "all";
+  chips(document.getElementById("f-type"), [["all", "すべて"]].concat(Object.keys(TYPE_NAME).map(function (k) { return [k, TYPE_NAME[k]]; })), "type");
+  var p = pool(), m = p.filter(function (c) { return mastered(c.id); }).length, seen = p.filter(function (c) { return REC[c.id]; }).length;
+  document.getElementById("stat").innerHTML = '<div><b>' + p.length + '</b>この条件の問題</div><div><b>' + seen + '</b>解いた</div><div><b>' + m + '</b>覚えた</div>';
+  document.getElementById("bar").style.width = (p.length ? Math.round(m / p.length * 100) : 0) + "%";
+  Array.prototype.forEach.call(document.querySelectorAll("[data-mode]"), function (b) { b.classList.toggle("on", b.dataset.mode === F.mode); });
+  try { history.replaceState(null, "", "#" + F.sec + (F.grp !== "all" ? "/" + F.grp : "")); } catch (e) { /* ignore */ }
+}
+document.getElementById("setup").addEventListener("click", function (e) {
+  var b = e.target.closest("button.chip"); if (!b) return;
+  if (b.dataset.mode) F.mode = b.dataset.mode;
+  else {
+    var key = b.parentElement.id.replace("f-", "");
+    F[key] = b.dataset.v;
+    if (key === "sec") F.grp = "all";
+  }
+  renderSetup();
+});
+
+var S = null;
+function startSession() {
+  var p = pool(), onlyNew = document.getElementById("o-new").checked;
+  var cand = onlyNew ? p.filter(function (c) { return !mastered(c.id); }) : p.slice();
+  if (!cand.length) { alert("この条件の問題は、すべて覚えました。「まだ覚えていないものだけ」を外すと、もう一度解けます。"); return; }
+  // まだ解いていない・間違えたものを先に
+  cand = shuffle(cand).sort(function (a, b) { var ra = REC[a.id], rb = REC[b.id]; return (ra ? (ra.s || 0) + 1 : 0) - (rb ? (rb.s || 0) + 1 : 0); });
+  S = { list: cand.slice(0, 20), i: 0, ok: 0, miss: [] };
+  document.getElementById("setup").hidden = true; document.getElementById("result").hidden = true; document.getElementById("quiz").hidden = false;
+  showCard();
+}
+function mark(c, res) {
+  var r = REC[c.id] || { n: 0, s: 0 };
+  r.n++; r.t = Date.now();
+  r.s = res === "ok" ? (r.s || 0) + 1 : 0;
+  REC[c.id] = r; save(REC);
+  if (res === "ok") S.ok++; else S.miss.push(c);
+}
+function showCard() {
+  var c = S.list[S.i];
+  var tag = document.getElementById("q-tag");
+  tag.className = "q-tag " + c.sec; tag.textContent = { a: "設問ア", i: "設問イ", u: "設問ウ" }[c.sec];
+  document.getElementById("q-count").textContent = (S.i + 1) + " / " + S.list.length;
+  var fr = "";
+  if (c.frame) {
+    var f = c.frame;
+    if (c.ask) f = f.split(c.ask).join('<span class="slot ask">' + c.ask.replace(/^〔|〕$/g, "") + '</span>').replace(/<span class="slot"><span class="slot ask">([^<]*)<\/span><\/span>/g, '<span class="slot ask">〔$1〕</span>');
+    fr = '<div class="frame">' + f + '</div>';
+  }
+  document.getElementById("q-frame").innerHTML = fr;
+  document.getElementById("q-prompt").textContent = c.prompt;
+  var body = document.getElementById("q-body"), nx = document.getElementById("next");
+  nx.hidden = true;
+  var choices = !c.recallOnly && F.mode === "choice" && c.pool ? pickChoices(c.ans, c.pool) : null;
+  var note = c.note ? '<p class="muted">' + esc(c.note) + '</p>' : "";
+  if (choices) {
+    body.innerHTML = '<div class="choices">' + choices.map(function (x, i) { return '<button type="button" class="choice" data-i="' + i + '">' + esc(x) + '</button>'; }).join("") + '</div>';
+    body.querySelector(".choices").addEventListener("click", function (e) {
+      var b = e.target.closest(".choice"); if (!b || b.disabled) return;
+      var ok = choices[+b.dataset.i] === c.ans;
+      Array.prototype.forEach.call(body.querySelectorAll(".choice"), function (x) { x.disabled = true; if (choices[+x.dataset.i] === c.ans) x.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      mark(c, ok ? "ok" : "ng");
+      body.insertAdjacentHTML("beforeend", note);
+      nx.hidden = false; nx.focus();
+    });
+  } else {
+    body.innerHTML = '<button type="button" class="btn sub" id="reveal">答えを見る</button>';
+    document.getElementById("reveal").addEventListener("click", function () {
+      body.innerHTML = '<div class="ans">' + esc(c.ans) + '</div>' + note +
+        '<div class="self"><button type="button" class="s-ok" data-r="ok">言えた</button><button type="button" class="s-mid" data-r="mid">半分</button><button type="button" class="s-ng" data-r="ng">言えなかった</button></div>';
+      body.querySelector(".self").addEventListener("click", function (e) {
+        var b = e.target.closest("button"); if (!b) return;
+        mark(c, b.dataset.r === "ok" ? "ok" : "ng");
+        next();
+      });
+    });
+  }
+}
+function next() {
+  S.i++;
+  if (S.i < S.list.length) { showCard(); window.scrollTo(0, 0); return; }
+  document.getElementById("quiz").hidden = true; document.getElementById("result").hidden = false;
+  document.getElementById("r-sum").textContent = S.list.length + "問中 " + S.ok + "問できました。";
+  document.getElementById("r-miss").innerHTML = S.miss.length ? '<p class="muted">できなかった問題（もう一度出ます）：</p><ol class="done-list">' + S.miss.map(function (c) { return '<li>' + esc(c.prompt) + '<br><span class="muted">答え：' + esc(c.ans.length > 160 ? c.ans.slice(0, 160) + "…" : c.ans) + '</span></li>'; }).join("") + '</ol>' : "";
+}
+document.getElementById("next").addEventListener("click", next);
+document.getElementById("start").addEventListener("click", startSession);
+document.getElementById("again").addEventListener("click", startSession);
+document.getElementById("back").addEventListener("click", function () { document.getElementById("result").hidden = true; document.getElementById("setup").hidden = false; renderSetup(); });
+document.getElementById("quit").addEventListener("click", function () { document.getElementById("quiz").hidden = true; document.getElementById("setup").hidden = false; renderSetup(); });
+document.getElementById("reset").addEventListener("click", function () {
+  if (!confirm("この端末のドリルの記録（覚えた・解いた）をすべて消します。よろしいですか？")) return;
+  REC = {}; save(REC); renderSetup();
+});
+
+// 開くときに #a /#i /#u /#u/u1 などで条件を指定できる
+(function () {
+  var h = location.hash.slice(1).split("/");
+  if (/^(a|i|u|all)$/.test(h[0])) F.sec = h[0];
+  if (h[1] && GROUPS[F.sec] && GROUPS[F.sec].some(function (g) { return g[0] === h[1]; })) F.grp = h[1];
+})();
+
+buildI();
+fetch("pm2_au.html").then(function (r) { return r.text(); }).then(function (html) {
+  buildFromAu(new DOMParser().parseFromString(html, "text/html"));
+}).catch(function () {
+  document.getElementById("loadmsg").textContent = "設問アとウの型を読み込めませんでした。設問イの問題だけで解けます。";
+}).then(function () {
+  // 同じ id が2回できたときは最初のものを残す
+  var seen = {}; CARDS = CARDS.filter(function (c) { if (seen[c.id]) return false; seen[c.id] = 1; return true; });
+  var lm = document.getElementById("loadmsg"); if (/読み込み中/.test(lm.textContent)) lm.hidden = true;
+  renderSetup();
+});
+</script>
+</body>
+</html>
