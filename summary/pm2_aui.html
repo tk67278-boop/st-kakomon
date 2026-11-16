@@ -97,7 +97,7 @@
   <header>
     <div class="eyebrow">ITストラテジスト 午後II</div>
     <h1>ア・イ・ウ暗記ドリル</h1>
-    <p class="lead">「設問アとウの型」と「設問イの比較」の中身を、問題ごとに思い出す練習です。答えを書いてから見本の答えと比べ、合っていた言葉に色が付きます。最後は自分で「言えた・半分・言えなかった」を選びます。2回続けて「言えた」になった問題は「覚えた」になり、出にくくなります。<a href="pm2_au.html" target="_blank" rel="noopener">設問アとウの型</a>・<a href="pm2_i.html" target="_blank" rel="noopener">設問イの比較</a></p>
+    <p class="lead">過去問の設問を見て、その問題で設問ア・イ・ウに何を書くか（見出しと中身）を思い出す練習です。中身は「設問アとウの型」と見本の骨子から取っています。答えを書いてから見本の答えと比べ、合っていた言葉に色が付きます。最後は自分で「言えた・半分・言えなかった」を選びます。2回続けて「言えた」になった問題は「覚えた」になり、出にくくなります。<a href="pm2_au.html" target="_blank" rel="noopener">設問アとウの型</a>・<a href="pm2_i.html" target="_blank" rel="noopener">設問イの比較</a></p>
   </header>
 
   <section class="card" id="setup">
@@ -132,6 +132,22 @@
 
 <script src="../js/data/pm2_model.js"></script>
 <script src="../js/data/pm2_gaiyo.js"></script>
+<script src="../js/data/pm2/2025r07h_pm2.js"></script>
+<script src="../js/data/pm2/2024r06h_pm2.js"></script>
+<script src="../js/data/pm2/2023r05h_pm2.js"></script>
+<script src="../js/data/pm2/2022r04h_pm2.js"></script>
+<script src="../js/data/pm2/2021r03h_pm2.js"></script>
+<script src="../js/data/pm2/2019r01a_pm2.js"></script>
+<script src="../js/data/pm2/2018h30a_pm2.js"></script>
+<script src="../js/data/pm2/2017h29a_pm2.js"></script>
+<script src="../js/data/pm2/2016h28a_pm2.js"></script>
+<script src="../js/data/pm2/2015h27a_pm2.js"></script>
+<script src="../js/data/pm2/2014h26a_pm2.js"></script>
+<script src="../js/data/pm2/2013h25a_pm2.js"></script>
+<script src="../js/data/pm2/2012h24a_pm2.js"></script>
+<script src="../js/data/pm2/2011h23a_pm2.js"></script>
+<script src="../js/data/pm2/2010h22a_pm2.js"></script>
+<script src="../js/data/pm2/2009h21a_pm2.js"></script>
 <script>
 "use strict";
 var MODEL = window.PM2_MODEL || {}, G = window.PM2_GAIYO || {};
@@ -168,109 +184,99 @@ function disp(prompt) {
   });
 }
 var GROUPS = {
-  a: [["a-kumi", "アの組み方"], ["a-block", "1.1とブロックの文"], ["a-c", "Cの〔 〕"]],
-  i: [["i-list", "見出しを順に"], ["i-one", "見出し1つ"]],
-  u: [["u-kata", "ウの型（どれを使うか）"], ["u1", "型1の〔 〕"], ["u2", "型2の〔 〕"], ["u3", "型3の〔 〕"], ["u-talk", "指摘と改善"]]
+  a: [["a-head", "見出しと中身（問題ごと）"], ["a-block", "1.1とB（システム）の文"], ["a-c", "きっかけと担当したこと"]],
+  i: [["i-list", "見出しと中身（問題ごと）"], ["i-one", "見出し1つずつ"]],
+  u: [["u-head", "見出しと中身（問題ごと）"], ["u1", "説明・指摘・改善"], ["u2", "協議・調整"], ["u3", "評価と改善の余地"], ["u-talk", "指摘されたら、どう改善する"]]
 };
 var CARDS = [];
 
-// 選択肢：同じ列（同じ種類）の、ほかの答えから3つ
-function pickChoices(ans, pool) {
-  var others = shuffle(pool.filter(function (x) { return x && x !== ans && x !== "－"; }).filter(function (x, i, a) { return a.indexOf(x) === i; })).slice(0, 3);
-  return others.length >= 2 ? shuffle([ans].concat(others)) : null;
-}
 function add(c) { if (c.ans && c.ans !== "－") CARDS.push(c); }
+function qText(k, part) {
+  var p = k.split("-"), e = (window.PM2_TEXT || {})[p[0]];
+  var q = e && (e.questions || []).filter(function (x) { return String(x.no) === p[1]; })[0];
+  return q && q.q ? q.q[part] || "" : "";
+}
+var CODE2KEY = {}; Object.keys(QS).forEach(function (k) { CODE2KEY[QS[k]] = k; });
+function keyOfLabel(label) { var m = String(label).match(/(?:R|H)\d{1,2}問\d/); return m ? CODE2KEY[m[0]] : ""; }
+function qFrame(k, part) { var t = qText(k, part); return t ? "<b>設問" + { a: "ア", i: "イ", u: "ウ" }[part] + "</b>　" + esc(t) : ""; }
+function lines(m) { return m.map(function (h) { return h[0] + "　" + h[1]; }).join("\n"); }
 
-// ---- 設問アとウの型（pm2_au.html）の表から作る ----
+// ---- 設問アとウの型（pm2_au.html）の表から作る：本番で書く中身だけを問う ----
+// 段落ごとの問い方（〔 〕の名前ではなく、本番で書くことを聞く）
+var PARA_Q = {
+  "第1段落　説明": "誰に何を説明し、何を求めた？（相手・説明した点・投資と効果・リスクと対策・承認）",
+  "第2段落　指摘": "誰から、どんな指摘を受けた？その理由（懸念）は？",
+  "第3段落　改善": "指摘を受けて、何をどう変えた？確かめ方と結果は？",
+  "第1段落　協議と、取り入れ・見送り": "どの部門と協議し、何を示して説明し、何を取り入れ、何を見送った？",
+  "第2段落　もう一方の部門の意見と、役割分担": "もう一方の部門の意見と、合意した役割分担は？",
+  "第1段落　結果の評価": "結果をどう評価した？（何と比べて、数字がどうなり、何が評価された）",
+  "第2段落　残った課題と改善策": "残った課題と原因、今後の改善策は？"
+};
 function buildFromAu(doc) {
   var tables = Array.prototype.slice.call(doc.querySelectorAll("table"));
   function rowsOf(t) { return Array.prototype.slice.call(t.rows).slice(1).map(function (tr) { return Array.prototype.map.call(tr.cells, txt); }); }
   function heads(t) { return Array.prototype.map.call(t.rows[0].cells, txt); }
   function typeOf(label) { var m = String(label).match(/[③④⑤⑥⑦]/); return m ? m[0] : ""; }
 
-  // 1.1とブロックの文（思い出す）
+  // 1.1とBの文（どの問題でもそのまま書く文）
   var secA = doc.getElementById("a");
   Array.prototype.forEach.call(secA.querySelectorAll("h3"), function (h) {
     var name = txt(h).replace(/(毎回同じ.*|③⑦.*|⑤⑥④.*|ほぼ全問.*)$/, "").trim();
     var el = h.nextElementSibling;
-    if (el && el.classList.contains("txt") && !el.classList.contains("frame")) {
-      add({ id: "a-block|" + name, sec: "a", grp: "a-block", type: "", prompt: "設問アの「" + name + "」を、見ずに言う（書く）", ans: txt(el), recallOnly: true });
+    if (/^1\.1/.test(name) && el && el.classList.contains("txt")) {
+      add({ id: "a-block|" + name, sec: "a", grp: "a-block", type: "", prompt: "設問アの「1.1 事業概要と事業特性」を書く（どの問題でも同じ文）", ans: txt(el), recallOnly: true });
     }
   });
   Array.prototype.forEach.call(secA.querySelectorAll("details.ex"), function (d) {
-    var sum = txt(d.querySelector("summary")), body = d.querySelector(".txt");
-    if (body && /基幹システム|需要予測による発注|店舗の発注業務/.test(sum)) add({ id: "a-block|B " + sum, sec: "a", grp: "a-block", type: "", prompt: "ブロックB「" + sum + "」を、見ずに言う（書く）", ans: txt(body), recallOnly: true });
+    var sum = txt(d.querySelector("summary")).replace(/^(守り1|攻め1の前段|攻め1)\s*/, ""), body = d.querySelector(".txt");
+    if (body && /基幹システム|需要予測による発注|店舗の発注業務/.test(sum)) add({ id: "a-block|B " + sum, sec: "a", grp: "a-block", type: "", prompt: "設問アで、対象のシステムとして「" + sum.replace(/（.*$/, "") + "」を説明する文を書く", ans: txt(body), recallOnly: true });
   });
 
   tables.forEach(function (t) {
     var hs = heads(t), rows = rowsOf(t), j;
-    // Cの〔 〕
+    // きっかけと担当したこと（設問アの最後）
     if (hs.indexOf("〔テーマ（設問の言葉）〕") >= 0) {
       var ik = hs.indexOf("〔きっかけ（事実と数字）〕"), it = hs.indexOf("〔テーマ（設問の言葉）〕"), iv = hs.indexOf("〔策定・立案・企画〕");
-      var themes = rows.map(function (r) { return r[it] + "を" + r[iv]; }), kk = rows.map(function (r) { return r[ik]; });
       rows.forEach(function (r) {
-        var q = r[0] + " " + r[1], ty = typeOf(r[0]);
-        add({ id: "a-c|" + q + "|テーマ", sec: "a", grp: "a-c", type: ty, prompt: q + "：Cの「〔テーマ〕を〔策定・立案・企画〕する」は？", ans: r[it] + "を" + r[iv], pool: themes,
-          frame: "〔きっかけ（事実と数字）〕。そこで、<b>〔テーマ〕を〔策定・立案・企画〕</b>することになった。私は、情報システム部のシステム企画担当課長として、〔テーマ〕を担当した。" });
-        add({ id: "a-c|" + q + "|きっかけ", sec: "a", grp: "a-c", type: ty, prompt: q + "：Cの〔きっかけ（事実と数字）〕は？", ans: r[ik], pool: kk,
-          frame: "<b>〔きっかけ（事実と数字）〕</b>。そこで、〔テーマ〕を〔策定・立案・企画〕することになった。" });
-      });
-    }
-    // アの組み方（型別）
-    if (hs[1] === "組み方") {
-      var kumi = rows.map(function (r) { return r[1]; });
-      rows.forEach(function (r) { var ty = typeOf(r[0]); add({ id: "a-kumi|" + r[0], sec: "a", grp: "a-kumi", type: ty, prompt: r[0] + "の設問アの組み方は？（1.1・A・B・C）", ans: r[1], pool: kumi, note: "見出しの例：" + r[2] }); });
-    }
-    // 過去問の当てはめ（アの組み方・ウの型）
-    if (hs.indexOf("設問ア") >= 0 && hs.indexOf("設問ウ") >= 0) {
-      var ia = hs.indexOf("設問ア"), iu = hs.indexOf("設問ウ"), pa = rows.map(function (r) { return r[ia]; }), pu = rows.map(function (r) { return r[iu]; });
-      rows.forEach(function (r) {
-        var q = r[1] + " " + r[0];
-        add({ id: "u-kata|" + r[0], sec: "u", grp: "u-kata", type: r[1], prompt: q + "：設問ウはどの型で書く？", ans: r[iu], pool: pu });
-        add({ id: "a-kumi|" + r[0], sec: "a", grp: "a-kumi", type: r[1], prompt: q + "：設問アの組み方は？", ans: r[ia], pool: pa });
+        var q = r[0] + " " + r[1], k = keyOfLabel(r[1]);
+        add({ id: "a-c|" + q, sec: "a", grp: "a-c", type: typeOf(r[0]), prompt: q + "：設問アの最後に、取り組むことになったきっかけ（事実と数字）と、担当したことを書く",
+          ans: r[ik] + "。そこで、" + r[it] + "を" + r[iv] + "することになった。私は、情報システム部のシステム企画担当課長として、" + r[it] + "を担当した。",
+          frame: qFrame(k, "a") });
       });
     }
     // 指摘と改善の一覧
     if (hs.indexOf("誰の、どんな指摘") >= 0) {
-      var imp = rows.map(function (r) { return r[2]; });
-      rows.forEach(function (r) { add({ id: "u-talk|" + r[1], sec: "u", grp: "u-talk", type: "", prompt: r[0] + "：" + r[1] + " → 改善したことは？", ans: r[2], pool: imp, note: "使う型：" + r[3] }); });
+      rows.forEach(function (r) { add({ id: "u-talk|" + r[1], sec: "u", grp: "u-talk", type: "", prompt: r[0] + "の論文で、" + r[1] + "と指摘されたら、どう改善する？", ans: r[2] }); });
     }
-    // ウの型1〜3の〔 〕
+    // 型1〜3：段落ごとに、その問題で書く中身をまとめて問う
     if (t.classList.contains("qt")) {
       var h3 = t.closest(".ugrp").previousElementSibling, kata = txt(h3).match(/型[123]/)[0];
-      var h4 = t.closest(".scroll").previousElementSibling; while (h4 && !(h4.tagName === "H4")) h4 = h4.previousElementSibling;
+      var h4 = t.closest(".scroll").previousElementSibling; while (h4 && h4.tagName !== "H4") h4 = h4.previousElementSibling;
       var frameEl = t.closest(".scroll").previousElementSibling;
       var para = txt(h4), frameHtml = frameEl && frameEl.classList.contains("frame") ? frameEl.querySelector("p").innerHTML : "";
       var grp = { "型1": "u1", "型2": "u2", "型3": "u3" }[kata];
-      for (j = 1; j < hs.length; j++) {
-        (function (col) {
-          var pool = rows.map(function (r) { return r[col]; });
-          rows.forEach(function (r) {
-            var slot = hs[col];
-            add({ id: grp + "|" + r[0] + "|" + slot, sec: "u", grp: grp, type: typeOf(r[0]), prompt: kata + "・" + para + "：" + r[0] + " の " + slot + " は？", ans: r[col], pool: pool,
-              frame: frameHtml, ask: slot });
-          });
-        })(j);
-      }
+      rows.forEach(function (r) {
+        var parts = [];
+        for (j = 1; j < hs.length; j++) if (r[j] && r[j] !== "－") parts.push(hs[j].replace(/〔|〕/g, "") + "：" + r[j]);
+        add({ id: grp + "|" + r[0] + "|" + para, sec: "u", grp: grp, type: typeOf(r[0]), prompt: r[0] + "：設問ウで、" + (PARA_Q[para.replace(/ /g, "　")] || para), ans: parts.join("\n"),
+          frame: '<span class="muted">書くときの型の文：</span>' + frameHtml });
+      });
     }
   });
 }
 
-// ---- 設問イ（見本の骨子）から作る ----
-function buildI() {
+// ---- 見本の骨子から作る：設問ア・イ・ウの見出しと中身 ----
+function buildModel() {
   Object.keys(QS).forEach(function (k) {
     var m = MODEL[k], ty = T2C[(G.typeOf || {})[k]];
     if (!m || !ty) return;
     var q = ty + " " + QS[k];
-    add({ id: "i-list|" + k, sec: "i", grp: "i-list", type: ty, prompt: q + "：設問イの見出しを順に全部言う（要の1文も）", recallOnly: true,
-      ans: m.i.map(function (h) { return h[0] + "　" + h[1]; }).join("\n") });
-    var same = Object.keys(QS).filter(function (x) { return T2C[(G.typeOf || {})[x]] === ty && MODEL[x]; });
+    add({ id: "a-head|" + k, sec: "a", grp: "a-head", type: ty, prompt: q + "：設問アの見出しと、それぞれに書く中身（要の1文）を書く", ans: lines(m.a), frame: qFrame(k, "a") });
+    add({ id: "i-list|" + k, sec: "i", grp: "i-list", type: ty, prompt: q + "：設問イの見出しと、それぞれに書く中身（要の1文）を書く", ans: lines(m.i), frame: qFrame(k, "i") });
+    add({ id: "u-head|" + k, sec: "u", grp: "u-head", type: ty, prompt: q + "：設問ウの見出しと、それぞれに書く中身（要の1文）を書く", ans: lines(m.u), frame: qFrame(k, "u") });
     m.i.forEach(function (h, n) {
-      var pool = [];
-      same.forEach(function (x) { MODEL[x].i.forEach(function (hh) { pool.push(hh[0].replace(/^\d\.\d+\s*/, "")); }); });
-      var head = h[0].replace(/^\d\.\d+\s*/, "");
-      add({ id: "i-one|" + k + "|" + n, sec: "i", grp: "i-one", type: ty, prompt: q + "：設問イの " + h[0].split(" ")[0] + " の見出しは？", ans: head, pool: pool,
-        note: "要の1文：" + h[1] + (n > 0 ? "（前の見出し：" + m.i[n - 1][0] + "）" : "") });
+      add({ id: "i-one|" + k + "|" + n, sec: "i", grp: "i-one", type: ty, prompt: q + "：設問イの " + h[0].split(" ")[0] + " には、何という見出しで何を書く？" + (n > 0 ? "（前の見出しは「" + m.i[n - 1][0] + "」）" : ""),
+        ans: h[0].replace(/^\d\.\d+\s*/, "") + "　" + h[1], frame: qFrame(k, "i") });
     });
   });
 }
@@ -421,7 +427,7 @@ document.getElementById("reset").addEventListener("click", function () {
   if (h[1] && GROUPS[F.sec] && GROUPS[F.sec].some(function (g) { return g[0] === h[1]; })) F.grp = h[1];
 })();
 
-buildI();
+buildModel();
 fetch("pm2_au.html").then(function (r) { return r.text(); }).then(function (html) {
   buildFromAu(new DOMParser().parseFromString(html, "text/html"));
 }).catch(function () {
