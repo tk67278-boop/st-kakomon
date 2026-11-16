@@ -27,13 +27,18 @@
   body { margin: 0; background: var(--bg); color: var(--text);
     font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
     font-size: 15px; line-height: 1.7; }
-  .wrap { max-width: 1600px; margin: 0 auto; padding: 0 16px 60px; }
-  header { padding: 22px 0 4px; max-width: 980px; }
+  html, body { height: 100%; }
+  body { overflow: hidden; }
+  .wrap { max-width: 1600px; margin: 0 auto; padding: 0 16px 12px; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+  .wrap > * { flex: none; }
+  header { padding: 12px 0 2px; max-width: 980px; }
   .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
-  h1 { font-size: 24px; line-height: 1.4; margin: 4px 0 6px; }
+  h1 { font-size: 21px; line-height: 1.4; margin: 2px 0 4px; }
+  details.how > summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--accent); }
+  details.how p { margin: 4px 0 6px; }
   .lead { color: var(--muted); margin: 0 0 8px; font-size: 14px; }
   a { color: var(--accent); }
-  .bar { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center;
+  .bar { position: static; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center;
     background: var(--bg); padding: 8px 0; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
   .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
   .tabs button, .modes button { font: inherit; font-size: 14px; font-weight: 700; border: 1px solid var(--line); background: var(--card); color: var(--text);
@@ -43,7 +48,8 @@
   .bar label { font-size: 13.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
   .bar .links { margin-left: auto; display: flex; gap: 10px; font-size: 13.5px; }
   .note { font-size: 13.5px; color: var(--muted); margin: 0 0 10px; }
-  .scroll { overflow: auto; max-height: calc(100vh - 120px); border: 1px solid var(--line); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .wrap > .scroll { flex: 1 1 auto; min-height: 0; }
+  .scroll { overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
   table.cmp { border-collapse: separate; border-spacing: 0; font-size: 13.5px; line-height: 1.6; }
   table.cmp th, table.cmp td { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
   table.cmp thead th { position: sticky; top: 0; z-index: 3; background: var(--chip); width: 270px; min-width: 270px; max-width: 270px; }
@@ -66,10 +72,9 @@
   .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); margin: 0 0 8px; }
   .legend i { display: inline-block; width: 16px; height: 11px; border-radius: 3px; vertical-align: middle; margin-right: 4px; background: var(--other); box-shadow: inset 0 0 0 1px var(--other-line); }
   @media (max-width: 600px) {
-    .bar { position: static; }
     table.cmp thead th { width: 230px; min-width: 230px; max-width: 230px; }
     table.cmp .rh { width: 110px; min-width: 110px; max-width: 110px; }
-    h1 { font-size: 21px; }
+    h1 { font-size: 18px; }
     .bar .links { margin-left: 0; }
   }
 </style>
@@ -79,7 +84,7 @@
   <header>
     <div class="eyebrow">ITストラテジスト 午後II</div>
     <h1>設問イの比較 ― 過去問どうしを横に並べる</h1>
-    <p class="lead">型を選ぶと、その型の過去問の設問イを横に並べます。行は骨子の型ツリーの見出しです。各問題の見出しは、見出しの言葉（「工夫」「検証」「調整」など）でどの行かを決め、言葉で決まらないときは使う部品がいちばん重なる行に入れました。オレンジの行は、型の見出しに入らない「その問題にしかない見出し」です。設問の言葉がどう違い、見出しがどう言い換えられているかを比べます。</p>
+    <details class="how"><summary>この画面の見方</summary><p class="lead">型を選ぶと、その型の過去問の設問イを横に並べます。行は骨子の型ツリーの見出しです。各問題の見出しは、見出しの言葉（「工夫」「検証」「調整」など）でどの行かを決め、言葉で決まらないときは使う部品がいちばん重なる行に入れました。オレンジの行は、型の見出しに入らない「その問題にしかない見出し」です。設問の言葉がどう違い、見出しがどう言い換えられているかを比べます。</p><p class="lead">「本文」は見本の全文がある問題だけです（見本の全文ページの、その問題を開きます）。見出しと要の1文は見本の骨子（js/data/pm2_model.js）から読み込んでいます。</p></details>
   </header>
   <div class="bar">
     <div class="tabs" id="tabs"></div>
@@ -91,7 +96,6 @@
   </div>
   <div class="legend" id="legend"></div>
   <div class="scroll" id="out"></div>
-  <p class="note" style="margin-top:10px">「本文」は見本の全文がある問題だけです（見本の全文ページの、その問題を開きます）。見出しと要の1文は見本の骨子（js/data/pm2_model.js）から読み込んでいます。</p>
 </div>
 
 <script src="../js/data/pm2_model.js"></script>
