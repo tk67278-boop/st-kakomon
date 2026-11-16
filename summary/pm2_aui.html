@@ -67,6 +67,17 @@
   .choice.right { background: var(--ok-soft); border-color: var(--ok); }
   .choice.wrong { background: var(--ng-soft); border-color: var(--ng); }
   .choice:disabled { cursor: default; }
+  textarea.mine { width: 100%; min-height: 5.5em; font: inherit; font-size: 15px; line-height: 1.7; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--text); resize: vertical; }
+  .cmp { display: grid; gap: 8px; margin: 8px 0; }
+  .cmp > div { border-radius: 10px; padding: 8px 12px; font-size: 14.5px; white-space: pre-wrap; }
+  .cmp .mine-box { background: var(--chip); }
+  .cmp .h { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 2px; white-space: normal; }
+  .cmp .model { background: var(--card); border: 1px solid var(--line); }
+  .cmp .hit { background: var(--ok-soft); color: var(--ok); font-weight: 700; border-radius: 3px; }
+  .cmp .miss { text-decoration: underline wavy var(--ng); text-underline-offset: 3px; }
+  .cover { font-size: 13.5px; color: var(--muted); }
+  .cover b { color: var(--text); font-size: 15px; }
+  .self button.sug { box-shadow: 0 0 0 3px var(--accent-soft); }
   .ans { background: var(--ok-soft); border-radius: 10px; padding: 10px 14px; margin: 8px 0; white-space: pre-wrap; font-size: 14.5px; }
   .ans ol { margin: 0; padding-left: 1.3em; }
   .self { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
@@ -86,7 +97,7 @@
   <header>
     <div class="eyebrow">ITストラテジスト 午後II</div>
     <h1>ア・イ・ウ暗記ドリル</h1>
-    <p class="lead">「設問アとウの型」と「設問イの比較」の中身を、問題ごとに思い出す練習です。4択か、思い出してから答えを見る形で解きます。2回続けて正解した問題は「覚えた」になり、出にくくなります。<a href="pm2_au.html" target="_blank" rel="noopener">設問アとウの型</a>・<a href="pm2_i.html" target="_blank" rel="noopener">設問イの比較</a></p>
+    <p class="lead">「設問アとウの型」と「設問イの比較」の中身を、問題ごとに思い出す練習です。答えを書いてから見本の答えと比べ、合っていた言葉に色が付きます。最後は自分で「言えた・半分・言えなかった」を選びます。2回続けて「言えた」になった問題は「覚えた」になり、出にくくなります。<a href="pm2_au.html" target="_blank" rel="noopener">設問アとウの型</a>・<a href="pm2_i.html" target="_blank" rel="noopener">設問イの比較</a></p>
   </header>
 
   <section class="card" id="setup">
@@ -94,7 +105,7 @@
     <div class="row"><span class="lb">中身</span><span id="f-grp"></span></div>
     <div class="row"><span class="lb">型</span><span id="f-type"></span></div>
     <div class="row"><span class="lb">出し方</span>
-      <button type="button" class="chip on" data-mode="choice">4択</button><button type="button" class="chip" data-mode="recall">思い出す</button>
+      <button type="button" class="chip on" data-mode="write">書く</button><button type="button" class="chip" data-mode="recall">思い出す（書かない）</button>
       <label class="opt" style="margin-left:8px"><input type="checkbox" id="o-new" checked> まだ覚えていないものだけ</label>
     </div>
     <div class="stat" id="stat"></div>
@@ -265,7 +276,7 @@ function buildI() {
 }
 
 // ---- 画面 ----
-var F = { sec: "all", grp: "all", type: "all", mode: "choice" };
+var F = { sec: "all", grp: "all", type: "all", mode: "write" };
 function chips(el, list, key) {
   el.innerHTML = list.map(function (x) { return '<button type="button" class="chip' + (F[key] === x[0] ? " on" : "") + '" data-v="' + x[0] + '">' + esc(x[1]) + '</button>'; }).join("");
 }
@@ -330,31 +341,61 @@ function showCard() {
   document.getElementById("q-prompt").innerHTML = disp(c.prompt);
   var body = document.getElementById("q-body"), nx = document.getElementById("next");
   nx.hidden = true;
-  var choices = !c.recallOnly && F.mode === "choice" && c.pool ? pickChoices(c.ans, c.pool) : null;
   var note = c.note ? '<p class="muted">' + esc(c.note) + '</p>' : "";
-  if (choices) {
-    body.innerHTML = '<div class="choices">' + choices.map(function (x, i) { return '<button type="button" class="choice" data-i="' + i + '">' + esc(x) + '</button>'; }).join("") + '</div>';
-    body.querySelector(".choices").addEventListener("click", function (e) {
-      var b = e.target.closest(".choice"); if (!b || b.disabled) return;
-      var ok = choices[+b.dataset.i] === c.ans;
-      Array.prototype.forEach.call(body.querySelectorAll(".choice"), function (x) { x.disabled = true; if (choices[+x.dataset.i] === c.ans) x.classList.add("right"); });
-      if (!ok) b.classList.add("wrong");
-      mark(c, ok ? "ok" : "ng");
-      body.insertAdjacentHTML("beforeend", note);
-      nx.hidden = false; nx.focus();
-    });
+  if (F.mode === "write") {
+    body.innerHTML = '<textarea class="mine" id="mine" placeholder="答えを書く（キーワードだけでもよい）。Ctrl＋Enterで答え合わせ"></textarea>' +
+      '<div class="next" style="justify-content:flex-start;margin-top:6px"><button type="button" class="btn" id="check">答え合わせ</button></div>';
+    var ta = document.getElementById("mine");
+    ta.focus();
+    function check() {
+      var mine = ta.value, r = compare(mine, c.ans), pct = Math.round(r.rate * 100);
+      var sug = !mine.trim() ? "ng" : pct >= 80 ? "ok" : pct >= 40 ? "mid" : "ng";
+      body.innerHTML = '<div class="cmp"><div class="mine-box"><span class="h">あなたの答え</span>' + (mine.trim() ? esc(mine) : '<span class="muted">（書かなかった）</span>') + '</div>' +
+        '<div class="model"><span class="h">見本の答え（緑＝あなたの答えに入っていた言葉、波線＝入っていなかった言葉）</span>' + r.html + '</div></div>' +
+        '<p class="cover">言葉の一致：<b>' + pct + '%</b>（目安：80%以上で「言えた」。言い換えて合っていれば「言えた」を押してください）</p>' + note + selfButtons(sug);
+      bindSelf(body, c);
+    }
+    document.getElementById("check").addEventListener("click", check);
+    ta.addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); check(); } });
   } else {
     body.innerHTML = '<button type="button" class="btn sub" id="reveal">答えを見る</button>';
     document.getElementById("reveal").addEventListener("click", function () {
-      body.innerHTML = '<div class="ans">' + esc(c.ans) + '</div>' + note +
-        '<div class="self"><button type="button" class="s-ok" data-r="ok">言えた</button><button type="button" class="s-mid" data-r="mid">半分</button><button type="button" class="s-ng" data-r="ng">言えなかった</button></div>';
-      body.querySelector(".self").addEventListener("click", function (e) {
-        var b = e.target.closest("button"); if (!b) return;
-        mark(c, b.dataset.r === "ok" ? "ok" : "ng");
-        next();
-      });
+      body.innerHTML = '<div class="ans">' + esc(c.ans) + '</div>' + note + selfButtons("");
+      bindSelf(body, c);
     });
   }
+}
+// 書いた答えと見本の答えを比べる。見本を言葉のかたまりに分け、かたまりの2文字ずつの組がどれだけ書いた答えに入っているかで、合っているかを決める
+function norm(t) {
+  return String(t).replace(/[０-９Ａ-Ｚａ-ｚ％]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+    .replace(/[\s　]/g, "").replace(/，/g, "、").replace(/．/g, ".").toLowerCase();
+}
+function compare(mine, model) {
+  var m = norm(mine), grams = {};
+  for (var i = 0; i < m.length - 1; i++) grams[m.substr(i, 2)] = 1;
+  var parts = String(model).split(/([、。，．・／\/→←（）()「」『』〔〕：:；;\n＋+＝=〜～\s]+)/);
+  var total = 0, got = 0, html = "";
+  parts.forEach(function (p, idx) {
+    if (idx % 2 === 1 || !p) { html += esc(p || ""); return; }
+    var n = norm(p), bg = [];
+    for (var j = 0; j < n.length - 1; j++) bg.push(n.substr(j, 2));
+    if (!bg.length) { html += esc(p); return; }
+    var hit = bg.filter(function (g) { return grams[g]; }).length / bg.length;
+    var w = bg.length; total += w;
+    if (hit >= 0.6) { got += w; html += '<span class="hit">' + esc(p) + '</span>'; }
+    else html += '<span class="miss">' + esc(p) + '</span>';
+  });
+  return { rate: total ? got / total : 0, html: html };
+}
+function selfButtons(sug) {
+  return '<div class="self"><button type="button" class="s-ok' + (sug === "ok" ? " sug" : "") + '" data-r="ok">言えた</button><button type="button" class="s-mid' + (sug === "mid" ? " sug" : "") + '" data-r="mid">半分</button><button type="button" class="s-ng' + (sug === "ng" ? " sug" : "") + '" data-r="ng">言えなかった</button></div>';
+}
+function bindSelf(body, c) {
+  body.querySelector(".self").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    mark(c, b.dataset.r === "ok" ? "ok" : "ng");
+    next();
+  });
 }
 function next() {
   S.i++;
