@@ -166,6 +166,16 @@
     body.side .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px;
       height: calc(100vh - var(--barh, 60px) - 12px); margin-bottom: 0; }
     body.side .col { height: 100%; overflow-y: auto; padding-right: 4px; }
+    /* 型と過去問を並べるときは、ページ全体は動かさず、左右の列だけをスクロールさせる（全体タブのときは除く） */
+    body.side:has(#p-all[hidden]) { overflow: hidden; }
+    body.side:has(#p-all[hidden]) .wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+    body.side:has(#p-all[hidden]) .wrap > * { flex: none; }
+    body.side:has(#p-all[hidden]) header.hero { display: none; }
+    body.side:has(#p-all[hidden]) #panes { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    body.side:has(#p-all[hidden]) #panes > .pane:not([hidden]) { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+    body.side:has(#p-all[hidden]) #panes > .pane > * { flex: none; }
+    body.side:has(#p-all[hidden]) #panes > .pane > .cols { flex: 1 1 auto; min-height: 0; height: auto; margin-bottom: 8px; }
+    body.side .col { overscroll-behavior: contain; }
     body.side .col > .card:last-child { margin-bottom: 4px; }
     body.side .col-hint { display: block; margin: 0 0 6px; }
     body.side .t-head { margin-bottom: 10px; }

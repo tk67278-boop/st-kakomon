@@ -561,7 +561,6 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 
 .pm2-pre {
   white-space: pre-wrap; font: inherit; font-size: 14.5px; margin: 0;
-  max-height: 420px; overflow-y: auto;
 }
 
 .pm2-field { margin-bottom: 16px; }
@@ -1338,7 +1337,7 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pm2-pb-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
 @media (min-width: 1000px) {
   .pm2-pb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .pm2-pb-left { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
+  .pm2-pb-left { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; }
 }
 /* 振り返りタブ（js/pm2study.js）: 広い画面では左に評価とセルフチェック，右にAI添削 */
 .pm2-rv-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
@@ -1359,11 +1358,11 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pp-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
 @media (min-width: 1000px) {
   .pp-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .pp-left { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
+  .pp-left { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; }
 }
 @media (min-width: 1000px) {
   .pb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .pb-problem { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
+  .pb-problem { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; }
 }
 .pb-lead { font-size: 15px; line-height: 1.85; }
 .pb-lead p { margin: 0 0 10px; }
@@ -1394,7 +1393,7 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 }
 @media (min-width: 1000px) {
   .pb-rv-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 0 16px; align-items: start; }
-  .pb-rv-mine { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
+  .pb-rv-mine { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; }
 }
 .pb-model-q { display: block; font-size: 14px; color: var(--accent); margin-bottom: 4px; }
 .pb-model-h { padding: 8px 12px; margin: 6px 0; border: 1px solid var(--line); border-radius: 10px; }
@@ -1547,7 +1546,7 @@ mark.pm2s-key { background: #fff3b0; color: inherit; padding: 1px 2px; border-ra
 @media (min-width: 1000px) {
   main.wrap:has(#mode-textbook:not([hidden]) #tb-pm2:not([hidden]) .tb-pm2-layout) { max-width: 1440px; }
   .tb-pm2-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 0 16px; align-items: start; }
-  .tb-pm2-side { display: block; position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
+  .tb-pm2-side { display: block; position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; }
 }
 .tb-pm2-side .card { padding: 12px 10px; }
 .tb-pm2-side-h { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 4px 8px 4px; }
