@@ -63,6 +63,25 @@
   td.c { white-space: nowrap; }
   .mt { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 0 6px; color: #fff; white-space: nowrap; }
   .mt.seme { background: var(--seme); } .mt.mamori { background: var(--mamori); }
+  h4.pg { font-size: 15px; margin: 16px 0 4px; color: var(--qu); }
+  h4.pg::before { content: "▶ "; font-size: 12px; }
+  .txt.frame + .scroll { margin-top: -2px; }
+  .qf { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 6px; font-size: 13px; color: var(--muted); }
+  .qf button { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px; padding: 1px 10px; cursor: pointer; }
+  .qf button.on { background: var(--qu); border-color: var(--qu); color: #fff; }
+  table.qt th:first-child, table.qt td:first-child { position: sticky; left: 0; background: var(--card); z-index: 1; }
+  table.qt th:first-child { background: var(--chip); }
+  table.qt tr.hl td { background: var(--qu-soft); }
+  table.qt th .slot { font-weight: 700; }
+  /* 狭い画面で1問に絞ったときは、表を縦に並べる（列名を左に出す） */
+  @media (max-width: 900px) {
+    table.qt.one { min-width: 0 !important; }
+    table.qt.one, table.qt.one tbody, table.qt.one tr, table.qt.one td { display: block; width: auto; }
+    table.qt.one tr:first-child, table.qt.one tr[hidden] { display: none; }
+    table.qt.one td { position: static; border-width: 0 0 1px; padding: 6px 4px; }
+    table.qt.one td:first-child { font-weight: 700; color: var(--qu); }
+    table.qt.one td:not(:first-child)::before { content: attr(data-h); display: block; font-size: 12px; font-weight: 700; color: var(--muted); }
+  }
   details.ex { margin: 4px 0 10px; }
   details.ex > summary { cursor: pointer; font-size: 14px; font-weight: 700; color: var(--accent); }
   ul.pts { margin: 6px 0 0; padding-left: 1.2em; font-size: 14.5px; }
@@ -192,14 +211,11 @@
     <h2>設問ウの3つの型</h2>
 
     <h3>型1 説明 → 指摘 → 改善<span class="tag">いちばん多い</span></h3>
-    <div class="txt frame">
-      <p><span class="slot">〔経営層／事業部門〕</span>には、<span class="slot">〔説明した2〜3点〕</span>を説明した。投資は<span class="slot">〔12億円〕</span>で、<span class="slot">〔年5億円〕</span>の効果が見込め、約3年で回収できる。<span class="slot">〔リスク〕</span>には<span class="slot">〔対策〕</span>で備えることを示し、<span class="slot">〔承認〕</span>を求めた。</p>
-      <p><span class="slot">〔社長／店舗運営部長〕</span>からは、<span class="slot">〔指摘〕</span>という指摘を受けた。<span class="slot">〔理由〕</span>という懸念である。</p>
-      <p>そこで私は、<span class="slot">〔元の計画〕</span>を改め、<span class="slot">〔新しい計画〕</span>に変更した。あわせて、<span class="slot">〔確かめ方・報告の仕組み〕</span>。この改善により<span class="slot">〔承認され〕</span>、<span class="slot">〔結果〕</span>。</p>
-    </div>
+    <div class="ugrp">
     <p class="note">〔 〕に入れる中身を、問題ごとに3つの表に分けました（見本の本文と事例設定シートの部品から取っています）。R5問2は事業部門と経営層の2回書きます。</p>
-    <h3>第1段落（説明）に入れるもの</h3>
-    <div class="scroll"><table style="min-width:760px">
+    <h4 class="pg">第1段落　説明</h4>
+    <div class="txt frame"><p><span class="slot">〔相手〕</span>には、<span class="slot">〔説明した点〕</span>を説明した。投資は<span class="slot">〔投資〕</span>で、<span class="slot">〔効果〕</span>が見込める。<span class="slot">〔リスク〕</span>には<span class="slot">〔対策〕</span>で備えることを示し、<span class="slot">〔承認〕</span>を求めた。</p></div>
+    <div class="scroll"><table class="qt" style="min-width:760px">
       <tr><th style="width:7.5em">問題</th><th style="width:12%">〔相手〕</th><th>〔説明した点〕</th><th>〔投資〕／〔効果〕</th><th>〔リスク〕→〔対策〕</th><th style="width:8em">〔承認〕</th></tr>
       <tr><td class="c">③ R6問1</td><td>経営層（経営会議）</td><td>技術検証の結果と、2つのリスクとその対策</td><td>12億円（基幹の刷新とデータ基盤を含む）／全店展開で年約5億円、約3年で回収</td><td>欠品 → 店長の確定と昼の追加提案／運用費 → 社内人材の育成</td><td>全店展開の承認</td></tr>
       <tr><td class="c">③ R1問1</td><td>事業部門（店舗運営部と商品部）</td><td>試行3店舗の結果（廃棄率2.1%→1.4%、発注作業1日90分→40分）で、廃棄の削減と発注作業の短縮の2つの課題に貢献すること</td><td>12億円の一部／全店で年約4億円、約3年で回収</td><td>（リスクの代わりに）郊外の試行店は廃棄率の下がり方が小さかったことも、隠さずに示した</td><td>全店展開への合意</td></tr>
@@ -210,8 +226,9 @@
       <tr><td class="c">⑦ R3問2</td><td>経営層（DX推進委員会）</td><td>事業戦略への影響（廃棄率を目標の1.4%へ、発注作業が半分）と投資効果</td><td>12億円／年5億円、約3年で回収</td><td>（評価された点）立場の異なる2部門の合意を得て構想をまとめた</td><td>構想の承認</td></tr>
       <tr><td class="c">⑦ H29問1</td><td>事業部門（店舗運営部と商品部）</td><td>推進体制（DX推進委員会）と発注のルール（AIは提案まで、店長が確定）の2点</td><td>（投資効果はイで書いた）</td><td>（評価された点）推進体制と、店長が確定するルール</td><td>両部門の合意</td></tr>
     </table></div>
-    <h3>第2段落（指摘）に入れるもの</h3>
-    <div class="scroll"><table style="min-width:760px">
+    <h4 class="pg">第2段落　指摘</h4>
+    <div class="txt frame"><p><span class="slot">〔誰〕</span>からは、<span class="slot">〔指摘〕</span>という指摘を受けた。<span class="slot">〔理由（懸念）〕</span>という懸念である。</p></div>
+    <div class="scroll"><table class="qt" style="min-width:760px">
       <tr><th style="width:7.5em">問題</th><th style="width:9em">〔誰〕</th><th>〔指摘〕</th><th>〔理由（懸念）〕</th></tr>
       <tr><td class="c">③ R6問1</td><td>社長</td><td>3店舗の結果だけで40店舗すべての効果を見込むのは楽観的ではないか</td><td>立地や客層の違う店舗では、同じ効果が出るとは限らない</td></tr>
       <tr><td class="c">③ R1問1</td><td>店舗運営部／商品部</td><td>AIに発注を任せると欠品が増え、お客様が離れる／仕入れの判断は商品部の仕事で、発注を店舗任せにされると困る</td><td>全店では店舗ごとに事情が違う／店舗の発注が先に決まると、仕入れ先と量を調整できない</td></tr>
@@ -222,8 +239,9 @@
       <tr><td class="c">⑦ R3問2</td><td>社長／経営企画部の担当役員</td><td>投資12億円に本当に見合うのか、予測が当たらなかったらどうするのか／効果を誰がどう測るのか</td><td>全店で同じ効果が出るかは、まだ確かめられていない</td></tr>
       <tr><td class="c">⑦ H29問1</td><td>店舗運営部／商品部</td><td>欠品で常連客が離れる／仕入れの判断を店舗任せにされる</td><td>AIの提案どおりに絞ると夕方に売場の品物がなくなる／仕入れ先と量を調整できなくなる</td></tr>
     </table></div>
-    <h3>第3段落（改善）に入れるもの</h3>
-    <div class="scroll"><table style="min-width:760px">
+    <h4 class="pg">第3段落　改善</h4>
+    <div class="txt frame"><p>そこで私は、<span class="slot">〔元の計画〕</span>を改め、<span class="slot">〔新しい計画〕</span>に変更した。あわせて、<span class="slot">〔確かめ方・報告の仕組み〕</span>。この改善により、<span class="slot">〔承認・結果〕</span>。</p></div>
+    <div class="scroll"><table class="qt" style="min-width:760px">
       <tr><th style="width:7.5em">問題</th><th style="width:16%">〔元の計画〕</th><th>〔新しい計画〕</th><th style="width:20%">〔確かめ方・報告の仕組み〕</th><th style="width:22%">〔承認・結果〕</th></tr>
       <tr><td class="c">③ R6問1</td><td>全店に一度に展開する</td><td>まず生鮮の売上が大きい10店舗に展開し、3か月後に廃棄率と欠品率を確かめてから残りの店舗へ</td><td>店舗ごとの効果を毎月の経営会議で報告</td><td>全店展開が承認され、最初の10店舗で廃棄率が平均0.6ポイント下がった</td></tr>
       <tr><td class="c">③ R1問1</td><td>（店舗運営部）確定の担い手があいまい／（商品部）予測は店舗だけが使う</td><td>AIは提案までとし、確定は店長と業務のルールで明確にした／商品部も同じ予測を仕入れの計画に使い、商品部と店舗が週1回、予測と実績を確かめる</td><td>欠品率をKPIに加えて毎週確認し、修正した品目と理由を週ごとに集計</td><td>両部門の合意を得て、全店への展開を決めた</td></tr>
@@ -249,24 +267,26 @@
     <ul class="pts">
       <li>評価された点も1文書きます（例：「経営層は、立場の異なる2部門の合意を得て構想をまとめた点を評価した」R3問2）。指摘だけで終わらせません。</li>
       <li>相手が「事業部門」なら店舗運営部・商品部、「経営層」なら社長・担当役員にします。両方を問われたら、事業部門 → 経営層の順に型1を2回書きます（R5問2・R7問1）。</li>
+      <li><b>ウで指摘を受けて改善した中身は、イには書きません。</b>イには、上の表の〔元の計画〕（全店に一度に展開する、12億円の投資と年5億円の効果など）を書いておき、ウで「〜を改め、〜に変更した」と書きます。骨子では、先にウの指摘を決めてから、その〔元の計画〕がイに入っているかを確かめます。イの案を土台にして、ウで具体的に変えるのはかまいません（H25問1：イ「2日前に登録」→ ウ「2日前に暫定で登録し、変われば更新」）。設問イ自体が調整を聞く問題（R3問2）は、調整の結果をイに書き、ウでは別の指摘（12億円）を使います。</li>
     </ul>
 
-    <h3>型2 協議・調整<span class="tag">④、R7問1の事業部門、R7問2の協議</span></h3>
-    <div class="txt frame">
-      <p>私は、<span class="slot">〔部門A〕</span>、<span class="slot">〔部門B〕</span>、情報システム部で協議の場を設け、まず<span class="slot">〔分析の結果・試行の結果〕</span>を共有した。<span class="slot">〔部門A〕</span>には、<span class="slot">〔データ〕</span>を示して<span class="slot">〔説明〕</span>した。<span class="slot">〔要望の一部〕</span>は取り入れ、<span class="slot">〔見送るもの〕</span>は<span class="slot">〔影響〕</span>を示して見送ることで合意した。</p>
-      <p><span class="slot">〔部門B〕</span>からは、<span class="slot">〔意見〕</span>という意見が出た。そこで、<span class="slot">〔役割分担・決まり〕</span>とすることで合意した。</p>
     </div>
+
+    <h3>型2 協議・調整<span class="tag">④、R7問1の事業部門、R7問2の協議</span></h3>
+    <div class="ugrp">
     <p class="note">〔 〕に入れる中身を、段落ごとの表にしました。H22問2は、R5問1と同じ中身を「商品部の協力を得る工夫」「店舗の理解を得る工夫」の2つの見出しに分けて書きます。</p>
-    <h3>第1段落（協議と、取り入れ・見送り）に入れるもの</h3>
-    <div class="scroll"><table style="min-width:760px">
+    <h4 class="pg">第1段落　協議と、取り入れ・見送り</h4>
+    <div class="txt frame"><p>私は、<span class="slot">〔部門A〕</span>、<span class="slot">〔部門B〕</span>、情報システム部で協議の場を設け、まず<span class="slot">〔共有したもの〕</span>を共有した。<span class="slot">〔部門A〕</span>には、<span class="slot">〔データ〕</span>を示して<span class="slot">〔説明〕</span>した。<span class="slot">〔取り入れたもの〕</span>は取り入れ、<span class="slot">〔見送ったもの〕</span>は<span class="slot">〔影響〕</span>を示して見送ることで合意した。</p></div>
+    <div class="scroll"><table class="qt" style="min-width:760px">
       <tr><th style="width:7.5em">問題</th><th style="width:13%">〔部門A〕</th><th style="width:13%">〔共有したもの〕</th><th>〔データ〕→〔説明〕</th><th>〔取り入れたもの〕</th><th>〔見送ったもの〕（〔影響〕）</th></tr>
       <tr><td class="c">④ R5問1</td><td>店舗運営部（商品部・情報システム部との3部門の協議）</td><td>分析の結果と真因</td><td>特売の日の廃棄率 → 画面を改修するより、特売・行事の情報の届け方を変える方が欠品と廃棄を減らせる</td><td>前週の同じ曜日の販売数の表示</td><td>締め時刻の延長（加工場の仕込みと仕入れ先の配送への影響）</td></tr>
       <tr><td class="c">④ H28問2</td><td>店舗運営部</td><td>業務分析の結果と投資効果（改修2,000万円で年1億円）</td><td>要望どおりの改修より、情報の届け方を変える方が効果が大きい</td><td>前週の同じ曜日の販売数の表示</td><td>締め時刻の延長（同上）。見送りの理由は、店舗運営部長とともに店長会議で説明</td></tr>
       <tr><td class="c">⑤ R7問1</td><td>店舗運営部（商品部とともに刷新方針を説明）</td><td>刷新方針</td><td>「業務をパッケージに合わせると現場が混乱する」という懸念 → 店舗業務は3店舗で先行して切り替えることを提案</td><td>店長の意見で画面の入力項目を絞る</td><td>－</td></tr>
       <tr><td class="c">③ R7問2</td><td>店舗運営部長・商品部長・社長</td><td>想定した阻害要因（3つ）</td><td>－</td><td>欠品を増やさないことを変革の前提条件にする（店舗運営部）／試行の結果を見て次に進む段階的な計画にする（社長）</td><td>－</td></tr>
     </table></div>
-    <h3>第2段落（もう一方の部門の意見と、役割分担）に入れるもの</h3>
-    <div class="scroll"><table style="min-width:640px">
+    <h4 class="pg">第2段落　もう一方の部門の意見と、役割分担</h4>
+    <div class="txt frame"><p><span class="slot">〔部門B〕</span>からは、<span class="slot">〔意見〕</span>という意見が出た。そこで、<span class="slot">〔役割分担・決まり〕</span>とすることで合意した。</p></div>
+    <div class="scroll"><table class="qt" style="min-width:640px">
       <tr><th style="width:7.5em">問題</th><th style="width:7em">〔部門B〕</th><th>〔意見〕</th><th>〔役割分担・決まり〕</th></tr>
       <tr><td class="c">④ R5問1</td><td>商品部</td><td>特売の内容は、仕入れ先との交渉で前日まで決まらないことがある</td><td>対象品目と予定価格を2日前に暫定で登録し、変われば更新する。特売と行事の情報の登録を商品部の業務にする</td></tr>
       <tr><td class="c">④ H28問2</td><td>商品部</td><td>（R5問1と同じ）</td><td>2日前の暫定登録を商品部の業務にする。特売の前日の追加注文が減り、仕入れ先との調整も楽になる</td></tr>
@@ -284,14 +304,14 @@
       <p>私は、これらの意思を対応策に取り入れた。店舗運営部の意見を受けて、欠品を増やさないことを変革の前提条件とした。商品部の意見を受けて、予測を店舗と商品部の共通の基準とした。社長の意思を受けて、試行の結果を見て次に進むかを判断する段階的な計画とした。</p>
     </div></details>
 
-    <h3>型3 結果の評価 → 更に改善する余地<span class="tag">平成の問題に多い</span></h3>
-    <div class="txt frame">
-      <p><span class="slot">〔施策〕</span>の結果、<span class="slot">〔比較の相手〕</span>に対して<span class="slot">〔指標〕</span>が<span class="slot">〔数字 → 数字〕</span>になった。<span class="slot">〔経営者〕</span>からは、<span class="slot">〔評価された点〕</span>が評価された。</p>
-      <p>一方で、<span class="slot">〔目標との差・残った課題〕</span>が残った。原因は<span class="slot">〔原因〕</span>である。今後は、<span class="slot">〔改善策〕</span>で<span class="slot">〔目標〕</span>を達成する。</p>
     </div>
+
+    <h3>型3 結果の評価 → 更に改善する余地<span class="tag">平成の問題に多い</span></h3>
+    <div class="ugrp">
     <p class="note">〔 〕に入れる中身を、問題ごとの表にしました（見本の本文と骨子から取っています）。</p>
-    <h3>第1段落（結果の評価）に入れるもの</h3>
-    <div class="scroll"><table style="min-width:760px">
+    <h4 class="pg">第1段落　結果の評価</h4>
+    <div class="txt frame"><p><span class="slot">〔施策〕</span>の結果、<span class="slot">〔比較の相手〕</span>に対して<span class="slot">〔指標〕</span>が<span class="slot">〔数字 → 数字〕</span>になった。<span class="slot">〔経営者〕</span>からは、<span class="slot">〔評価された点〕</span>が評価された。</p></div>
+    <div class="scroll"><table class="qt" style="min-width:760px">
       <tr><th style="width:7.5em">問題</th><th>〔施策〕</th><th style="width:15%">〔比較の相手〕</th><th>〔指標〕〔数字 → 数字〕</th><th>〔経営者〕〔評価された点〕</th></tr>
       <tr><td class="c">③ H26問1</td><td>需要予測による発注の業務改革（3店舗で試行）</td><td>立地の近い比較3店舗</td><td>廃棄率2.1%→1.4%、欠品率は変わらず、発注作業1日90分→40分</td><td>経営者：試行の結果と、全店への展開</td></tr>
       <tr><td class="c">③ H23問1</td><td>同上（非定型業務の発注の改革）</td><td>立地の近い比較3店舗</td><td>同上</td><td>ベテラン店長のコツを補正ルールに取り込み、店長が修正できる形にした点</td></tr>
@@ -301,8 +321,9 @@
       <tr><td class="c">⑤ H23問2</td><td>パッケージの選定</td><td>同業の導入事例とパッケージ3製品</td><td>機能・費用・実績・保守体制で比べた</td><td>－</td></tr>
       <tr><td class="c">⑥ H24問2</td><td>代替手順と訓練（実効性を高める工夫）</td><td>－</td><td>訓練で、切り替えから全店の発注開始まで約40分</td><td>代替手順を画面のボタン1つにし、訓練を通常の発注日に組み込んだ点</td></tr>
     </table></div>
-    <h3>第2段落（残った課題と改善策）に入れるもの</h3>
-    <div class="scroll"><table style="min-width:760px">
+    <h4 class="pg">第2段落　残った課題と改善策</h4>
+    <div class="txt frame"><p>一方で、<span class="slot">〔残った課題〕</span>が残った。原因は<span class="slot">〔原因〕</span>である。今後は、<span class="slot">〔改善策〕</span>で<span class="slot">〔目標〕</span>を達成する。</p></div>
+    <div class="scroll"><table class="qt" style="min-width:760px">
       <tr><th style="width:7.5em">問題</th><th>〔残った課題〕</th><th>〔原因〕</th><th>〔改善策〕</th><th style="width:15%">〔目標〕</th></tr>
       <tr><td class="c">③ H26問1</td><td>予測が外れる日がある。客数の回復も残っている</td><td>天候の急変や、行事の情報が登録されない日</td><td>行事の登録を商品部の業務にし、天気予報が急変した日は昼に追加の発注提案を出す。会員アプリで客数を回復する</td><td>年5億円（全店では年約4億円にとどまった）</td></tr>
       <tr><td class="c">③ H23問1</td><td>店長による修正のばらつきと、予測が外れる日</td><td>店長によって修正の仕方が違う。行事の情報が登録されない日がある</td><td>店長研修と修正理由の入力、行事の登録を商品部の業務にする</td><td>廃棄率1.4%</td></tr>
@@ -312,6 +333,8 @@
       <tr><td class="c">⑤ H23問2</td><td>例外ルールを標準機能でどこまで再現できるかの確認</td><td>確認が選定の後になった</td><td>選定の段階で商品部と例外ルールを洗い出し、標準機能で再現できるかを確かめる</td><td>移行の遅れを防ぐ</td></tr>
       <tr><td class="c">⑥ H24問2</td><td>冗長化の対象外のシステムの復旧</td><td>冗長化の対象を予測と発注に絞った</td><td>対象外のシステム（分析・報告）の復旧手順を整える</td><td>地域の食品供給を止めない</td></tr>
     </table></div>
+    </div>
+
     <h3>施策ごとのまとめ（攻め1・守り1・⑥）</h3>
     <div class="scroll"><table>
       <tr><th style="width:8em">施策</th><th>評価（数字と比較）</th><th>残った課題 → 改善策</th></tr>
@@ -381,5 +404,41 @@
 
   <footer class="note">A社は練習用の架空の会社です。文章は見本の論文（見本の全文）と事例設定シートの部品から取っています。</footer>
 </div>
+<script>
+"use strict";
+// 表の列名の〔 〕を、型の文と同じ黄色にする
+Array.prototype.forEach.call(document.querySelectorAll("th"), function (th) {
+  th.innerHTML = th.innerHTML.replace(/〔[^〕]*〕/g, function (m) { return '<span class="slot">' + m + '</span>'; });
+});
+// 型ごとに「問題で絞る」ボタンを付ける。押すと、その型の表をその問題の行だけにする
+Array.prototype.forEach.call(document.querySelectorAll(".ugrp"), function (g) {
+  var rows = g.querySelectorAll("table.qt tr"), labels = [];
+  // 縦に並べたときに出す列名を、各セルに持たせる
+  Array.prototype.forEach.call(g.querySelectorAll("table.qt"), function (t) {
+    var hs = Array.prototype.map.call(t.rows[0].cells, function (c) { return c.textContent.trim(); });
+    Array.prototype.forEach.call(t.rows, function (tr, i) { if (i) Array.prototype.forEach.call(tr.cells, function (c, j) { c.dataset.h = hs[j] || ""; }); });
+  });
+  Array.prototype.forEach.call(rows, function (tr) {
+    var td = tr.querySelector("td"); if (!td) return;
+    var q = td.textContent.trim(); tr.dataset.q = q;
+    if (labels.indexOf(q) < 0) labels.push(q);
+  });
+  if (!labels.length) return;
+  var bar = document.createElement("div"); bar.className = "qf";
+  bar.innerHTML = '問題で絞る：<button type="button" class="on" data-q="">すべて</button>' +
+    labels.map(function (q) { return '<button type="button" data-q="' + q + '">' + q + '</button>'; }).join("");
+  g.insertBefore(bar, g.firstChild);
+  bar.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("button"); if (!b) return;
+    Array.prototype.forEach.call(bar.querySelectorAll("button"), function (x) { x.classList.toggle("on", x === b); });
+    Array.prototype.forEach.call(g.querySelectorAll("table.qt"), function (t) { t.classList.toggle("one", !!b.dataset.q); });
+    Array.prototype.forEach.call(rows, function (tr) {
+      if (!tr.dataset.q) return;
+      tr.hidden = !!b.dataset.q && tr.dataset.q !== b.dataset.q;
+      tr.classList.toggle("hl", !!b.dataset.q && tr.dataset.q === b.dataset.q);
+    });
+  });
+});
+</script>
 </body>
 </html>
