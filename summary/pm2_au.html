@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>設問アとウの型</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd; --chip: #eef2f7;
+    --qa: #c2620a; --qa-soft: #fdf0e3; --qu: #7c3aed; --qu-soft: #f1ebfe;
+    --seme: #2563eb; --mamori: #0f8a5f; --slot: #fff3b0;
+    --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50; --chip: #222d3a;
+      --qa: #fbaa55; --qa-soft: #3a2a14; --qu: #b79cfb; --qu-soft: #2a1f45;
+      --seme: #5b93ff; --mamori: #34c48b; --slot: #4a3f12; --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50; --chip: #222d3a;
+    --qa: #fbaa55; --qa-soft: #3a2a14; --qu: #b79cfb; --qu-soft: #2a1f45;
+    --seme: #5b93ff; --mamori: #34c48b; --slot: #4a3f12; --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 15.5px; line-height: 1.8; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 60px; }
+  header { padding: 22px 0 4px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 24px; line-height: 1.4; margin: 4px 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 8px; font-size: 14.5px; }
+  a { color: var(--accent); }
+  .nav { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px; background: var(--bg);
+    padding: 8px 0; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .nav a { font-size: 13.5px; font-weight: 700; text-decoration: none; color: var(--text); background: var(--card);
+    border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; white-space: nowrap; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card > h2 { font-size: 19px; margin: 0 0 8px; scroll-margin-top: 60px; }
+  .card.a > h2 { color: var(--qa); } .card.u > h2 { color: var(--qu); }
+  h3 { font-size: 16px; margin: 18px 0 6px; }
+  h3 .tag { font-size: 12px; font-weight: 700; color: var(--muted); margin-left: 6px; }
+  .sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .sum div { border-radius: 10px; padding: 10px 14px; font-size: 14.5px; }
+  .sum .sa { background: var(--qa-soft); } .sum .su { background: var(--qu-soft); }
+  .sum b { display: block; font-size: 15.5px; margin-bottom: 2px; }
+  .txt { background: var(--chip); border-radius: 10px; padding: 10px 14px; margin: 6px 0 8px; font-size: 15px; }
+  .txt p { margin: 0; text-indent: 1em; }
+  .txt p + p { margin-top: 4px; }
+  .frame { border-left: 4px solid var(--qu); }
+  .card.a .frame { border-left-color: var(--qa); }
+  .slot { background: var(--slot); border-radius: 3px; padding: 0 2px; }
+  .note { font-size: 13.5px; color: var(--muted); margin: 4px 0 8px; }
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; line-height: 1.6; }
+  th, td { border: 1px solid var(--line); padding: 6px 9px; vertical-align: top; text-align: left; }
+  th { background: var(--chip); font-weight: 700; }
+  td.c { white-space: nowrap; }
+  .mt { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 0 6px; color: #fff; white-space: nowrap; }
+  .mt.seme { background: var(--seme); } .mt.mamori { background: var(--mamori); }
+  details.ex { margin: 4px 0 10px; }
+  details.ex > summary { cursor: pointer; font-size: 14px; font-weight: 700; color: var(--accent); }
+  ul.pts { margin: 6px 0 0; padding-left: 1.2em; font-size: 14.5px; }
+  ul.pts li { margin: 2px 0; }
+  @media (max-width: 600px) {
+    .nav { position: static; }
+    .card { padding: 12px 12px; }
+    h1 { font-size: 21px; }
+  }
+  @media print { .nav { display: none; } body { background: #fff; } .card { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ITストラテジスト 午後II</div>
+    <h1>設問アとウの型 ― 攻め1と守り1で、③④⑤⑥⑦を同じ型で書く</h1>
+    <p class="lead">③④⑤⑥⑦の過去問24問と見本の見出しを並べると、設問アとウは問題が変わってもほとんど同じ組み方です。アとウを型にしておけば、本番で考えるのは設問イだけになります。<span class="slot">〔黄色〕</span>の所だけを、問題に合わせて入れ替えます。</p>
+  </header>
+  <nav class="nav">
+    <a href="#sum">まとめ</a><a href="#a">アの型</a><a href="#a-type">アの組み方（型別）</a><a href="#u">ウの3つの型</a><a href="#talk">指摘と改善の一覧</a><a href="#map">過去問の当てはめ</a>
+    <a href="pm2_tree.html">骨子の型ツリー</a><a href="pm2_case.html">事例設定シート</a>
+  </nav>
+
+  <section class="card" id="sum">
+    <h2>まとめ</h2>
+    <div class="sum">
+      <div class="sa"><b>設問ア（約600〜800字）</b>1.1「事業概要と事業特性」は毎回同じ文。そのあとは、A「経営課題と目指す変革」、B「対象のシステム」、C「取り組むことになった経緯と私の立場」から、設問の言葉に合う2つを選んで見出しにする。</div>
+      <div class="su"><b>設問ウ（約600〜1,000字）</b>型1「説明 → 指摘 → 改善」、型2「協議・調整」、型3「結果の評価 → 更に改善する余地」の3つのどれか（2つの組み合わせもある）。リスクや阻害要因を先に問われたら、3.1に置いてから型1に進む。</div>
+    </div>
+    <ul class="pts">
+      <li>指摘と改善は、事例設定シートの部品からそのまま選びます（<a href="#talk">指摘と改善の一覧</a>）。新しい中身を本番で作らないようにします。</li>
+      <li>経営層「12億円に見合うのか」→「3段階で投資する」は攻め1と守り1の両方で使えます。ただし段階の中身が違います（<a href="#talk">一覧</a>の注を参照）。</li>
+    </ul>
+  </section>
+
+  <section class="card a" id="a">
+    <h2>設問アの型</h2>
+
+    <h3>1.1 事業概要と事業特性<span class="tag">毎回同じ・約300字</span></h3>
+    <div class="txt">
+      <p>A社は、地方都市圏で食品スーパー40店舗を展開する小売業で、年間売上高は800億円、従業員は約4,000人である。売上の4割を青果・鮮魚・精肉・総菜などの生鮮食品が占める。</p>
+      <p>A社の事業特性は、次の2点である。第一に、日持ちしない生鮮品の比率が高く、天候や曜日、地域の行事によって需要が大きく変動する点である。このため、発注の精度が欠品と廃棄の量を左右し、利益に直結する。第二に、店舗業務の多くをパート・アルバイトが担っている点である。このため、業務の仕組みは、誰でも短時間で使えるものでなければ現場に定着しない。</p>
+    </div>
+    <ul class="pts">
+      <li>第二の特性は「人（パート）」が基本です。品ぞろえや常連客が論点になるDX（R7問2）では「近（常連）」に替えます：「第二に、来店客の多くが店舗から半径2km以内に住む常連客である点である。このため、常連客の好みに合った品ぞろえを続けることが、客数を維持する鍵となる。」</li>
+      <li>⑥（リスク）は、第一の特性の「このため」を「毎朝の発注が翌日の売場を決める。発注が止まると、翌日の売場から生鮮が消える」にします。事業継続計画（H24問2）は、地域の食品供給の拠点として災害時も営業を続ける協定（社会的責任）を足します。</li>
+    </ul>
+
+    <h3>A 経営課題と目指す変革<span class="tag">③⑦、④のH25・H28</span></h3>
+    <div class="txt">
+      <p>解決すべき経営課題は、客数の減少と食品ロスによる利益の圧迫である。客数は5年で1割減少し、生鮮品の廃棄は売上の2%、年16億円に達していた。</p>
+      <p>これらの課題の根本には、発注を各店舗の店長の勘と経験に頼っていることがあった。経験の浅い店長ほど発注が外れ、欠品と廃棄の両方が起きていた。</p>
+      <p>このため、勘と経験に頼る店舗運営から、データで地域の需要を読み、廃棄と欠品を同時に減らす店舗運営への変革を目指した。中期経営計画では、廃棄率を2%から1.4%に下げる目標を掲げた。</p>
+    </div>
+    <p class="note">「経営戦略」「事業戦略」を問われたら、3段落目の前に「価格ではドラッグストアやネット通販に勝てないため、生鮮の鮮度・品ぞろえと地域密着の接客で差別化し、常連の来店頻度を上げる」を入れます。「事業環境の変化」（R4問2・H23問2）は、1段落目の前に競争（ネット通販・ドラッグストアの出店）を書きます。</p>
+
+    <h3>B 対象のシステム（と課題）<span class="tag">⑤⑥④、⑦のH29問2</span></h3>
+    <p class="note">何のシステムを扱う論文かで、3つから1つ選びます。</p>
+    <details class="ex" open><summary><span class="mt mamori">守り1</span> 基幹システム（⑤）</summary>
+    <div class="txt">
+      <p>A社の基幹システムは、発注・在庫・会計の業務を担っており、20年前に自社で開発したものである。業務の変化に合わせて改修を重ねた結果、一つの改修が思わぬ箇所に影響する構造になっていた。</p>
+      <p>課題は次の3点である。第一に、仕組みを理解している社員が2名だけで、数年のうちに定年を迎えることである。第二に、店舗からの改修要望が年200件を超え、対応が追いつかないことである。第三に、データが店舗ごと、システムごとに分かれ、POSデータも本部で週に1回しか集計できないことである。この結果、データ基盤や需要予測といった新しい施策を始めようとしても、基幹システムとの連携に時間と費用が掛かり、経営課題への対応が遅れていた。</p>
+    </div></details>
+    <details class="ex"><summary><span class="mt seme">攻め1</span> 需要予測による発注の仕組み（⑥、⑦のH29問2）</summary>
+    <div class="txt">
+      <p>対象は、全40店の生鮮・総菜の発注を支える、需要予測による発注提案の仕組みである。毎晩POSのデータをデータ基盤に集め、毎朝5時に需要を予測して発注画面に提案する。店長が確認・修正して確定すると、仕入れ先へEDIで送る。</p>
+      <p>仕組みは、データ基盤と需要予測で、クラウド事業者の機械学習サービスを自社のクラウド環境で利用する。利用者は全店の店長と発注を担うパートで、毎朝7時から発注を始め、午前中に確定する。</p>
+    </div></details>
+    <details class="ex"><summary><span class="mt seme">攻め1の前段</span> 店舗の発注業務と発注システム（④）</summary>
+    <div class="txt">
+      <p>対象は、店長が勘と経験で行う店舗の生鮮品の発注業務と、20年前に自社で開発した発注システムである。各店舗の店長は、毎日午後に翌日分の発注数を決め、発注システムの画面に入力する。発注システムは基幹システムの一部で、前日の販売数と在庫数を表示する。改修を重ねて構造が複雑になっており、店舗からの改修要望は年200件を超え、対応が追いついていなかった。</p>
+    </div></details>
+
+    <h3>C 取り組むことになった経緯と私の立場<span class="tag">ほぼ全問の最後</span></h3>
+    <div class="txt frame">
+      <p><span class="slot">〔きっかけ（事実と数字）〕</span>。そこで、<span class="slot">〔テーマ（設問の言葉）〕</span>を<span class="slot">〔策定・立案・企画〕</span>することになった。私は、情報システム部のシステム企画担当課長として、<span class="slot">〔テーマ〕</span>を担当した。</p>
+    </div>
+    <div class="scroll"><table>
+      <tr><th style="width:9em">型</th><th>きっかけ（事実と数字）</th></tr>
+      <tr><td>③ DX・新技術</td><td>これまでは前年同日の販売実績で発注の目安を出していたが、天候や行事の変動は反映できず、最後は店長の判断に頼っていた → 機械学習による需要予測の採用を検討した（R6問1「新たな情報技術とその必要性」）</td></tr>
+      <tr><td>④ 分析・真因</td><td>店舗運営部から、発注画面に前週の同じ曜日の販売数を出すこと、締め時刻を30分遅らせることを求められた（発注関連の要望は年約80件）→ 店舗の視点だけの部分的な要望の可能性があると考え、全社の視点で分析することにした</td></tr>
+      <tr><td>⑤ 基幹・刷新</td><td>仕組みを知る2名が数年で定年を迎え、保守できなくなる前に移す必要があった → 経営層の指示で刷新方針を策定することになった</td></tr>
+      <tr><td>⑥ リスク・BCP</td><td>需要予測は3店舗の試行で効果が確かめられ、全店へ広げることが決まった。試行の間にも、データ連携の遅れで予測が7時過ぎまで出ない日が1度あった → 全店展開の計画の中でシステムリスク対応方針を立案することになった</td></tr>
+      <tr><td>⑦ 評価・調整</td><td>発注は店長の勘と経験に頼り、POSのデータは週1回の集計で発注に使えていなかった → IT導入の目的を、データで需要を読む店舗運営への変革とした（H29問1）。調整（R3問2）は、主なステークホルダ（経営層・店舗運営部・商品部・経営企画部）と、それぞれの立場の違いを書く</td></tr>
+    </table></div>
+  </section>
+
+  <section class="card a" id="a-type">
+    <h2>アの組み方（型別）</h2>
+    <div class="scroll"><table>
+      <tr><th style="width:9em">型</th><th>組み方</th><th>見出しの例（過去問）</th></tr>
+      <tr><td>③ DX・新技術</td><td>1.1 ＋ A（＋ C）</td><td>1.2 解決すべき経営課題と必要となった変革（R7問2）／1.2 DXの狙いと施策の内容 ＋ 1.3 新たな情報技術とその必要性（R6問1）</td></tr>
+      <tr><td>④ 分析・真因</td><td>1.1 ＋ B（発注業務）＋ C（要望と問題認識）</td><td>1.2 分析の対象となる業務とITシステム ＋ 1.3 利用部門からの改修要望 ＋ 1.4 利用部門の問題認識（R5問1）</td></tr>
+      <tr><td>⑤ 基幹・刷新</td><td>1.1 ＋ B（基幹システム）</td><td>1.2 基幹システムの概要と課題（R7問1）／1.2 背景となった事業環境の変化 ＋ 1.3 基幹システムの概要（R4問2）</td></tr>
+      <tr><td>⑥ リスク・BCP</td><td>1.1 ＋ B（需要予測）＋ C</td><td>1.2 対象としたサービスと個別システムの概要 ＋ 1.3 システムリスク対応方針を立案することになった経緯（R5問2）</td></tr>
+      <tr><td>⑦ 評価・調整</td><td>1.1 ＋ A ＋ C</td><td>1.2 経営戦略 ＋ 1.3 IT導入の目的（H29問1）／1.2 事業目標と変革の概要 ＋ 1.3 関係するステークホルダ（R3問2）</td></tr>
+    </table></div>
+    <h3>設問アの言葉 → どのブロックか</h3>
+    <div class="scroll"><table>
+      <tr><th style="width:42%">設問アで問われる言葉</th><th>使うブロック</th></tr>
+      <tr><td>事業概要・事業特性・業務特性・事業の特性</td><td>1.1</td></tr>
+      <tr><td>経営課題・経営戦略・事業戦略・競争戦略・事業目標・事業課題・事業環境の変化</td><td>A</td></tr>
+      <tr><td>基幹システムの概要・対象のサービスとシステム・業務とITシステム・情報システムの課題・利用実態・導入したシステムの概要</td><td>B</td></tr>
+      <tr><td>〜の背景・〜になった経緯・目的・必要性・関係するステークホルダ</td><td>C</td></tr>
+      <tr><td>設定した指標と目標値（H29問2）</td><td>B ＋ KPI（食品ロス率・欠品率・発注作業時間、毎月の経営会議で報告）</td></tr>
+    </table></div>
+  </section>
+
+  <section class="card u" id="u">
+    <h2>設問ウの3つの型</h2>
+
+    <h3>型1 説明 → 指摘 → 改善<span class="tag">いちばん多い</span></h3>
+    <div class="txt frame">
+      <p><span class="slot">〔経営層／事業部門〕</span>には、<span class="slot">〔説明した2〜3点〕</span>を説明した。投資は<span class="slot">〔12億円〕</span>で、<span class="slot">〔年5億円〕</span>の効果が見込め、約3年で回収できる。<span class="slot">〔リスク〕</span>には<span class="slot">〔対策〕</span>で備えることを示し、<span class="slot">〔承認〕</span>を求めた。</p>
+      <p><span class="slot">〔社長／店舗運営部長〕</span>からは、<span class="slot">〔指摘〕</span>という指摘を受けた。<span class="slot">〔理由〕</span>という懸念である。</p>
+      <p>そこで私は、<span class="slot">〔元の計画〕</span>を改め、<span class="slot">〔新しい計画〕</span>に変更した。あわせて、<span class="slot">〔確かめ方・報告の仕組み〕</span>。この改善により<span class="slot">〔承認され〕</span>、<span class="slot">〔結果〕</span>。</p>
+    </div>
+    <details class="ex"><summary><span class="mt seme">攻め1</span> で入れると（R6問1）</summary>
+    <div class="txt">
+      <p>経営会議では、技術検証の結果と、2つのリスクとその対策を説明した。投資額は基幹の刷新とデータ基盤を含めて12億円で、全店展開で年約5億円の効果が見込め、約3年で回収できる。欠品のリスクには店長の確定と昼の追加提案で備えることを示し、全店展開の承認を求めた。</p>
+      <p>社長からは、3店舗の結果だけで40店舗すべての効果を見込むのは楽観的ではないか、という指摘を受けた。立地や客層の違う店舗では、同じ効果が出るとは限らないという懸念である。</p>
+      <p>そこで私は、全店に一度に展開する計画を改め、まず生鮮品の売上が大きい10店舗に展開し、3か月後に廃棄率と欠品率を確認してから残りの店舗に広げる計画に変更した。あわせて、店舗ごとの効果を毎月の経営会議で報告することにした。この改善により全店展開は承認され、最初の10店舗でも廃棄率が平均0.6ポイント下がった。</p>
+    </div></details>
+    <details class="ex"><summary><span class="mt mamori">守り1</span> で入れると（R7問1）</summary>
+    <div class="txt">
+      <p>経営会議では、刷新の必要性、投資と効果、移行のリスクの3点を説明した。刷新と連携基盤への投資は、需要予測を含めて12億円である。保守費の3割削減と、需要予測による食品ロスの削減で年5億円の効果を見込み、約3年で回収できる。移行のリスクについては、段階移行と並行稼働により店舗の発注を止めない計画であることを示し、刷新方針の承認を求めた。</p>
+      <p>社長からは、刷新の必要性は理解できるが、効果が出る前に12億円を一度に投じるのは負担が大きいという評価を受けた。</p>
+      <p>そこで私は、一括で投資する計画を改め、3段階で投資する計画に変更した。第1段階は会計の移行と連携基盤の構築、第2段階は発注・在庫の移行、第3段階は店舗業務の移行と需要予測の全店展開とした。各段階の終わりに、保守費と移行の品質を経営会議で確認し、次の段階に進むかを判断する。この改善により刷新方針は承認され、第1段階の会計の移行を予定どおり完了できた。</p>
+    </div></details>
+    <ul class="pts">
+      <li>評価された点も1文書きます（例：「経営層は、立場の異なる2部門の合意を得て構想をまとめた点を評価した」R3問2）。指摘だけで終わらせません。</li>
+      <li>相手が「事業部門」なら店舗運営部・商品部、「経営層」なら社長・担当役員にします。両方を問われたら、事業部門 → 経営層の順に型1を2回書きます（R5問2・R7問1）。</li>
+    </ul>
+
+    <h3>型2 協議・調整<span class="tag">④、R7問1の事業部門、R7問2の協議</span></h3>
+    <div class="txt frame">
+      <p>私は、<span class="slot">〔部門A〕</span>、<span class="slot">〔部門B〕</span>、情報システム部で協議の場を設け、まず<span class="slot">〔分析の結果・試行の結果〕</span>を共有した。<span class="slot">〔部門A〕</span>には、<span class="slot">〔データ〕</span>を示して<span class="slot">〔説明〕</span>した。<span class="slot">〔要望の一部〕</span>は取り入れ、<span class="slot">〔見送るもの〕</span>は<span class="slot">〔影響〕</span>を示して見送ることで合意した。</p>
+      <p><span class="slot">〔部門B〕</span>からは、<span class="slot">〔意見〕</span>という意見が出た。そこで、<span class="slot">〔役割分担・決まり〕</span>とすることで合意した。</p>
+    </div>
+    <details class="ex"><summary><span class="mt seme">攻め1の前段</span> で入れると（R5問1）</summary>
+    <div class="txt">
+      <p>私は、店舗運営部、商品部、情報システム部の3部門で協議の場を設け、まず分析の結果と真因を共有した。店舗運営部には、特売の日の廃棄率のデータを示し、要望どおりに画面を改修するよりも、特売や行事の情報の届け方を変える方が欠品と廃棄を減らせると説明した。前週の同じ曜日の販売数の表示は取り入れ、締め時刻の延長は、加工場の仕込みと仕入れ先の配送への影響を示して見送ることで合意した。</p>
+      <p>商品部からは、特売の内容は仕入れ先との交渉で前日まで決まらないことがあるという意見が出た。そこで、対象品目と予定価格を2日前に暫定で登録し、特売と行事の情報の登録を商品部の業務とすることで合意した。</p>
+    </div></details>
+    <details class="ex"><summary><span class="mt seme">攻め1</span> で入れると（R7問2の協議と取り入れた意思）</summary>
+    <div class="txt">
+      <p>店舗運営部長からは、AIに発注を任せると欠品が増え、常連客が離れるという意見が出た。商品部長からは、仕入れの判断は商品部の仕事であり、発注を店舗任せにされると仕入れ計画が立てられないという意見が出た。社長からは、効果を確かめながら段階的に投資したいという意思が示された。</p>
+      <p>私は、これらの意思を対応策に取り入れた。店舗運営部の意見を受けて、欠品を増やさないことを変革の前提条件とした。商品部の意見を受けて、予測を店舗と商品部の共通の基準とした。社長の意思を受けて、試行の結果を見て次に進むかを判断する段階的な計画とした。</p>
+    </div></details>
+
+    <h3>型3 結果の評価 → 更に改善する余地<span class="tag">平成の問題に多い</span></h3>
+    <div class="txt frame">
+      <p><span class="slot">〔施策〕</span>の結果、<span class="slot">〔比較の相手〕</span>に対して<span class="slot">〔指標〕</span>が<span class="slot">〔数字 → 数字〕</span>になった。<span class="slot">〔経営者〕</span>からは、<span class="slot">〔評価された点〕</span>が評価された。</p>
+      <p>一方で、<span class="slot">〔目標との差・残った課題〕</span>が残った。原因は<span class="slot">〔原因〕</span>である。今後は、<span class="slot">〔改善策〕</span>で<span class="slot">〔目標〕</span>を達成する。</p>
+    </div>
+    <div class="scroll"><table>
+      <tr><th style="width:8em">施策</th><th>評価（数字と比較）</th><th>残った課題 → 改善策</th></tr>
+      <tr><td><span class="mt seme">攻め1</span></td><td>試行3店舗は比較3店舗に対し、廃棄率2.1% → 1.4%、欠品率は変わらず。発注作業は1日90分 → 40分。全店で年約4億円（目標の年5億円には届かず）</td><td>天候の急変や行事の日に予測が外れる → 行事の登録を商品部の業務にし、天気予報が急変した日は昼に追加の発注提案を出す</td></tr>
+      <tr><td><span class="mt mamori">守り1</span></td><td>第1段階の会計の移行を予定どおり完了し、経営会議で保守費と移行の品質を確かめて第2段階に進んだ</td><td>店舗業務の移行では、パートが使いこなせるかが残る → 3店舗で先行して切り替え、店長の意見で入力項目を絞り、パート向けの手順書と研修を用意する</td></tr>
+      <tr><td>⑥ リスク</td><td>代替手順をボタン1つで切り替わる形にし、年2回の訓練を通常の発注日に組み込んだ（実効性を高める工夫）</td><td>災害時の営業継続 → 停電時はレジを手動・現金にし、発注は本部が代行する。重要なデータは別の地域のクラウドにも保管する</td></tr>
+    </table></div>
+
+    <h3>前置き：リスクや阻害要因を先に問われたとき</h3>
+    <ul class="pts">
+      <li><b>R6問1（リスク）</b>：3.1に「①予測が大きく外れ、全店で同時に欠品 → 店長が確定する業務ルール＋昼の追加提案 ②運用費が年3,000万円を超える（経営リソース）→ 2名を1年で育成し、2年目から社内で再学習」を書き、3.2から型1。</li>
+      <li><b>R7問2（阻害要因）</b>：3.1に「①店長が予測を使わない ②商品部と仕入れ先が予測に基づく発注を受け入れない ③基幹の改修に時間が掛かる。人と組織に関わる①②を最も重視」を書き、3.2で型2（協議と取り入れた意思）、3.3で対応策。</li>
+    </ul>
+  </section>
+
+  <section class="card u" id="talk">
+    <h2>指摘と改善の一覧（型1・型2で選ぶ）</h2>
+    <div class="scroll"><table style="min-width:640px">
+      <tr><th style="width:6em">施策</th><th style="width:30%">誰の、どんな指摘</th><th>改善したこと</th><th style="width:6em">型</th></tr>
+      <tr><td><span class="mt seme">攻め1</span></td><td>経営層「投資12億円に見合うのか」</td><td>一括投資をやめ、3段階で投資する（試行 → 生鮮・総菜で全店 → 日配品と仕入れ先との予測共有）。各段階の終わりに経営会議で次へ進むかを判断</td><td class="c">③⑦</td></tr>
+      <tr><td><span class="mt seme">攻め1</span></td><td>社長「3店舗の結果だけで40店舗すべての効果を見込むのは楽観的」</td><td>まず生鮮の売上が大きい10店舗に展開し、3か月後に廃棄率と欠品率を確かめてから残りへ。店舗ごとの効果を毎月報告</td><td class="c">③</td></tr>
+      <tr><td><span class="mt seme">攻め1</span></td><td>経営層「根拠が分からないAIに発注を任せられない」</td><td>予測に効いた要因（天候・行事など）を画面に表示し、店長会議で説明してから全店に広げた</td><td class="c">③⑦</td></tr>
+      <tr><td><span class="mt seme">攻め1</span></td><td>店舗運営部「AIに任せると欠品が増え、お客様が離れる」</td><td>欠品率が試行前より上がらないことを全店展開の条件にし、欠品率もKPIにした。店長の修正を予測の改善に使う</td><td class="c">③⑦</td></tr>
+      <tr><td><span class="mt seme">攻め1</span></td><td>商品部「仕入れの判断は商品部の仕事」</td><td>商品部も同じ予測を見られるようにし、商品部と店舗が週1回、予測と実績を確認する場を作った</td><td class="c">③⑦</td></tr>
+      <tr><td><span class="mt mamori">守り1</span></td><td>店舗運営部「業務をパッケージに合わせると現場が混乱する」</td><td>影響の小さい会計から移し、店舗業務は3店舗で先行して切り替える。店長の意見で入力項目を絞り、パート向けの手順書と研修を追加</td><td class="c">⑤</td></tr>
+      <tr><td><span class="mt mamori">守り1</span></td><td>商品部「仕入れ先ごとの例外ルールが使えなくなる」</td><td>例外ルールを一緒に洗い出し、標準機能で8割を再現、残りは業務の見直しで合意。仕入れ先への説明を共同で行う</td><td class="c">⑤</td></tr>
+      <tr><td><span class="mt mamori">守り1</span></td><td>社長「効果が出る前に12億円を一度に投じるのは負担が大きい」</td><td>3段階で投資する（会計と連携基盤 → 発注・在庫 → 店舗業務と需要予測の全店展開）。各段階の終わりに保守費と移行の品質を確認</td><td class="c">⑤</td></tr>
+      <tr><td><span class="mt mamori">守り1</span></td><td>経営層「効果の大きい発注・在庫を先にできないか」</td><td>会計の標準化が発注・在庫の前提だと説明し、需要予測に必要なデータ連携だけを前倒しした</td><td class="c">⑤（R4問2）</td></tr>
+      <tr><td>⑥</td><td>店舗運営部「代替手順をパートが覚えられない」</td><td>画面のボタン1つで代替手順に切り替わる形にし、年2回の訓練を通常の発注日に組み込んだ</td><td class="c">⑥</td></tr>
+      <tr><td>⑥</td><td>経営層「冗長化に年1,500万円は過剰では」</td><td>1日止まったときの損失（約2,500万円）と比べて説明し、冗長化の対象を予測と発注に絞って年800万円にした</td><td class="c">⑥</td></tr>
+    </table></div>
+    <p class="note">注：「12億円」の指摘への改善はどちらも3段階の投資ですが、段階の中身が違います。攻め1は「試行 → 全店 → 日配品」、守り1は「会計 → 発注・在庫 → 店舗」です。書く論文の施策に合う方を使います。</p>
+  </section>
+
+  <section class="card" id="map">
+    <h2>過去問の当てはめ（③④⑤⑥⑦の24問）</h2>
+    <p class="note">見本の骨子の見出しから当てはめた目安です。本番は設問の言葉に合わせて見出しを付け替えます。</p>
+    <div class="scroll"><table style="min-width:720px">
+      <tr><th style="width:8em">問題</th><th style="width:4em">型</th><th>設問ア</th><th>設問ウ</th></tr>
+      <tr><td>R7問2</td><td>③</td><td>1.1（近）＋ A</td><td>前置き（阻害要因）＋ 型2 ＋ 対応策</td></tr>
+      <tr><td>R7問1</td><td>⑤</td><td>1.1 ＋ B（基幹）</td><td>型2（事業部門）＋ 型1（経営層）</td></tr>
+      <tr><td>R6問1</td><td>③</td><td>1.1 ＋ A ＋ C（新技術の必要性）</td><td>前置き（リスク）＋ 型1</td></tr>
+      <tr><td>R5問2</td><td>⑥</td><td>1.1 ＋ B（需要予測）＋ C</td><td>型1（事業部門）＋ 型1（経営層）</td></tr>
+      <tr><td>R5問1</td><td>④</td><td>1.1 ＋ B（発注業務）＋ C（要望・問題認識）</td><td>型2 ＋ 立案した対応方針</td></tr>
+      <tr><td>R4問2</td><td>⑤</td><td>1.1 ＋ A（事業環境の変化）＋ B（基幹）</td><td>型1</td></tr>
+      <tr><td>R3問2</td><td>⑦</td><td>1.1 ＋ A ＋ C（ステークホルダ）</td><td>型1</td></tr>
+      <tr><td>R1問1</td><td>③</td><td>1.1 ＋ A（事業課題）</td><td>型1（事業部門）</td></tr>
+      <tr><td>H30問1</td><td>③</td><td>1.1 ＋ A（事業目標）＋ C</td><td>型1（経営層への進言）</td></tr>
+      <tr><td>H29問2</td><td>⑦</td><td>1.1 ＋ B（需要予測）＋ 指標と目標値</td><td>型1</td></tr>
+      <tr><td>H29問1</td><td>⑦</td><td>1.1 ＋ A（経営戦略）＋ C（目的）</td><td>型1（事業部門への提案）</td></tr>
+      <tr><td>H28問2</td><td>④</td><td>1.1 ＋ A（事業目標）＋ C</td><td>型1（説明と合意）＋ 型3（今後改善すべきこと）</td></tr>
+      <tr><td>H27問2</td><td>⑤</td><td>1.1 ＋ C（緊急の要求と背景）</td><td>型1</td></tr>
+      <tr><td>H26問2</td><td>⑤</td><td>1.1 ＋ B（基幹）＋ C（クラウド導入の背景）</td><td>型1 ＋ 型3</td></tr>
+      <tr><td>H26問1</td><td>③</td><td>1.1 ＋ A（事業課題）</td><td>型3</td></tr>
+      <tr><td>H25問1</td><td>④</td><td>1.1 ＋ A ＋ C</td><td>型1（評価）＋ 型3（改善すべき点）</td></tr>
+      <tr><td>H24問2</td><td>⑥</td><td>社会的責任 ＋ 1.1 ＋ B（利用実態）</td><td>型3（実効性の工夫と改善の余地）</td></tr>
+      <tr><td>H24問1</td><td>③</td><td>1.1 ＋ A（競争戦略）</td><td>型1 ＋ 型3</td></tr>
+      <tr><td>H23問2</td><td>⑤</td><td>1.1 ＋ A（事業の急激な変化）＋ C（強い制約条件＝2名の定年）</td><td>型3</td></tr>
+      <tr><td>H23問1</td><td>③</td><td>1.1 ＋ B（発注業務）＋ C（改革の背景）</td><td>型3</td></tr>
+      <tr><td>H22問2</td><td>④</td><td>1.1 ＋ C（追加開発の背景）</td><td>型2（商品部の協力・店舗の理解）</td></tr>
+      <tr><td>H22問1</td><td>⑤</td><td>1.1 ＋ C（構想の概要）</td><td>イの続き（柔軟な構想と工夫）＋ 型3</td></tr>
+      <tr><td>H21問2</td><td>④</td><td>B（導入したシステム）＋ 1.1</td><td>型2（促進策と工夫）</td></tr>
+      <tr><td>H21問1</td><td>③</td><td>1.1 ＋ A（事業施策）＋ B</td><td>イの続き（構築方法と工夫）＋ 型3</td></tr>
+    </table></div>
+    <p class="note">令和の問題は型1（と型2）、平成の問題は型3が多く出ています。どの問題でも、ウの最後は「承認された」「合意した」「今後は〜」のどれかで締めます。</p>
+  </section>
+
+  <footer class="note">A社は練習用の架空の会社です。文章は見本の論文（見本の全文）と事例設定シートの部品から取っています。</footer>
+</div>
+</body>
+</html>
