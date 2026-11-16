@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>設問イの比較</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd; --chip: #eef2f7;
+    --qi: #2563eb; --qi-soft: #e5edfd; --other: #fdf0e3; --other-line: #e5a25a;
+    --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50; --chip: #222d3a;
+      --qi: #7aa7ff; --qi-soft: #1c2f50; --other: #3a2a14; --other-line: #c98a3a; --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50; --chip: #222d3a;
+    --qi: #7aa7ff; --qi-soft: #1c2f50; --other: #3a2a14; --other-line: #c98a3a; --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 15px; line-height: 1.7; }
+  .wrap { max-width: 1600px; margin: 0 auto; padding: 0 16px 60px; }
+  header { padding: 22px 0 4px; max-width: 980px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 24px; line-height: 1.4; margin: 4px 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 8px; font-size: 14px; }
+  a { color: var(--accent); }
+  .bar { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center;
+    background: var(--bg); padding: 8px 0; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tabs button, .modes button { font: inherit; font-size: 14px; font-weight: 700; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 10px; padding: 4px 11px; cursor: pointer; }
+  .tabs button.on, .modes button.on { color: #fff; background: var(--text); border-color: var(--text); }
+  .modes { display: flex; gap: 6px; }
+  .bar label { font-size: 13.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
+  .bar .links { margin-left: auto; display: flex; gap: 10px; font-size: 13.5px; }
+  .note { font-size: 13.5px; color: var(--muted); margin: 0 0 10px; }
+  .scroll { overflow: auto; max-height: calc(100vh - 120px); border: 1px solid var(--line); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  table.cmp { border-collapse: separate; border-spacing: 0; font-size: 13.5px; line-height: 1.6; }
+  table.cmp th, table.cmp td { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 10px; vertical-align: top; text-align: left; }
+  table.cmp thead th { position: sticky; top: 0; z-index: 3; background: var(--chip); width: 270px; min-width: 270px; max-width: 270px; }
+  table.cmp .rh { position: sticky; left: 0; z-index: 2; background: var(--card); width: 170px; min-width: 170px; max-width: 170px; font-weight: 700; }
+  table.cmp thead th.rh { z-index: 4; background: var(--chip); }
+  table.cmp tr.other .rh, table.cmp tr.other td { background: var(--other); }
+  table.cmp .rh small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .qn { font-size: 14.5px; font-weight: 800; }
+  .qn a { font-size: 12px; font-weight: 700; margin-left: 6px; }
+  .qt { font-weight: 700; font-size: 13px; color: var(--muted); }
+  .qtext { font-weight: 400; font-size: 12.5px; color: var(--text); background: var(--card); border-radius: 8px; padding: 6px 8px; margin-top: 6px; white-space: pre-wrap; }
+  .h { margin: 0 0 6px; }
+  .h + .h { border-top: 1px dashed var(--line); padding-top: 6px; }
+  .h b { color: var(--qi); }
+  .yo { display: block; font-size: 12.5px; color: var(--text); margin-top: 2px; }
+  .ps { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+  .ps span { font-size: 11.5px; background: var(--chip); border-radius: 5px; padding: 0 5px; color: var(--muted); }
+  .empty { color: var(--line); }
+  body.no-q .qtext, body.no-yo .yo, body.no-ps .ps { display: none; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); margin: 0 0 8px; }
+  .legend i { display: inline-block; width: 16px; height: 11px; border-radius: 3px; vertical-align: middle; margin-right: 4px; background: var(--other); box-shadow: inset 0 0 0 1px var(--other-line); }
+  @media (max-width: 600px) {
+    .bar { position: static; }
+    table.cmp thead th { width: 230px; min-width: 230px; max-width: 230px; }
+    table.cmp .rh { width: 110px; min-width: 110px; max-width: 110px; }
+    h1 { font-size: 21px; }
+    .bar .links { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ITストラテジスト 午後II</div>
+    <h1>設問イの比較 ― 過去問どうしを横に並べる</h1>
+    <p class="lead">型を選ぶと、その型の過去問の設問イを横に並べます。行は骨子の型ツリーの見出しです。各問題の見出しを、使う部品がいちばん重なる型の見出しの行に入れました。オレンジの行は、型の見出しに入らない「その問題にしかない見出し」です。設問の言葉がどう違い、見出しがどう言い換えられているかを比べます。</p>
+  </header>
+  <div class="bar">
+    <div class="tabs" id="tabs"></div>
+    <div class="modes" id="modes"><button type="button" data-m="align" class="on">型の見出しにそろえる</button><button type="button" data-m="raw">設問の順のまま</button></div>
+    <label><input type="checkbox" id="o-q" checked> 設問イの文</label>
+    <label><input type="checkbox" id="o-yo" checked> 要の1文</label>
+    <label><input type="checkbox" id="o-ps"> 部品</label>
+    <span class="links"><a href="pm2_tree.html">骨子の型ツリー</a><a href="pm2_au.html">アとウの型</a></span>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="scroll" id="out"></div>
+  <p class="note" style="margin-top:10px">「本文」は見本の全文がある問題だけです（見本の全文ページの、その問題を開きます）。見出しと要の1文は見本の骨子（js/data/pm2_model.js）から読み込んでいます。</p>
+</div>
+
+<script src="../js/data/pm2_model.js"></script>
+<script src="../js/data/pm2_gaiyo.js"></script>
+<script src="../js/data/pm2_steps.js"></script>
+<script src="../js/data/pm2/2025r07h_pm2.js"></script>
+<script src="../js/data/pm2/2024r06h_pm2.js"></script>
+<script src="../js/data/pm2/2023r05h_pm2.js"></script>
+<script src="../js/data/pm2/2022r04h_pm2.js"></script>
+<script src="../js/data/pm2/2021r03h_pm2.js"></script>
+<script src="../js/data/pm2/2019r01a_pm2.js"></script>
+<script src="../js/data/pm2/2018h30a_pm2.js"></script>
+<script src="../js/data/pm2/2017h29a_pm2.js"></script>
+<script src="../js/data/pm2/2016h28a_pm2.js"></script>
+<script src="../js/data/pm2/2015h27a_pm2.js"></script>
+<script src="../js/data/pm2/2014h26a_pm2.js"></script>
+<script src="../js/data/pm2/2013h25a_pm2.js"></script>
+<script src="../js/data/pm2/2012h24a_pm2.js"></script>
+<script src="../js/data/pm2/2011h23a_pm2.js"></script>
+<script src="../js/data/pm2/2010h22a_pm2.js"></script>
+<script src="../js/data/pm2/2009h21a_pm2.js"></script>
+<script>
+"use strict";
+var MODEL = window.PM2_MODEL || {}, G = window.PM2_GAIYO || {}, STEPS = window.PM2_STEPS || {}, TEXT = window.PM2_TEXT || {};
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+var QN = {
+  "2025r07h-1": "R7問1 基幹システムの刷新方針", "2025r07h-2": "R7問2 DXの企画策定",
+  "2024r06h-1": "R6問1 新たな情報技術の採用", "2023r05h-1": "R5問1 改修要望の分析と対応方針", "2023r05h-2": "R5問2 システムリスク対応方針",
+  "2022r04h-2": "R4問2 基幹再構築の優先順位", "2021r03h-2": "R3問2 ステークホルダの意見調整",
+  "2019r01a-1": "R1問1 ディジタル技術による業務プロセス", "2018h30a-1": "H30問1 IT戦略の策定",
+  "2017h29a-1": "H29問1 投資効果の検討", "2017h29a-2": "H29問2 目標達成の評価",
+  "2016h28a-2": "H28問2 IT導入の業務分析", "2015h27a-2": "H27問2 緊急要求の優先順位",
+  "2014h26a-1": "H26問1 ITを活用した業務改革", "2014h26a-2": "H26問2 クラウド導入方針",
+  "2013h25a-1": "H25問1 戦略的なデータ活用", "2012h24a-1": "H24問1 ITを活用した事業戦略", "2012h24a-2": "H24問2 事業継続計画",
+  "2011h23a-1": "H23問1 非定型業務の改革", "2011h23a-2": "H23問2 システム選定方針",
+  "2010h22a-1": "H22問1 変化に柔軟な構想", "2010h22a-2": "H22問2 追加開発の業務見直し",
+  "2009h21a-1": "H21問1 個別システム化構想の立案", "2009h21a-2": "H21問2 活用の促進策"
+};
+
+// 型ツリー（summary/pm2_tree.html）の設問イの見出しと部品。型ツリーを直したら、ここも直す（行に割り当てやすいよう、部品を2つ足している）
+var TYPES = [
+  { id: "t3", name: "③ DX・新技術・業務改革", i: [
+    ["2.1 施策（企画したこと・使うIT）", ["施策の全体（イに書く）", "攻め1 需要予測AIによる自動発注", "守り2 データ基盤"]],
+    ["2.2 技術と業務の流れ", ["使う技術", "システムの流れ", "どこで動かすか"]],
+    ["2.3 確かめ方・進め方", ["机上確認", "技術検証", "個別システム化計画", "工夫1 小さく試す"]],
+    ["2.4 特に重要と考えて工夫したこと", ["工夫2 現場の知恵を取り込む"]],
+    ["2.5 効果（数字）", ["投資の数字（12億円・約3年で回収）"]]] },
+  { id: "t4", name: "④ 分析・真因", i: [
+    ["2.1 集めた情報", ["収集した情報"]],
+    ["2.2 分析の方法と結果", ["分析の方法と結果"]],
+    ["2.3 真因", ["特定した問題の真因", "阻害要因（R7問2）"]],
+    ["2.4 解決策", ["対応方針（解決手段）"]],
+    ["2.5 工夫・考慮した制約", ["データの分断"]]] },
+  { id: "t5", name: "⑤ 基幹・刷新・優先順位", i: [
+    ["2.1 方針（2案の比較と選択）", ["刷新方針（2案の比較と選択）", "守り1 基幹システムの刷新"]],
+    ["2.2 刷新の必要性", ["刷新の必要性"]],
+    ["2.3 経営上の有効性", ["経営上の有効性", "守り2 データ基盤"]],
+    ["2.4 優先順位と進め方", ["優先順位の基準", "工夫3 段階的に移す", "移行リスクと対応"]]] },
+  { id: "t6", name: "⑥ リスク・事業継続", i: [
+    ["2.1 インシデントとインパクト", ["インシデントとインパクト", "停止1日の損失額（約2,500万円）"]],
+    ["2.2 予防策", ["予防策"]],
+    ["2.3 発生時対策", ["発生時対策"]],
+    ["2.4 立案に当たり工夫したこと", ["リスクと対策"]]] },
+  { id: "t7", name: "⑦ 評価・投資効果・調整", i: [
+    ["2.1 企画と投資効果", ["攻め1 需要予測AIによる自動発注", "投資の数字（12億円・約3年で回収）", "リスクと対策"]],
+    ["2.2 KPIと目標値・評価のしかた", ["工夫4 数字で効果を見せる", "工夫1 小さく試す"]],
+    ["2.3 結果と課題（評価のとき）", ["実施結果の評価（数字と比較）", "業務面・システム面の課題（H29問2）"]],
+    ["2.4 意見の違いと調整（調整のとき）", ["店舗運営部「AIに任せると欠品」", "商品部「仕入れは商品部の仕事」", "工夫2 現場の知恵を取り込む"]]] }
+];
+
+function qsOf(t) {
+  return Object.keys(G.typeOf || {}).filter(function (k) { return G.typeOf[k] === t && MODEL[k]; }).sort().reverse();
+}
+function qText(k) {
+  var p = k.split("-"), e = TEXT[p[0]];
+  var q = e && (e.questions || []).filter(function (x) { return String(x.no) === p[1]; })[0];
+  return q && q.q ? q.q.i || "" : "";
+}
+// 見出しを、使う部品がいちばん重なる型の見出しに割り当てる（重ならなければ -1）
+function slotOf(type, parts) {
+  var best = -1, bs = 0;
+  type.i.forEach(function (row, j) {
+    var n = parts.filter(function (p) { return row[1].indexOf(p) >= 0; }).length;
+    if (n > bs) { bs = n; best = j; }
+  });
+  return best;
+}
+function cell(hs) {
+  if (!hs.length) return '<span class="empty">－</span>';
+  return hs.map(function (h) {
+    return '<div class="h"><b>' + esc(h[0]) + '</b><span class="yo">' + esc(h[1]) + '</span>' +
+      '<span class="ps">' + (h[2] || []).map(function (p) { return '<span>' + esc(p) + '</span>'; }).join("") + '</span></div>';
+  }).join("");
+}
+
+var cur = "t3", mode = "align";
+function render() {
+  var type = TYPES.filter(function (t) { return t.id === cur; })[0];
+  var qs = qsOf(cur);
+  var head = '<thead><tr><th class="rh">' + (mode === "align" ? "型の見出し" : "") + '</th>' + qs.map(function (k) {
+    var full = STEPS[k] ? '<a href="pm2_models.html#' + k + '" target="_blank" rel="noopener">本文</a>' : '';
+    return '<th><div class="qn">' + esc(QN[k] || k) + full + '</div><div class="qtext">' + esc(qText(k)) + '</div></th>';
+  }).join("") + '</tr></thead>';
+  var body = "";
+  if (mode === "align") {
+    var slots = qs.map(function (k) {
+      var by = type.i.map(function () { return []; }), other = [];
+      MODEL[k].i.forEach(function (h) { var j = slotOf(type, h[2] || []); (j < 0 ? other : by[j]).push(h); });
+      return { by: by, other: other };
+    });
+    body = type.i.map(function (row, j) {
+      return '<tr><td class="rh">' + esc(row[0]) + '<small>' + esc(row[1].join("・")) + '</small></td>' +
+        slots.map(function (s) { return '<td>' + cell(s.by[j]) + '</td>'; }).join("") + '</tr>';
+    }).join("");
+    if (slots.some(function (s) { return s.other.length; }))
+      body += '<tr class="other"><td class="rh">その問題にしかない見出し</td>' + slots.map(function (s) { return '<td>' + cell(s.other) + '</td>'; }).join("") + '</tr>';
+  } else {
+    var n = Math.max.apply(null, qs.map(function (k) { return MODEL[k].i.length; }));
+    for (var r = 0; r < n; r++) {
+      body += '<tr><td class="rh">' + (r + 1) + '番目の見出し</td>' + qs.map(function (k) { var h = MODEL[k].i[r]; return '<td>' + cell(h ? [h] : []) + '</td>'; }).join("") + '</tr>';
+    }
+  }
+  document.getElementById("out").innerHTML = '<table class="cmp">' + head + '<tbody>' + body + '</tbody></table>';
+  document.getElementById("legend").innerHTML = '<span>' + esc(type.name) + '：' + qs.length + '問</span>' +
+    (mode === "align" ? '<span><i></i>型の見出しに入らない、その問題にしかない見出し</span>' : '');
+  Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) { b.classList.toggle("on", b.dataset.t === cur); });
+  Array.prototype.forEach.call(document.querySelectorAll("#modes button"), function (b) { b.classList.toggle("on", b.dataset.m === mode); });
+  try { history.replaceState(null, "", "#" + cur); } catch (e) { /* ignore */ }
+}
+
+document.getElementById("tabs").innerHTML = TYPES.map(function (t) { return '<button type="button" data-t="' + t.id + '">' + esc(t.name) + '</button>'; }).join("");
+document.getElementById("tabs").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { cur = b.dataset.t; render(); } });
+document.getElementById("modes").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { mode = b.dataset.m; render(); } });
+[["o-q", "no-q"], ["o-yo", "no-yo"], ["o-ps", "no-ps"]].forEach(function (x) {
+  var el = document.getElementById(x[0]);
+  function ap() { document.body.classList.toggle(x[1], !el.checked); }
+  el.addEventListener("change", ap); ap();
+});
+var h = location.hash.slice(1);
+if (TYPES.some(function (t) { return t.id === h; })) cur = h;
+render();
+</script>
+</body>
+</html>
