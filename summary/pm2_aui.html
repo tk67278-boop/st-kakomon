@@ -240,7 +240,7 @@ function buildFromAu(doc) {
       rows.forEach(function (r) {
         var q = r[0] + " " + r[1], k = keyOfLabel(r[1]);
         add({ id: "a-c|" + q, sec: "a", grp: "a-c", type: typeOf(r[0]), prompt: q + "：設問アの最後に、取り組むことになったきっかけ（事実と数字）と、担当したことを書く",
-          ans: r[ik] + "。そこで、" + r[it] + "を" + r[iv] + "することになった。私は、情報システム部のシステム企画担当課長として、" + r[it] + "を担当した。",
+          ans: r[ik] + "。そこで、" + r[it] + "を" + r[iv] + "することになった。私は、情報システム部のシステム企画担当課長として、その" + r[iv] + "を担当した。",
           frame: qFrame(k, "a") });
       });
     }
