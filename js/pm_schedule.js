@@ -88,7 +88,7 @@
         ] },
         // 1周した後は、攻め1（需要予測AI）と守り1（基幹刷新）で書ける③④⑤⑥⑦に絞る。
         // 平成21年度〜令和7年度の16回すべてで、問1・問2のどちらかが③④⑤⑦（⑥を足すとR5・H24は2問から選べる）。①②は両方が①②のときの非常用で、型の見分け方だけ
-        { start: "2026-11-16", end: "2026-11-22", goal: "攻め1（需要予測AI）と守り1（基幹刷新）で書ける③④⑤⑥⑦に絞る。1周目の骨子を書き直し、各型で初見骨子をもう1問ずつ解いて、見本の骨格で固める。①②は見分け方だけ（2問とも①②のときの非常用）。11/20からは新しい問題をやらない", tasks: [
+        { start: "2026-11-16", end: "2026-11-22", goal: "③④⑤⑥⑦（需要予測AIと基幹刷新）に絞る。骨子の書き直し → 各型で初見骨子1問 → 見本の骨格で固める。11/20からは新しい問題をやらない", tasks: [
           ["fc-tree2", "todo", "11/16 型ツリーの③④⑤⑥⑦を「型と過去問を並べる」で開き、型の見出しが過去問ごとにどう言い換えられているかを見比べる。見出しと列挙の中身を「隠して覚える」で言う（①②は見分け方の表だけ見る）", "tree"],
           ["fc-redo2", "todo", "11/16 1周目の③④⑤⑥⑦の骨子（R1問1・H25問1・R4問2・H24問2・H29問1）を、AI採点の指摘と見本を見て書き直す。点の低かった型から", "blind"],
           ["bk-2014h26a-1", "bk", "11/16 初見骨子：③DX・業務改革型 平成26年度 問1 → AI採点 → 見本と比べる", "blind:2014h26a-1"],
@@ -185,7 +185,14 @@
       tk[3] ? ' <button type="button" class="linkbtn sch-open" data-exam="' + esc(tk[3][0]) + '" data-no="' + tk[3][1] + '"' + (tk[3][2] ? ' data-tab="' + esc(tk[3][2]) + '"' : '') + '>開く</button>' : '') + '</li>';
   }
 
-  // 今週（今週の課題が済んでいれば次の週）の未完了の課題を、上から TODAY_N 件だけ出す
+  // 課題名の先頭の日付（「11/16 …」）。日付がなければ null
+  function taskDay(tk, year) {
+    var m = String(tk[2]).match(/^(\d{1,2})\/(\d{1,2})/);
+    return m ? new Date(year, +m[1] - 1, +m[2]) : null;
+  }
+  // 今週（今週の課題が済んでいれば次の週）の未完了の課題を出す。
+  // 日付の付いた課題がある週は「今日までの分」だけを出し（前の日の残りには「遅れ」を付ける）、明日の件数を下に出す。
+  // 日付がない週は、上から TODAY_N 件だけ出す
   function todayHtml(mode, plan, records, curIdx, left) {
     if (curIdx < 0 || left < 0) return "";
     var idx = curIdx, w = plan.weeks[idx];
@@ -194,13 +201,33 @@
     while (!rest.length && idx + 1 < plan.weeks.length) { idx++; w = plan.weeks[idx]; rest = undone(w); ahead = true; }
     var total = plan.weeks[curIdx].tasks.length;
     var doneCur = plan.weeks[curIdx].tasks.filter(function (tk) { return isDone(mode, tk, records); }).length;
-    var html = '<div class="card sch-today"><div class="group-head"><h2>' + (ahead ? "次の週の課題" : "今週やること") + '</h2><span class="spacer"></span>' +
+    var t = today(), year = day(w.start).getFullYear();
+    var dated = !ahead && rest.some(function (tk) { return taskDay(tk, year); });
+    var show = rest, late = {}, foot = "";
+    if (dated) {
+      show = rest.filter(function (tk) { var d = taskDay(tk, year); return !d || d <= t; });
+      show.forEach(function (tk) { var d = taskDay(tk, year); if (d && d < t) late[tk[0]] = 1; });
+      var next = rest.filter(function (tk) { var d = taskDay(tk, year); return d && d > t; });
+      if (!show.length && next.length) {
+        // 今日の分が終わったら、次の日の課題を「先に進めるなら」として出す
+        var nd = taskDay(next[0], year);
+        show = next.filter(function (tk) { return taskDay(tk, year).getTime() === nd.getTime(); });
+        foot = "今日の課題はすべて終わりました。上は " + (nd.getMonth() + 1) + "/" + nd.getDate() + " の課題です。";
+      } else if (next.length) {
+        var tm = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1);
+        var nTm = next.filter(function (tk) { return taskDay(tk, year).getTime() === tm.getTime(); }).length;
+        foot = (nTm ? "明日（" + (tm.getMonth() + 1) + "/" + tm.getDate() + "）は " + nTm + " 件。" : "") + "今週の残りは「練習スケジュール」で見られます。";
+      }
+    } else if (rest.length > TODAY_N) {
+      show = rest.slice(0, TODAY_N);
+      foot = "ほかに " + (rest.length - TODAY_N) + " 件。";
+    }
+    var html = '<div class="card sch-today"><div class="group-head"><h2>' + (ahead ? "次の週の課題" : dated ? "今日やること" : "今週やること") + '</h2><span class="spacer"></span>' +
       '<span class="sch-left">' + (left > 0 ? "本番（11/23）まで あと<b>" + left + "</b>日" : "<b>今日が本番</b>") + '</span></div>';
     if (!rest.length) return html + '<p class="sch-today-goal">予定した課題はすべて終わりました。</p></div>';
     html += '<p class="sch-today-goal">' + (ahead ? "今週の課題はすべて終わりました。先に進める場合は " + md(w.start) + "〜の課題です。" : "目標：" + esc(w.goal)) + '</p>' +
-      '<ul class="sch-tasks sch-today-list">' + rest.slice(0, TODAY_N).map(function (tk) { return taskHtml(mode, tk, records); }).join("") + '</ul>' +
-      '<p class="sch-today-foot">上から順に進めてください。' + (ahead ? "" : "今週 " + doneCur + " / " + total + " 完了") +
-      (rest.length > TODAY_N ? "・ほかに " + (rest.length - TODAY_N) + " 件" : "") + '</p></div>';
+      '<ul class="sch-tasks sch-today-list">' + show.map(function (tk) { return taskHtml(mode, tk, records).replace(/^<li class="/, '<li class="' + (late[tk[0]] ? "late " : "")); }).join("") + '</ul>' +
+      '<p class="sch-today-foot">' + (ahead ? "" : "今週 " + doneCur + " / " + total + " 完了。") + foot + '</p></div>';
     return html;
   }
 
@@ -241,7 +268,10 @@
     var allOpen = loadPref(PREF_ALL) === "1";
     var html = '<details class="card sch-card" id="sch-all"' + (allOpen ? " open" : "") + '><summary class="sch-all-sum"><h2>' + plan.title + ' 練習スケジュール（全' + plan.weeks.length + '週）</h2>' +
       '<span class="spacer"></span><span class="sch-all-hint">' + (allOpen ? "閉じる" : "全体を見る") + '</span></summary>';
+    var pastN = curIdx > 0 ? curIdx : 0;
+    if (pastN) html += '<details class="sch-past"><summary>終わった週（第1〜' + pastN + '週）を見る</summary>';
     plan.weeks.forEach(function (w, i) {
+      if (pastN && i === pastN) html += '</details>';
       var done = w.tasks.filter(function (tk) { return isDone(mode, tk, records); }).length;
       var cls = i === curIdx ? " cur" : (curIdx >= 0 && i < curIdx ? " past" : "");
       html += '<details class="sch-week' + cls + '"' + (i === curIdx ? " open" : "") + '>' +

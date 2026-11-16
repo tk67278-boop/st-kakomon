@@ -158,7 +158,12 @@
       if (blindLink) blindLink.hidden = mode !== "pm2"; // 午後IIだけ初見骨子20分（js/pm2blind.js）を表示
       if (window.PmPara) window.PmPara.close();
       if (window.PmBlind) window.PmBlind.close();
+      var more = $("#pm2-more");
+      if (more) more.hidden = mode !== "pm2"; // 午後IIだけ「そのほかの資料・練習」（教科書・論文ガイド・スライド・段落練習・骨子ドリル）を折りたたんで出す
+      var readLabel = $("#pm-read-label");
+      if (readLabel) readLabel.textContent = mode === "pm2" ? "よく使う" : "読む";
       var guide = $("#pm-guide-link");
+      if (guide) guide.hidden = mode === "pm2"; // 午後IIの論文ガイドは「そのほか」に入れた
       if (guide) {
         guide.setAttribute("href", mode === "pm1" ? "summary/pm1_guide.html" : "summary/pm2_guide.html");
         $("#pm-guide-title").textContent = mode === "pm1" ? "解き方ガイド" : "論文ガイド";

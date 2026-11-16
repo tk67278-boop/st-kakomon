@@ -1295,6 +1295,14 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
 .pm-res-link { font-size: 14px; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip); color: var(--text); text-decoration: none; }
 .pm-res-link:hover { border-color: var(--accent); color: var(--accent); }
 #pm-res-tools .pm-res-link { background: var(--accent-soft, var(--chip)); border-color: var(--accent); color: var(--accent); }
+.pm-more { border-top: 1px dashed var(--line); padding-top: 8px; }
+.pm-more[hidden] { display: none; }
+.pm-more > summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--muted); }
+.pm-more[open] > summary { margin-bottom: 8px; }
+.pm-more .pm-res-link { font-size: 13px; padding: 3px 10px; }
+.pm-more #pm-drill:not(:empty) { margin-top: 10px; }
+.sch-today-list li.late > label > span::before { content: "遅れ"; display: inline-block; font-size: 11px; font-weight: 700; color: #fff; background: #d97706; border-radius: 4px; padding: 0 5px; margin-right: 6px; vertical-align: 1px; }
+.sch-past > summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--muted); padding: 4px 0; }
 /* 初見骨子20分（js/pm2blind.js） */
 .pb-progress { font-size: 13.5px; color: var(--muted); font-weight: 700; }
 .pb-steps { margin: 6px 0; padding-left: 1.4em; line-height: 1.7; }
