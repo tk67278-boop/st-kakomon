@@ -53,6 +53,7 @@
   .stat b { display: block; font-size: 18px; color: var(--text); }
   .bar { height: 6px; background: var(--chip); border-radius: 3px; overflow: hidden; margin: 6px 0 2px; }
   .bar i { display: block; height: 100%; background: var(--ok); }
+  small.code { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 2px; }
   .q-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
   .q-tag { font-weight: 800; }
   .q-tag.a { color: var(--qa); } .q-tag.i { color: var(--qi); } .q-tag.u { color: var(--qu); }
@@ -140,6 +141,21 @@ var QS = {
   "2015h27a-2": "H27問2", "2014h26a-1": "H26問1", "2014h26a-2": "H26問2", "2013h25a-1": "H25問1", "2012h24a-1": "H24問1", "2012h24a-2": "H24問2",
   "2011h23a-1": "H23問1", "2011h23a-2": "H23問2", "2010h22a-1": "H22問1", "2010h22a-2": "H22問2", "2009h21a-1": "H21問1", "2009h21a-2": "H21問2"
 };
+// 問題の番号の代わりに出すテーマ（骨子の型ツリー・設問イの比較と同じ言い方）
+var THEME = {
+  "R7問1": "基幹システムの刷新方針", "R7問2": "DXの企画策定", "R6問1": "新たな情報技術の採用", "R5問1": "改修要望の分析と対応方針",
+  "R5問2": "システムリスク対応方針", "R4問2": "基幹再構築の優先順位", "R3問2": "ステークホルダの意見調整", "R1問1": "ディジタル技術による業務プロセス",
+  "H30問1": "IT戦略の策定", "H29問1": "投資効果の検討", "H29問2": "目標達成の評価", "H28問2": "IT導入の業務分析", "H27問2": "緊急要求の優先順位",
+  "H26問1": "ITを活用した業務改革", "H26問2": "クラウド導入方針", "H25問1": "戦略的なデータ活用", "H24問1": "ITを活用した事業戦略", "H24問2": "事業継続計画",
+  "H23問1": "非定型業務の改革", "H23問2": "システム選定方針", "H22問1": "変化に柔軟な構想", "H22問2": "追加開発の業務見直し",
+  "H21問1": "個別システム化構想の立案", "H21問2": "活用の促進策"
+};
+// 問いの文の「③ R7問2」を「『DXの企画策定』（③ R7問2）」にして出す
+function disp(prompt) {
+  return esc(prompt).replace(/([③④⑤⑥⑦]) ((?:R|H)\d{1,2}問\d)( (事業部門|経営層))?/g, function (m, ty, code, x, who) {
+    return THEME[code] ? "「" + THEME[code] + "」" + (who ? "の" + who + "向け" : "") + '<small class="code">（' + ty + " " + code + "）</small>" : m;
+  });
+}
 var GROUPS = {
   a: [["a-kumi", "アの組み方"], ["a-block", "1.1とブロックの文"], ["a-c", "Cの〔 〕"]],
   i: [["i-list", "見出しを順に"], ["i-one", "見出し1つ"]],
@@ -311,7 +327,7 @@ function showCard() {
     fr = '<div class="frame">' + f + '</div>';
   }
   document.getElementById("q-frame").innerHTML = fr;
-  document.getElementById("q-prompt").textContent = c.prompt;
+  document.getElementById("q-prompt").innerHTML = disp(c.prompt);
   var body = document.getElementById("q-body"), nx = document.getElementById("next");
   nx.hidden = true;
   var choices = !c.recallOnly && F.mode === "choice" && c.pool ? pickChoices(c.ans, c.pool) : null;
@@ -345,7 +361,7 @@ function next() {
   if (S.i < S.list.length) { showCard(); window.scrollTo(0, 0); return; }
   document.getElementById("quiz").hidden = true; document.getElementById("result").hidden = false;
   document.getElementById("r-sum").textContent = S.list.length + "問中 " + S.ok + "問できました。";
-  document.getElementById("r-miss").innerHTML = S.miss.length ? '<p class="muted">できなかった問題（もう一度出ます）：</p><ol class="done-list">' + S.miss.map(function (c) { return '<li>' + esc(c.prompt) + '<br><span class="muted">答え：' + esc(c.ans.length > 160 ? c.ans.slice(0, 160) + "…" : c.ans) + '</span></li>'; }).join("") + '</ol>' : "";
+  document.getElementById("r-miss").innerHTML = S.miss.length ? '<p class="muted">できなかった問題（もう一度出ます）：</p><ol class="done-list">' + S.miss.map(function (c) { return '<li>' + disp(c.prompt) + '<br><span class="muted">答え：' + esc(c.ans.length > 160 ? c.ans.slice(0, 160) + "…" : c.ans) + '</span></li>'; }).join("") + '</ol>' : "";
 }
 document.getElementById("next").addEventListener("click", next);
 document.getElementById("start").addEventListener("click", startSession);
