@@ -232,8 +232,27 @@
     var html = '<div class="card sch-today"><div class="group-head"><h2>' + (ahead ? "次の週の課題" : dated ? "今日やること" : "今週やること") + '</h2><span class="spacer"></span>' +
       '<span class="sch-left">' + (left > 0 ? "本番（11/23）まで あと<b>" + left + "</b>日" : "<b>今日が本番</b>") + '</span></div>';
     if (!rest.length) return html + '<p class="sch-today-goal">予定した課題はすべて終わりました。</p></div>';
+    // 見やすくするため、(1) 期間で示す課題（「11/18〜11/21 …」）は次の1問だけ出して残りの数を添え、
+    // (2) 前の日の残り（遅れ）は、閉じた「遅れ n 件」の中にまとめる
+    var isRange = function (tk) { var a = taskDay(tk, year), b = taskEnd(tk, year); return a && b && b.getTime() !== a.getTime(); };
+    var ranges = show.filter(function (tk) { return isRange(tk) && !late[tk[0]]; });
+    var lateList = show.filter(function (tk) { return late[tk[0]]; });
+    var main = show.filter(function (tk) { return !late[tk[0]] && !(isRange(tk) && tk !== ranges[0]); });
+    if (!main.length && lateList.length) { main = lateList; lateList = []; }
+    var li = function (tk) {
+      var h = taskHtml(mode, tk, records).replace(/^<li class="/, '<li class="' + (late[tk[0]] ? "late " : ""));
+      if (ranges.length > 1 && tk === ranges[0]) {
+        var e = taskEnd(tk, year);
+        h = h.replace("</span></label>", '</span><small class="sch-sub">同じ期間の問題が、ほかに ' + (ranges.length - 1) + ' 問（' + (e.getMonth() + 1) + "/" + e.getDate() + "までに）。1問終えると次が出ます</small></label>");
+      }
+      return h;
+    };
+    var hasDrill = lateList.some(function (tk) { return /^aui/.test(String(tk[3] || "")); });
     html += '<p class="sch-today-goal">' + (ahead ? "今週の課題はすべて終わりました。先に進める場合は " + md(w.start) + "〜の課題です。" : "目標：" + esc(w.goal)) + '</p>' +
-      '<ul class="sch-tasks sch-today-list">' + show.map(function (tk) { return taskHtml(mode, tk, records).replace(/^<li class="/, '<li class="' + (late[tk[0]] ? "late " : "")); }).join("") + '</ul>' +
+      '<ul class="sch-tasks sch-today-list">' + main.map(li).join("") + '</ul>' +
+      (lateList.length ? '<details class="sch-late"><summary>前の日の残り（遅れ）' + lateList.length + ' 件' +
+        (hasDrill ? '<span>：暗記ドリルの分は、11/19の「まだ覚えていないもの（すべて）」でまとめてやれます</span>' : '') + '</summary>' +
+        '<ul class="sch-tasks sch-today-list">' + lateList.map(li).join("") + '</ul></details>' : '') +
       '<p class="sch-today-foot">' + (ahead ? "" : "今週 " + doneCur + " / " + total + " 完了。") + foot + '</p></div>';
     return html;
   }
