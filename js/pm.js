@@ -18,7 +18,18 @@
   var STATUS_LABEL = { todo: "未着手", done: "演習済", review: "要復習" };
 
   var currentMode = "am2"; // "am2" | "pm1" | "pm2"
-  var filters = { industry: "all", theme: "all", status: "all" };
+  var filters = { industry: "all", theme: "all", type: "all", status: "all" };
+  // 午後IIの型（型ツリーの①〜⑦）。概要欄の型（PM2_GAIYO.typeOf）と同じだが、R1問2は型ツリーどおり②にする
+  function pm2TypeOf(examId, no) {
+    var k = examId + "-" + no;
+    if (k === "2019r01a-2") return "t2";
+    var g = window.PM2_GAIYO;
+    return (g && g.typeOf && g.typeOf[k]) || "";
+  }
+  function pm2TypeName(t) {
+    var g = window.PM2_GAIYO;
+    return (g && g.types && g.types[t] && g.types[t].name) || t;
+  }
 
   /* ---------- ユーティリティ ---------- */
   function escapeHtml(s) {
@@ -128,7 +139,7 @@
       $("#mode-pm").hidden = false;
       $("#mode-terms").hidden = true;
       $("#mode-textbook").hidden = true;
-      filters = { industry: "all", theme: "all", status: "all" };
+      filters = { industry: "all", theme: "all", type: "all", status: "all" };
       $("#pm-heading").textContent = mode === "pm1" ? "午後I 過去問" : "午後II 過去問";
       // 解き方ガイド（summary/ の1ページ資料）へのリンクを午後I・IIで切り替える
       var caseLink = $("#pm-case-link");
@@ -211,6 +222,9 @@
       '<label class="opt">テーマ <select id="pm-f-theme"><option value="all">すべて</option>' +
       themes.map(function (v) { return '<option value="' + escapeAttr(v) + '">' + escapeHtml(v) + '</option>'; }).join("") +
       '</select></label>' +
+      (mode === "pm2" && window.PM2_GAIYO ? '<label class="opt">型 <select id="pm-f-type"><option value="all">すべて</option>' +
+        ["t1", "t2", "t3", "t4", "t5", "t6", "t7"].map(function (t) { return '<option value="' + t + '">' + escapeHtml(pm2TypeName(t)) + '</option>'; }).join("") +
+        '<option value="none">型なし（組込みなど）</option></select></label>' : "") +
       '<label class="opt">状態 <select id="pm-f-status"><option value="all">すべて</option>' +
       '<option value="todo">未着手</option><option value="done">演習済</option><option value="review">要復習</option>' +
       '</select></label>';
@@ -218,6 +232,10 @@
     $("#pm-f-industry").value = filters.industry;
     $("#pm-f-theme").value = filters.theme;
     $("#pm-f-status").value = filters.status;
+    if ($("#pm-f-type")) {
+      $("#pm-f-type").value = filters.type;
+      $("#pm-f-type").addEventListener("change", function () { filters.type = this.value; renderList(); });
+    }
 
     $("#pm-f-industry").addEventListener("change", function () { filters.industry = this.value; renderList(); });
     $("#pm-f-theme").addEventListener("change", function () { filters.theme = this.value; renderList(); });
@@ -233,6 +251,10 @@
       var tg = it.q.tags || {};
       if (filters.industry !== "all" && tg.industry !== filters.industry) return false;
       if (filters.theme !== "all" && tg.theme !== filters.theme) return false;
+      if (currentMode === "pm2" && filters.type !== "all") {
+        var ty = pm2TypeOf(it.exam.examId, it.q.no);
+        if (filters.type === "none" ? ty : ty !== filters.type) return false;
+      }
       if (filters.status !== "all" && statusOf(records, it.key) !== filters.status) return false;
       return true;
     });
@@ -259,7 +281,7 @@
     // 開いている試験回を端末に記憶（初回は未完了の問題がある最新の試験回だけ開く）
     var openKey = "st_pm_open_" + currentMode, openSet = null;
     try { openSet = JSON.parse(localStorage.getItem(openKey)); } catch (e) { openSet = null; }
-    var filtering = filters.industry !== "all" || filters.theme !== "all" || filters.status !== "all";
+    var filtering = filters.industry !== "all" || filters.theme !== "all" || (currentMode === "pm2" && filters.type !== "all") || filters.status !== "all";
     if (!openSet) {
       openSet = {};
       for (var oi = 0; oi < examOrder.length; oi++) {
@@ -367,6 +389,7 @@
       '<div class="pm-row-tags">' +
       (tg.industry ? '<span class="pm-tag">' + escapeHtml(tg.industry) + "</span>" : "") +
       (tg.theme ? '<span class="pm-tag">' + escapeHtml(tg.theme) + "</span>" : "") +
+      (currentMode === "pm2" && pm2TypeOf(it.exam.examId, q.no) ? '<span class="pm-tag pm-tag-type">' + escapeHtml(pm2TypeName(pm2TypeOf(it.exam.examId, q.no)).replace(/（.*$/, "")) + "</span>" : "") +
       "</div>" +
       // 次に向けたポイントは折りたたんで件数だけ出す（行の高さを揃えて一覧を見やすく保つ）
       (rec && rec.next && rec.next.length ? '<details class="pm-row-next"><summary>次に向けたポイント（' + rec.next.length + '）</summary><ol>' +
