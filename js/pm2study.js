@@ -1546,7 +1546,7 @@
     lines.push("2. 出題趣旨とのギャップ（出題趣旨が求める観点に対し、論文で不足している点）" + (q.kouhyo ? "と、採点講評が指摘する失点の傾向（例：「表面的な内容にとどまる」「システム開発の論述に終始」など）に当てはまる箇所" : ""));
     lines.push("3. 改善点（具体的に）");
     lines.push("4. 設問ア・イ・ウそれぞれの改善リライト例（設問ごとに、指定の字数の範囲で全文を書き直したもの。私の論文の事例と数字、見出しの番号（1.1など）はそのまま使い、足りない観点を補ってください）。" +
-      "アプリが設問ごとに読み取って私の論文と横に並べるので、各リライト例は、1行目に「【リライト例：設問ア】」（設問イ・ウも同じ形）とだけ書いて始め、最後に「【リライト例ここまで】」とだけ書いた行で終えてください");
+      "アプリが設問ごとに読み取って私の論文と横に並べるので、各リライト例は、1行目に「【リライト例：設問ア】」（設問イ・ウも同じ形）とだけ書いて始め、最後に「【リライト例ここまで】」とだけ書いた行で終えてください。目印の間には論文の本文だけを書き、字数や説明のコメントは目印の外に書いてください");
     if (gl.length) lines.push("5. 概要欄（15項目）と本文の矛盾（名称と本文の内容、総額や期間と本文の数字、立場や役割と本文の記述など）。問題冊子には、項目に適切に答えていない場合や項目間に矛盾がある場合は減点するとある");
     lines.push("");
     lines.push("全体のまとめとして、見出し「次に向けたポイント」の下に、次の論文で意識すべきことを3つ、箇条書き（1行1項目）で出力してください。");
@@ -1638,18 +1638,29 @@
   // AI採点結果から設問ごとのリライト例を取り出す。
   // 今の依頼文は「【リライト例：設問ア】〜【リライト例ここまで】」で囲ませる。以前の依頼文（設問イだけ）の結果は見出しから読む
   function rwBody(l) { return String(l).replace(/^\s*>\s?/, "").replace(/\*\*|__/g, "").replace(/^\s*#{1,6}\s*/, ""); }
+  var RW_HR = /^\s*([-*_])(\s*\1){2,}\s*$/;
+  // AIが本文の前後に付けたコメント（「約1,175字です。…」「※…」など）を外す。
+  // 本文は設問の見出し番号（アは1.1、イは2.1、ウは3.1）の行から始まるので、それより前を捨てる
+  function rwTrim(t, k) {
+    var lines = String(t).split("\n"), n = { a: "1", i: "2", u: "3" }[k];
+    var start = -1;
+    for (var j = 0; j < lines.length; j++) if (new RegExp("^\\s*" + n + "[.．]\\d").test(lines[j])) { start = j; break; }
+    if (start > 0) lines = lines.slice(start);
+    while (lines.length && (!lines[lines.length - 1].trim() || /^\s*(※|[（(]|約?[\d,，]+字)|字数/.test(lines[lines.length - 1]))) lines.pop();
+    return lines.join("\n");
+  }
   function rewritesFrom(text) {
     var lines = String(text || "").replace(/\r\n?/g, "\n").split("\n");
     var out = {}, cur = null, inRw = false, buf = [];
     function flush() {
-      if (cur) { var t = buf.join("\n").replace(/^\s+|\s+$/g, ""); if (t && !out[cur]) out[cur] = t; }
+      if (cur) { var t = rwTrim(buf.join("\n"), cur).replace(/^\s+|\s+$/g, ""); if (t && !out[cur]) out[cur] = t; }
       cur = null; buf = [];
     }
     // 1) 目印「【リライト例：設問ア】〜【リライト例ここまで】」
     lines.forEach(function (l) {
       var c = rwPlain(l), m = /^【リライト例[:：]?\s*設問([アイウ])】$/.exec(c);
       if (m) { flush(); cur = KANA_KEY[m[1]]; return; }
-      if (cur && (/^【リライト例ここまで】$/.test(c) || /^評価一覧/.test(c) ||
+      if (cur && (/^【リライト例ここまで】$/.test(c) || /^評価一覧/.test(c) || RW_HR.test(l) ||
           (rwIsHead(l) && (/次に向けたポイント|概要欄/.test(c) || /^\d+[.．)）](?!\d)/.test(c))))) { flush(); return; } // 終わりの目印が抜けたとき
       if (cur) buf.push(rwBody(l));
     });
@@ -1658,7 +1669,7 @@
     // 2) 目印が無い結果: 「リライト」を含む見出しから、次の大きな見出しまで
     lines.forEach(function (l) {
       var c = rwPlain(l);
-      if (/^評価一覧/.test(c)) { flush(); inRw = false; return; }
+      if (/^評価一覧/.test(c) || (cur && RW_HR.test(l))) { flush(); inRw = false; return; }
       if (rwIsHead(l)) {
         var m = /設問([アイウ])/.exec(c);
         if (/リライト|書き直し/.test(c)) { flush(); inRw = true; cur = m ? KANA_KEY[m[1]] : null; return; }
