@@ -911,12 +911,19 @@
     }
     return { cls: "ok", text: len + " / " + limit.max + " 字（適合）" };
   }
+  // 本番の字数の数え方（見出し・改行・空白を含めるか）はIPAから公表されていないので、少なめに数える。
+  // 改行は数えない。見出し（「2.1 〜」の行）は数えるが、見出しを除いた字数も並べて出す
+  function bodyLen(s) { return charLen(String(s || "").replace(/[\r\n]/g, "")); }
+  function headLen(s) {
+    return String(s || "").split(/\r?\n/).filter(function (l) { return /^\s*\d\.\d+[ 　]/.test(l) && l.length <= 40; })
+      .reduce(function (a, l) { return a + charLen(l); }, 0);
+  }
   function updateCounter(k) {
     var counter = $("#pm2-count-" + k);
     if (!counter || !state.essayLive) return;
-    var len = charLen(state.essayLive[k]);
+    var text = state.essayLive[k], len = bodyLen(text), h = headLen(text);
     var r = classifyCount(len, LIMITS[k]);
-    counter.textContent = r.text;
+    counter.textContent = r.text + (h ? "・見出しを除くと " + (len - h) + "字" : "");
     counter.className = "pm2-count " + r.cls;
   }
 
