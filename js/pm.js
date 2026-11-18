@@ -19,16 +19,25 @@
 
   var currentMode = "am2"; // "am2" | "pm1" | "pm2"
   var filters = { industry: "all", theme: "all", type: "all", status: "all" };
-  // 午後IIの型（型ツリーの①〜⑦）。概要欄の型（PM2_GAIYO.typeOf）と同じだが、R1問2は型ツリーどおり②にする
+  // 午後IIの型（骨子ツリー summary/pm2_tree.html の①〜⑦と同じ割り当て）。
+  // pm.js はデータより先に読み込まれるので、ここに直接持つ
+  var PM2_TYPES = [
+    ["t1", "① 新サービス・顧客型", ["2022r04h-1", "2021r03h-1", "2018h30a-2", "2016h28a-1"]],
+    ["t2", "② ビジネスモデル型", ["2024r06h-2", "2019r01a-2", "2013h25a-2"]],
+    ["t3", "③ DX・新技術・業務改革型", ["2025r07h-2", "2024r06h-1", "2019r01a-1", "2018h30a-1", "2014h26a-1", "2012h24a-1", "2011h23a-1", "2009h21a-1"]],
+    ["t4", "④ 分析・真因型", ["2023r05h-1", "2016h28a-2", "2013h25a-1", "2010h22a-2", "2009h21a-2"]],
+    ["t5", "⑤ 基幹・刷新・優先順位型", ["2025r07h-1", "2022r04h-2", "2015h27a-2", "2014h26a-2", "2011h23a-2", "2010h22a-1"]],
+    ["t6", "⑥ リスク・事業継続型", ["2023r05h-2", "2012h24a-2"]],
+    ["t7", "⑦ 評価・投資効果・調整型", ["2017h29a-1", "2017h29a-2", "2021r03h-2"]]
+  ];
   function pm2TypeOf(examId, no) {
     var k = examId + "-" + no;
-    if (k === "2019r01a-2") return "t2";
-    var g = window.PM2_GAIYO;
-    return (g && g.typeOf && g.typeOf[k]) || "";
+    for (var i = 0; i < PM2_TYPES.length; i++) if (PM2_TYPES[i][2].indexOf(k) >= 0) return PM2_TYPES[i][0];
+    return "";
   }
   function pm2TypeName(t) {
-    var g = window.PM2_GAIYO;
-    return (g && g.types && g.types[t] && g.types[t].name) || t;
+    for (var i = 0; i < PM2_TYPES.length; i++) if (PM2_TYPES[i][0] === t) return PM2_TYPES[i][1];
+    return t;
   }
 
   /* ---------- ユーティリティ ---------- */
@@ -216,15 +225,15 @@
 
     var el = $("#pm-filters");
     el.innerHTML =
+      (mode === "pm2" ? '<label class="opt">骨子ツリーの型 <select id="pm-f-type"><option value="all">すべて</option>' +
+        PM2_TYPES.map(function (t) { return '<option value="' + t[0] + '">' + escapeHtml(t[1]) + '（' + t[2].length + '問）</option>'; }).join("") +
+        '<option value="none">型なし（組込みなど）</option></select></label>' : "") +
       '<label class="opt">業種 <select id="pm-f-industry"><option value="all">すべて</option>' +
       industries.map(function (v) { return '<option value="' + escapeAttr(v) + '">' + escapeHtml(v) + '</option>'; }).join("") +
       '</select></label>' +
       '<label class="opt">テーマ <select id="pm-f-theme"><option value="all">すべて</option>' +
       themes.map(function (v) { return '<option value="' + escapeAttr(v) + '">' + escapeHtml(v) + '</option>'; }).join("") +
       '</select></label>' +
-      (mode === "pm2" && window.PM2_GAIYO ? '<label class="opt">型 <select id="pm-f-type"><option value="all">すべて</option>' +
-        ["t1", "t2", "t3", "t4", "t5", "t6", "t7"].map(function (t) { return '<option value="' + t + '">' + escapeHtml(pm2TypeName(t)) + '</option>'; }).join("") +
-        '<option value="none">型なし（組込みなど）</option></select></label>' : "") +
       '<label class="opt">状態 <select id="pm-f-status"><option value="all">すべて</option>' +
       '<option value="todo">未着手</option><option value="done">演習済</option><option value="review">要復習</option>' +
       '</select></label>';
@@ -389,7 +398,7 @@
       '<div class="pm-row-tags">' +
       (tg.industry ? '<span class="pm-tag">' + escapeHtml(tg.industry) + "</span>" : "") +
       (tg.theme ? '<span class="pm-tag">' + escapeHtml(tg.theme) + "</span>" : "") +
-      (currentMode === "pm2" && pm2TypeOf(it.exam.examId, q.no) ? '<span class="pm-tag pm-tag-type">' + escapeHtml(pm2TypeName(pm2TypeOf(it.exam.examId, q.no)).replace(/（.*$/, "")) + "</span>" : "") +
+      (currentMode === "pm2" && pm2TypeOf(it.exam.examId, q.no) ? '<span class="pm-tag pm-tag-type">' + escapeHtml(pm2TypeName(pm2TypeOf(it.exam.examId, q.no))) + "</span>" : "") +
       "</div>" +
       // 次に向けたポイントは折りたたんで件数だけ出す（行の高さを揃えて一覧を見やすく保つ）
       (rec && rec.next && rec.next.length ? '<details class="pm-row-next"><summary>次に向けたポイント（' + rec.next.length + '）</summary><ol>' +
