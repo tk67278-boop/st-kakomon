@@ -918,6 +918,19 @@
     return String(s || "").split(/\r?\n/).filter(function (l) { return /^\s*\d\.\d+[ 　]/.test(l) && l.length <= 40; })
       .reduce(function (a, l) { return a + charLen(l); }, 0);
   }
+  // 論文を読むだけの表示（書き直しは始めない）。版一覧の「読む」と振り返りタブで使う
+  function essayViewHtml(v) {
+    return '<div class="pm2-essay-view">' + KEY_ORDER.map(function (k) {
+      var text = (v && v[k]) || "", len = bodyLen(text), h = headLen(text);
+      var r = classifyCount(len, LIMITS[k]);
+      return '<section class="pm2-ev-sec">' +
+        '<div class="pm2-ev-head"><b>' + KANA_LABEL[k] + '</b><span class="pm2-ev-limit">（' + escapeHtml(LIMITS[k].label) + '）</span>' +
+          '<span class="pm2-count ' + r.cls + '">' + escapeHtml(r.text + (h ? "・見出しを除くと " + (len - h) + "字" : "")) + '</span></div>' +
+        (trimStr(text) ? '<div class="pm2-ev-text">' + escapeHtml(text) + '</div>' : '<p class="pm-empty">（未入力）</p>') +
+      '</section>';
+    }).join("") + '</div>';
+  }
+
   function updateCounter(k) {
     var counter = $("#pm2-count-" + k);
     if (!counter || !state.essayLive) return;
@@ -1090,7 +1103,7 @@
         '</div>' +
         '<div class="card">' +
           '<div class="group-head"><h2>保存した版（最新5件）</h2></div>' +
-          '<p class="stats-note">「開く」で過去の版を読み込み、続きから書き直せます（タイマーは120分に戻ります）。</p>' +
+          '<p class="stats-note">「読む」で本文を表示します。「書き直す」はその版を読み込んで、続きから書き直します（タイマーは120分に戻ります）。</p>' +
           '<div id="pm2-essay-versions"></div>' +
         '</div>';
       $("#pm2-to-review").addEventListener("click", function () { switchTab("review"); });
@@ -1420,12 +1433,27 @@
           '<span class="pm2-version-date">' + escapeHtml(fmtDateTime(v.t)) + '</span>' +
           '<span class="pm2-version-meta">計' + total + '字・経過' + escapeHtml(fmtElapsed(v.sec)) + '</span>' +
           '<span class="pm2-version-actions">' +
-            '<button type="button" class="linkbtn pm2-btn-essay-open" data-idx="' + idx + '">開く</button>' +
+            '<button type="button" class="linkbtn pm2-btn-essay-read" data-idx="' + idx + '" aria-expanded="false">読む</button>' +
+            '<button type="button" class="linkbtn pm2-btn-essay-open" data-idx="' + idx + '" title="この版を読み込んで書き直します">' + (writeSubmitted() ? '書き直す' : '開く') + '</button>' +
             '<button type="button" class="linkbtn danger pm2-btn-essay-del" data-idx="' + idx + '">削除</button>' +
           '</span>' +
+          '<div class="pm2-version-view" hidden></div>' +
         '</li>';
       }).join("") +
       '</ul>';
+
+    $all(el, ".pm2-btn-essay-read").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var v = state.doc.essay.versions[parseInt(btn.dataset.idx, 10)];
+        var box = btn.closest(".pm2-version-row").querySelector(".pm2-version-view");
+        if (!v || !box) return;
+        var open = box.hidden;
+        box.innerHTML = open ? essayViewHtml(v) : "";
+        box.hidden = !open;
+        btn.textContent = open ? "閉じる" : "読む";
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    });
 
     $all(el, ".pm2-btn-essay-open").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -1596,6 +1624,13 @@
     });
   }
 
+  // 振り返りに出す論文の見出し（AI添削依頼文に入るものと同じ論文）
+  function reviewEssayTitle(essay) {
+    var vs = state.doc.essay.versions || [];
+    if (vs.length && essay === vs[0]) return "論文（" + fmtDateTime(essay.t) + " に脱稿した版）";
+    return "論文（書きかけ）";
+  }
+
   function renderReviewTab(body) {
     var items = state.doc.check.items || {};
     var essay = getLatestEssayForPrompt();
@@ -1620,6 +1655,11 @@
           }).join("") +
         '</ul>' +
       '</div>' +
+      (essay ? '<div class="card">' +
+        '<details class="pm2-rv-essay" open><summary><h2>' + escapeHtml(reviewEssayTitle(essay)) + '</h2></summary>' +
+          essayViewHtml(essay) +
+        '</details>' +
+      '</div>' : '') +
       '</div><div class="pm2-rv-right">' +
       '<div class="card">' +
         '<div class="group-head"><h2>AI添削</h2></div>' +

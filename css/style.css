@@ -619,6 +619,19 @@ table.r-cats td.num { text-align: right; white-space: nowrap; }
 .pm2-version-date { font-size: 13px; font-weight: 600; }
 .pm2-version-meta { font-size: 12.5px; color: var(--muted); }
 .pm2-version-actions { margin-left: auto; display: flex; gap: 4px; }
+.pm2-version-view { flex-basis: 100%; }
+
+/* 論文を読むだけの表示（版一覧の「読む」・振り返りタブ） */
+.pm2-essay-view { display: flex; flex-direction: column; gap: 14px; margin-top: 6px; }
+.pm2-ev-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; margin-bottom: 6px; font-size: 14px; }
+.pm2-ev-limit { font-size: 12.5px; color: var(--muted); }
+.pm2-ev-head .pm2-count { margin: 0 0 0 auto; font-size: 12.5px; }
+.pm2-ev-text {
+  white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14.5px; line-height: 1.85;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--chip);
+}
+.pm2-rv-essay > summary { cursor: pointer; list-style-position: inside; }
+.pm2-rv-essay > summary h2 { display: inline; margin: 0; }
 
 .pm2-checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .pm2-check-row {
