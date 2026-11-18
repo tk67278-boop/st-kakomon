@@ -1545,7 +1545,8 @@
     lines.push("1. 設問ア・イ・ウそれぞれについての評価（A〜D）と、その根拠");
     lines.push("2. 出題趣旨とのギャップ（出題趣旨が求める観点に対し、論文で不足している点）" + (q.kouhyo ? "と、採点講評が指摘する失点の傾向（例：「表面的な内容にとどまる」「システム開発の論述に終始」など）に当てはまる箇所" : ""));
     lines.push("3. 改善点（具体的に）");
-    lines.push("4. 設問イの改善リライト例");
+    lines.push("4. 設問ア・イ・ウそれぞれの改善リライト例（設問ごとに、指定の字数の範囲で全文を書き直したもの。私の論文の事例と数字、見出しの番号（1.1など）はそのまま使い、足りない観点を補ってください）。" +
+      "アプリが設問ごとに読み取って私の論文と横に並べるので、各リライト例は、1行目に「【リライト例：設問ア】」（設問イ・ウも同じ形）とだけ書いて始め、最後に「【リライト例ここまで】」とだけ書いた行で終えてください");
     if (gl.length) lines.push("5. 概要欄（15項目）と本文の矛盾（名称と本文の内容、総額や期間と本文の数字、立場や役割と本文の記述など）。問題冊子には、項目に適切に答えていない場合や項目間に矛盾がある場合は減点するとある");
     lines.push("");
     lines.push("全体のまとめとして、見出し「次に向けたポイント」の下に、次の論文で意識すべきことを3つ、箇条書き（1行1項目）で出力してください。");
@@ -1624,6 +1625,83 @@
     });
   }
 
+  /* ---------- 設問ごとの比較（自分の論文とAIの改善リライト例を横に並べる） ---------- */
+  var KANA_KEY = { "ア": "a", "イ": "i", "ウ": "u" };
+  function rwPlain(l) { return String(l).replace(/^\s*(#{1,6}|>)\s*/, "").replace(/\*\*|__/g, "").trim(); }
+  // 見出しらしい行（Markdownの見出し・行全体の太字・【】・「4.」や「設問イ」で始まる短い行）
+  function rwIsHead(l) {
+    var c = rwPlain(l);
+    if (!c) return false;
+    if (/^\s*#{1,6}\s/.test(l) || /^\s*\*\*[^*]+\*\*[:：]?\s*$/.test(l) || /^【[^】]*】$/.test(c)) return true;
+    return c.length <= 40 && !/[。]$/.test(c) && (/^\d+[.．)）](?!\d)/.test(c) || /^設問[アイウ]/.test(c));
+  }
+  // AI採点結果から設問ごとのリライト例を取り出す。
+  // 今の依頼文は「【リライト例：設問ア】〜【リライト例ここまで】」で囲ませる。以前の依頼文（設問イだけ）の結果は見出しから読む
+  function rwBody(l) { return String(l).replace(/^\s*>\s?/, "").replace(/\*\*|__/g, "").replace(/^\s*#{1,6}\s*/, ""); }
+  function rewritesFrom(text) {
+    var lines = String(text || "").replace(/\r\n?/g, "\n").split("\n");
+    var out = {}, cur = null, inRw = false, buf = [];
+    function flush() {
+      if (cur) { var t = buf.join("\n").replace(/^\s+|\s+$/g, ""); if (t && !out[cur]) out[cur] = t; }
+      cur = null; buf = [];
+    }
+    // 1) 目印「【リライト例：設問ア】〜【リライト例ここまで】」
+    lines.forEach(function (l) {
+      var c = rwPlain(l), m = /^【リライト例[:：]?\s*設問([アイウ])】$/.exec(c);
+      if (m) { flush(); cur = KANA_KEY[m[1]]; return; }
+      if (cur && (/^【リライト例ここまで】$/.test(c) || /^評価一覧/.test(c) ||
+          (rwIsHead(l) && (/次に向けたポイント|概要欄/.test(c) || /^\d+[.．)）](?!\d)/.test(c))))) { flush(); return; } // 終わりの目印が抜けたとき
+      if (cur) buf.push(rwBody(l));
+    });
+    flush();
+    if (Object.keys(out).length) return out;
+    // 2) 目印が無い結果: 「リライト」を含む見出しから、次の大きな見出しまで
+    lines.forEach(function (l) {
+      var c = rwPlain(l);
+      if (/^評価一覧/.test(c)) { flush(); inRw = false; return; }
+      if (rwIsHead(l)) {
+        var m = /設問([アイウ])/.exec(c);
+        if (/リライト|書き直し/.test(c)) { flush(); inRw = true; cur = m ? KANA_KEY[m[1]] : null; return; }
+        if (inRw && m && c.indexOf("設問") === 0 && c.length <= 20) { flush(); cur = KANA_KEY[m[1]]; return; }
+        if (inRw && (/^\d+[.．)）](?!\d)/.test(c) || /次に向けたポイント|概要欄|評価一覧/.test(c))) { flush(); inRw = false; return; }
+      }
+      if (cur) buf.push(rwBody(l));
+    });
+    flush();
+    return out;
+  }
+  function compareInnerHtml(essay) {
+    var rw = rewritesFrom(state.doc.check.ai);
+    var k = state.rvCmpKey;
+    if (!k) { k = KEY_ORDER.filter(function (x) { return rw[x]; })[0] || "a"; }
+    function col(title, text, empty) {
+      var len = bodyLen(text), r = classifyCount(len, LIMITS[k]);
+      return '<section><div class="pm2-ev-head"><b>' + title + '</b>' +
+        (trimStr(text) ? '<span class="pm2-count ' + r.cls + '">' + escapeHtml(r.text) + '</span>' : '') + '</div>' +
+        (trimStr(text) ? '<div class="pm2-ev-text">' + escapeHtml(text) + '</div>' : '<p class="pm-empty">' + empty + '</p>') +
+        '</section>';
+    }
+    var noAi = !trimStr(state.doc.check.ai);
+    return '<div class="pm2-cmp-tabs">' + KEY_ORDER.map(function (x) {
+        return '<button type="button" class="pm2-cmp-btn' + (x === k ? ' active' : '') + '" data-k="' + x + '">' + KANA_LABEL[x] +
+          (rw[x] ? '' : '<small>（例なし）</small>') + '</button>';
+      }).join("") + '<span class="pm2-ev-limit">' + escapeHtml(LIMITS[k].label) + '</span></div>' +
+      '<div class="pm2-cmp-grid">' +
+        col("自分の論文", essay[k], "（未入力）") +
+        col("AIの改善リライト例", rw[k] || "", noAi
+          ? "AI採点結果を右上の欄に貼り付けると、ここに並びます。"
+          : "AI採点結果に" + KANA_LABEL[k] + "のリライト例が見つかりません。以前の依頼文は設問イだけを頼んでいました。今の「AI添削依頼文をコピー」でAI採点し直すと、設問ア・イ・ウすべてのリライト例が付きます。") +
+      '</div>';
+  }
+  function updateCompare(essay) {
+    var box = $("#pm2-cmp-box");
+    if (!box || !essay) return;
+    box.innerHTML = compareInnerHtml(essay);
+    $all(box, ".pm2-cmp-btn").forEach(function (b) {
+      b.addEventListener("click", function () { state.rvCmpKey = b.dataset.k; updateCompare(essay); });
+    });
+  }
+
   // 振り返りに出す論文の見出し（AI添削依頼文に入るものと同じ論文）
   function reviewEssayTitle(essay) {
     var vs = state.doc.essay.versions || [];
@@ -1671,7 +1749,11 @@
         '<label class="pm2-field-label">AI採点結果の貼り付け欄</label>' +
         '<textarea class="pm2-ai-result" id="pm2-ai-result" rows="12" placeholder="AIから返ってきた採点結果をここに貼り付けて保存できます"></textarea>' +
       '</div>' +
-      '</div></div>';
+      '</div></div>' +
+      (essay ? '<div class="card">' +
+        '<div class="group-head"><h2>設問ごとの比較（自分の論文とAIのリライト例）</h2></div>' +
+        '<div id="pm2-cmp-box"></div>' +
+      '</div>' : '');
 
     $all(body, ".pm2-check-box").forEach(function (cb) {
       cb.addEventListener("change", function () {
@@ -1705,9 +1787,11 @@
 
     var aiTa = $("#pm2-ai-result");
     aiTa.value = state.doc.check.ai || "";
-    aiTa.addEventListener("input", function () { state.doc.check.ai = aiTa.value; updateEvalTable(); });
+    updateCompare(essay);
+    aiTa.addEventListener("input", function () { state.doc.check.ai = aiTa.value; updateEvalTable(); updateCompare(essay); });
     aiTa.addEventListener("change", function () {
       state.doc.check.ai = aiTa.value;
+      updateCompare(essay);
       state.doc.check.t = Date.now();
       saveDoc();
     });
