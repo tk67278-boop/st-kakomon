@@ -161,10 +161,8 @@
       if (iLink) iLink.hidden = mode !== "pm2"; // 午後IIだけ「設問イの比較」（summary/pm2_i.html）を表示
       var auLink = $("#pm-au-link");
       if (auLink) auLink.hidden = mode !== "pm2"; // 午後IIだけ「設問アとウの型」（summary/pm2_au.html）を表示
-      var words3Link = $("#pm-words3-link");
-      if (words3Link) words3Link.hidden = mode !== "pm2"; // 午後IIだけ「③の設問の言葉」（summary/pm2_words3.html）を表示
-      var words457Link = $("#pm-words457-link");
-      if (words457Link) words457Link.hidden = mode !== "pm2";
+      var wordsLink = $("#pm-words-link");
+      if (wordsLink) wordsLink.hidden = mode !== "pm2"; // 午後IIだけ「設問の言葉」（summary/pm2_words.html）を表示
       var wbsLink = $("#pm-wbs-link");
       if (wbsLink) wbsLink.hidden = mode !== "pm2"; // 午後IIだけ「概要欄とWBS」（summary/pm2_wbs.html）を表示
       var slidesLink = $("#pm-slides-link");
