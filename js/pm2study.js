@@ -32,6 +32,7 @@
     { id: "outline", label: "骨子" },
     { id: "write", label: "執筆" },
     { id: "review", label: "振り返り" },
+    { id: "compare", label: "比較" },
     { id: "material", label: "資料" }
   ];
 
@@ -1700,7 +1701,7 @@
       '<div class="pm2-cmp-grid">' +
         col("自分の論文", essay[k], "（未入力）") +
         col("AIの改善リライト例", rw[k] || "", noAi
-          ? "AI採点結果を右上の欄に貼り付けると、ここに並びます。"
+          ? "振り返りタブの貼り付け欄にAI採点結果を貼ると、ここに並びます。"
           : "AI採点結果に" + KANA_LABEL[k] + "のリライト例が見つかりません。以前の依頼文は設問イだけを頼んでいました。今の「AI添削依頼文をコピー」でAI採点し直すと、設問ア・イ・ウすべてのリライト例が付きます。") +
       '</div>';
   }
@@ -1755,16 +1756,13 @@
         '<div class="pm2-ai-actions">' +
           '<button type="button" class="primary" id="pm2-btn-copy-prompt"' + (essay ? '' : ' disabled') + '>AI添削依頼文をコピー</button>' +
           '<span class="pm2-copy-status" id="pm2-copy-status"></span>' +
+          (essay ? '<button type="button" class="linkbtn" id="pm2-to-compare">設問ごとの比較へ &rarr;</button>' : '') +
         '</div>' +
         (essay ? '' : '<p class="pm-empty">※論文が未入力です</p>') +
         '<label class="pm2-field-label">AI採点結果の貼り付け欄</label>' +
         '<textarea class="pm2-ai-result" id="pm2-ai-result" rows="12" placeholder="AIから返ってきた採点結果をここに貼り付けて保存できます"></textarea>' +
       '</div>' +
-      '</div></div>' +
-      (essay ? '<div class="card">' +
-        '<div class="group-head"><h2>設問ごとの比較（自分の論文とAIのリライト例）</h2></div>' +
-        '<div id="pm2-cmp-box"></div>' +
-      '</div>' : '');
+      '</div></div>';
 
     $all(body, ".pm2-check-box").forEach(function (cb) {
       cb.addEventListener("change", function () {
@@ -1798,16 +1796,15 @@
 
     var aiTa = $("#pm2-ai-result");
     aiTa.value = state.doc.check.ai || "";
-    updateCompare(essay);
-    aiTa.addEventListener("input", function () { state.doc.check.ai = aiTa.value; updateEvalTable(); updateCompare(essay); });
+    aiTa.addEventListener("input", function () { state.doc.check.ai = aiTa.value; updateEvalTable(); });
     aiTa.addEventListener("change", function () {
       state.doc.check.ai = aiTa.value;
-      updateCompare(essay);
       state.doc.check.t = Date.now();
       saveDoc();
     });
     if (window.AiView) window.AiView.attach(aiTa); // 貼り付けた結果を整えて表示（js/mdlite.js）
 
+    if ($("#pm2-to-compare")) $("#pm2-to-compare").addEventListener("click", function () { switchTab("compare"); });
     var copyBtn = $("#pm2-btn-copy-prompt");
     if (copyBtn && essay) {
       copyBtn.addEventListener("click", function () {
@@ -1819,6 +1816,22 @@
         });
       });
     }
+  }
+
+  /* =====================================================================
+     比較タブ（設問ごとに自分の論文とAIの改善リライト例を左右に並べる）
+     ===================================================================== */
+  function renderCompareTab(body) {
+    var essay = getLatestEssayForPrompt();
+    body.innerHTML = '<div class="card">' +
+      '<div class="group-head"><h2>設問ごとの比較（自分の論文とAIのリライト例）</h2></div>' +
+      (essay
+        ? '<p class="stats-note">左は' + escapeHtml(reviewEssayTitle(essay)) + '、右は振り返りタブに貼り付けたAI採点結果の改善リライト例です。</p><div id="pm2-cmp-box"></div>'
+        : '<p class="pm-empty">論文が未入力です。執筆タブで書いてから、振り返りタブでAI採点してください。</p>') +
+      (essay && !trimStr(state.doc.check.ai) ? '<div class="pm-panel-actions"><button type="button" class="primary" id="pm2-cmp-to-review">振り返りタブでAI採点する &rarr;</button></div>' : '') +
+      '</div>';
+    if (essay) updateCompare(essay);
+    if ($("#pm2-cmp-to-review")) $("#pm2-cmp-to-review").addEventListener("click", function () { switchTab("review"); });
   }
 
   /* =====================================================================
@@ -1846,6 +1859,7 @@
     else if (state.activeTab === "outline") renderOutlineTab(body);
     else if (state.activeTab === "write") renderWriteTab(body);
     else if (state.activeTab === "review") renderReviewTab(body);
+    else if (state.activeTab === "compare") renderCompareTab(body);
     else if (state.activeTab === "material") renderMaterialTab(body);
   }
 

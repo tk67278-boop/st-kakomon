@@ -1345,6 +1345,7 @@ details.pm-exam-card.all-done > summary h3 { color: var(--muted); }
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pb-grid),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-essay-versions),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-rv-grid),
+  main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-cmp-box),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-pb-grid),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) #pm2-drill-mount),
   main.wrap:has(#mode-pm:not([hidden]) #pm2-study:not([hidden]) .pm2-mt-grid) { max-width: 1440px; }
