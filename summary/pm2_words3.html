@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>③の設問の言葉</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --text: #1d2733; --muted: #5f6e7d; --line: #dde3eb;
+    --accent: #2563eb; --accent-soft: #e5edfd; --chip: #eef2f7;
+    --qa: #c2620a; --qa-soft: #fdf0e3; --qi: #0f8a5f; --qi-soft: #e3f5ec; --qu: #7c3aed; --qu-soft: #f1ebfe;
+    --ng: #c0362c; --ng-soft: #fdecea;
+    --shadow: 0 1px 3px rgba(16,30,54,.08), 0 6px 18px rgba(16,30,54,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+      --accent: #5b93ff; --accent-soft: #1c2f50; --chip: #222d3a;
+      --qa: #fbaa55; --qa-soft: #3a2a14; --qi: #34c48b; --qi-soft: #12302a; --qu: #b79cfb; --qu-soft: #2a1f45;
+      --ng: #ff8a80; --ng-soft: #3a1c1a; --shadow: 0 1px 3px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151d; --card: #18212c; --text: #e5ecf4; --muted: #96a4b3; --line: #2b3847;
+    --accent: #5b93ff; --accent-soft: #1c2f50; --chip: #222d3a;
+    --qa: #fbaa55; --qa-soft: #3a2a14; --qi: #34c48b; --qi-soft: #12302a; --qu: #b79cfb; --qu-soft: #2a1f45;
+    --ng: #ff8a80; --ng-soft: #3a1c1a; --shadow: 0 1px 3px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+    font-size: 15.5px; line-height: 1.8; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 60px; }
+  header { padding: 22px 0 4px; }
+  .eyebrow { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  h1 { font-size: 24px; line-height: 1.4; margin: 4px 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 8px; font-size: 14.5px; }
+  a { color: var(--accent); }
+  .nav { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px; background: var(--bg);
+    padding: 8px 0; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .nav a { font-size: 13.5px; font-weight: 700; text-decoration: none; color: var(--text); background: var(--card);
+    border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; white-space: nowrap; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card > h2 { font-size: 19px; margin: 0 0 8px; scroll-margin-top: 60px; }
+  .card > h2 .step { display: inline-block; font-size: 13px; color: #fff; background: var(--accent); border-radius: 999px; padding: 0 9px; margin-right: 6px; vertical-align: 2px; }
+  .card > p.intro { margin: 0 0 6px; font-size: 14.5px; color: var(--muted); }
+  .note { font-size: 13.5px; color: var(--muted); margin: 4px 0 8px; }
+  ul.pts { margin: 6px 0 0; padding-left: 1.2em; font-size: 14.5px; }
+  ul.pts li { margin: 2px 0; }
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; line-height: 1.6; }
+  th, td { border: 1px solid var(--line); padding: 6px 9px; vertical-align: top; text-align: left; }
+  th { background: var(--chip); font-weight: 700; }
+  td.c { white-space: nowrap; }
+  .qa { color: var(--qa); font-weight: 700; } .qi { color: var(--qi); font-weight: 700; } .qu { color: var(--qu); font-weight: 700; }
+  /* 言葉ごとのブロック */
+  .w { border-top: 1px solid var(--line); padding: 12px 0 4px; scroll-margin-top: 60px; }
+  .w:first-of-type { border-top: 0; }
+  .w h3 { font-size: 16.5px; margin: 0 0 6px; }
+  .w h3 .qs { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-left: 8px; }
+  .w dl { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 4px 10px; margin: 0; font-size: 14.5px; }
+  .w dt { font-weight: 700; font-size: 13px; padding-top: 2px; }
+  .w dt.ok { color: var(--accent); } .w dt.ng { color: var(--ng); } .w dt.ex { color: var(--qi); }
+  .w dd { margin: 0; }
+  .w dd.ng { background: var(--ng-soft); border-radius: 8px; padding: 4px 10px; }
+  .w dd.ex { background: var(--chip); border-radius: 8px; padding: 6px 10px; }
+  .w dd.ex p { margin: 0; } .w dd.ex p + p { margin-top: 4px; }
+  .tag { display: inline-block; font-size: 11.5px; font-weight: 700; border-radius: 6px; padding: 0 6px; background: var(--accent-soft); color: var(--accent); margin-right: 4px; white-space: nowrap; }
+  .todo { display: inline-block; font-size: 11.5px; font-weight: 700; border-radius: 6px; padding: 0 6px; background: var(--qa-soft); color: var(--qa); white-space: nowrap; }
+  .ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 6px 0 10px; }
+  .ladder div { background: var(--chip); border-radius: 10px; padding: 8px 10px; font-size: 13.5px; line-height: 1.55; }
+  .ladder b { display: block; font-size: 14.5px; color: var(--accent); }
+  @media (max-width: 600px) {
+    .nav { position: static; }
+    .card { padding: 12px 12px; }
+    h1 { font-size: 21px; }
+    .w dl { grid-template-columns: minmax(0, 1fr); }
+    .w dt { padding-top: 6px; }
+  }
+  @media print { .nav { display: none; } body { background: #fff; } .card { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ITストラテジスト 午後II ③ DX・新技術・業務改革型</div>
+    <h1>③の設問の言葉 ― 何を聞かれていて、A社なら何を書くか</h1>
+    <p class="lead">③の8問（R7問2・R6問1・R1問1・H30問1・H26問1・H24問1・H23問1・H21問1）の設問に出る言葉を、聞かれている段ごとに並べました。答えがずれるのは、たいてい<b>隣の段の中身を書いてしまうとき</b>です（目的を聞かれて手段を書く、業務の姿を聞かれてITを書く、など）。A社の答えは見本の論文と事例設定シートの文です。</p>
+  </header>
+  <nav class="nav">
+    <a href="#ladder">7つの段</a><a href="#byq">問題ごとの言葉</a><a href="#s1">段1 土台</a><a href="#s2">段2 目的</a><a href="#s3">段3 業務の姿</a><a href="#s4">段4 計画の全体</a><a href="#s5">段5 IT</a><a href="#s6">段6 確かめ</a><a href="#s7">段7 ウのやり取り</a><a href="#pair">紛らわしい組</a>
+    <a href="pm2_tree.html">骨子の型ツリー</a><a href="pm2_case.html">事例設定シート</a>
+  </nav>
+
+  <section class="card" id="ladder">
+    <h2>まず：③の設問は7つの段のどれかを聞いている</h2>
+    <div class="ladder">
+      <div><b>段1 土台</b>どんな会社か<br>事業概要・事業特性・事業背景</div>
+      <div><b>段2 目的</b>なぜやるか<br>経営課題・事業課題・事業目標・DXの狙い・競争戦略・改革目標・事業施策</div>
+      <div><b>段3 業務の姿</b>何をどう変えるか<br>必要となった変革・ビジネスプロセス・業務改革・改革・システムが果たすべき役割</div>
+      <div><b>段4 計画の全体</b>どう組み立てたか<br>DXの企画・IT戦略・事業戦略・施策の内容・個別情報システム化構想</div>
+      <div><b>段5 IT</b>何を使うか<br>ITを活用・有効なIT・ディジタル技術・新たな情報技術・情報通信技術</div>
+      <div><b>段6 確かめ</b>本当にできるか・得か<br>机上確認・技術検証・実現性の担保・費用対効果・構築方法</div>
+      <div><b>段7 ウのやり取り</b>誰に何をして、どう返されたか<br>説明・進言・提案・評価・指摘と改善・阻害要因・リスク</div>
+    </div>
+    <ul class="pts">
+      <li><b>見分け方：</b>段2（目的）に「AI」「システム」の言葉が出たら、段3〜段5の中身を書いています。段3（業務の姿）に技術名しか出ないなら、段5（IT）を書いています。</li>
+      <li><b>見出しは設問の言葉そのまま</b>にします（「解決すべき経営課題」と聞かれたら「1.2 解決すべき経営課題」）。言葉を言い換えると、聞かれた段から外れやすくなります。</li>
+    </ul>
+  </section>
+
+  <section class="card" id="byq">
+    <h2>問題ごとの、設問に出る言葉</h2>
+    <p class="intro">言葉を押すと、下の説明に飛びます。</p>
+    <div class="scroll"><table style="min-width:760px">
+      <tr><th>問題</th><th><span class="qa">設問ア</span></th><th><span class="qi">設問イ</span></th><th><span class="qu">設問ウ</span></th></tr>
+      <tr><td class="c">R7問2<br>DXの企画</td><td><a href="#w-keiei">解決すべき経営課題</a>・<a href="#w-henkaku">必要となった変革</a>・<a href="#w-haikei">事業背景</a>・<a href="#w-tokusei">事業特性</a></td><td><a href="#w-dx">DXの企画</a>・<a href="#w-kufu">特に重要と考え工夫したこと</a></td><td><a href="#u-r7">阻害要因・対応策・経営層や事業部門の意思</a></td></tr>
+      <tr><td class="c">R6問1<br>新たな情報技術</td><td><a href="#w-nerai">DXの狙い</a>・<a href="#w-shisaku">施策の内容</a>・<a href="#w-shingi">新たな情報技術とその必要性</a>・<a href="#w-tokusei">事業特性</a></td><td><a href="#w-kijo">机上確認と技術検証</a>（結果・工夫）</td><td><a href="#u-r6">リスクと対策・経営層への説明・指摘・改善</a></td></tr>
+      <tr><td class="c">R1問1<br>ディジタル技術と業務プロセス</td><td><a href="#w-jigyokadai">事業課題</a>とその背景・<a href="#w-gaiyo">事業概要</a>・<a href="#w-tokusei">事業特性</a></td><td><a href="#w-it">ディジタル技術</a>・<a href="#w-process">実現した業務プロセス</a>・<a href="#w-tanpo">実現性を担保する検討</a></td><td><a href="#u-r1">事業部門への説明・指摘・改善</a></td></tr>
+      <tr><td class="c">H30問1<br>IT戦略</td><td><a href="#w-gaiyo">事業概要</a>・<a href="#w-mokuhyo">事業目標</a>・<a href="#w-bp">実現すべきビジネスプロセス</a>・<a href="#w-tokusei">事業特性</a></td><td><a href="#w-itsenryaku">IT戦略</a>（<a href="#w-yuko">有効なIT</a>・<a href="#w-donyu">IT導入プロセス</a>・<a href="#w-taisei">推進体制</a>・<a href="#w-koken">貢献内容</a>）</td><td><a href="#u-h30">進言・評価・考慮したこと</a></td></tr>
+      <tr><td class="c">H26問1<br>ITを活用した業務改革</td><td><a href="#w-jigyokadai">業務改革の背景にある事業課題</a>・<a href="#w-gaiyo">事業の概要・特性</a></td><td><a href="#w-gyomu">実施した業務改革</a>・<a href="#w-it">活用したIT</a>・<a href="#w-hiyo">費用対効果の定量的な根拠と検討内容</a></td><td><a href="#u-h26">経営者の評価・更に改善する余地</a></td></tr>
+      <tr><td class="c">H24問1<br>ITを活用した事業戦略</td><td><a href="#w-kyoso">前提となった競争戦略</a>・<a href="#w-tokusei">事業特性</a></td><td><a href="#w-kento">行った検討</a>・<a href="#w-jigyosenryaku">策定した事業戦略</a>・<a href="#w-it">活用したIT</a></td><td><a href="#u-h24">提案・評価・更に改善する余地</a></td></tr>
+      <tr><td class="c">H23問1<br>非定型業務の改革</td><td><a href="#w-gaiyo">事業の概要</a>・<a href="#w-hitekei">業務の内容・特性</a>・<a href="#w-haikei">改革が必要となった背景</a></td><td><a href="#w-kaikakumokuhyo">改革目標</a>・<a href="#w-kaikaku">どのような改革をしたか</a>・<a href="#w-it">活用した情報通信技術</a></td><td><a href="#u-h23">工夫した点・更に改善できる事項</a></td></tr>
+      <tr><td class="c">H21問1<br>個別情報システム化構想</td><td><a href="#w-jigyoshisaku">事業施策の概要</a>・<a href="#w-yakuwari">情報システムが果たすべき役割</a></td><td><a href="#w-shikumi">検討した仕組み</a>・<a href="#w-koso">個別情報システム化構想の概要</a></td><td><a href="#u-h21">構築方法の検討・工夫・評価</a></td></tr>
+    </table></div>
+  </section>
+
+  <section class="card" id="s1">
+    <h2><span class="step">段1</span>土台 ― どんな会社か</h2>
+    <div class="w" id="w-gaiyo">
+      <h3>事業概要・事業の概要<span class="qs">R1問1・H30問1・H26問1・H23問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>何の事業を、どこで、どの規模でしているか。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">会社の沿革や組織図を長く書く。システムの話から始める。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>地方都市圏で食品スーパー40店舗を展開し、年間売上高は800億円、従業員は約4,000人。売上の4割を生鮮食品が占める。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-tokusei">
+      <h3>事業特性<span class="qs">③の全問</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>その事業ならではの性質と、それが何を左右するか（「このため」まで）。あとで課題や施策の理由として使う。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「競争が激しい」など、どの会社にも言えること。性質だけ書いて「このため」がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>第一に、生鮮品の比率が高く、天候や曜日、地域の行事で需要が大きく変動する。このため、発注の精度が欠品と廃棄の量を左右し、利益に直結する。</p><p>第二に、店舗業務の多くをパート・アルバイトが担う。このため、業務の仕組みは誰でも短時間で使えるものでなければ定着しない。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-haikei">
+      <h3>事業背景・改革が必要となった背景<span class="qs">R7問2・R1問1（課題の背景）・H23問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>課題や改革が必要になった<b>状況の変化と事実（数字）</b>。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">事業特性と同じ文を繰り返す。背景を書かずに、いきなり課題を書く。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>ドラッグストアやネット通販との競争で、客数は5年で1割減少した。生鮮品の廃棄は売上の2%、年16億円に達し、人手不足で発注に時間を掛けられない。</p><p>H23問1は「判断が店長ごとにばらつき、廃棄が年16億円に達していた」。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-hitekei">
+      <h3>業務の内容・特性（非定型業務）<span class="qs">H23問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>その業務が<b>なぜ非定型なのか</b>（決まった手順・判断基準がない）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">会社の事業特性だけを書き、業務の特性を書かない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>生鮮の発注は天候や行事で変わり、店長が経験で判断する非定型業務である。</p></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card" id="s2">
+    <h2><span class="step">段2</span>目的 ― なぜやるか</h2>
+    <p class="intro">この段に「AI」「システム」「導入」は出しません。出たら手段を書いています。</p>
+    <div class="w" id="w-keiei">
+      <h3>解決すべき経営課題<span class="qs">R7問2</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>会社として解決すべき問題。利益・売上・客数など、<b>経営の数字に効くもの</b>。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「需要予測AIを導入すること」（手段）。「発注に時間がかかる」（業務の困りごとだけで、経営の話になっていない）。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>解決すべき経営課題は、客数の減少と食品ロスによる利益の圧迫である。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-jigyokadai">
+      <h3>事業課題・業務改革の背景にある事業課題<span class="qs">R1問1・H26問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>事業として取り組むべきこと。「<b>〜できるようにする</b>」「〜を減らす」の形で、解けたかどうかが分かる書き方にする。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「廃棄が多い」（現象だけ）。「AIで発注を自動化する」（手段）。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>R1問1：経験によらず、精度の高い発注を短時間でできるようにすることを事業課題とした（背景は廃棄年16億円と人手不足）。</p><p>H26問1：廃棄が年16億円に達し、発注を担う人手も足りない。この2つへの対応が事業課題である。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-mokuhyo">
+      <h3>事業目標<span class="qs">H30問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd><b>いつまでに・何を・どこまで</b>（数字のゴール）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「収益力を強化する」など数字がない。課題（解くべき問題）を目標として書く。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>3年で客数を回復し、廃棄率を2%から1.4%に下げることを事業目標とした。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-nerai">
+      <h3>DXの狙い<span class="qs">R6問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>デジタルで<b>会社のやり方をどう変えたいか</b>（変革の方向）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「AIを導入すること」（施策）。「業務を効率化すること」（効率化だけで、変革になっていない）。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>勘と経験に頼る店舗運営から、データで地域の需要を読み、廃棄と欠品を同時に減らす店舗運営へ変えること。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-kyoso">
+      <h3>前提となった競争戦略<span class="qs">H24問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>競合に<b>どう勝つか</b>（差別化・コストリーダシップ・ニッチ）と、そう決めた理由。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">事業戦略やIT戦略を書く（それはイで聞かれる）。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>価格ではドラッグストアやネット通販に勝てないため、生鮮の鮮度と地域密着で差別化する。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-kaikakumokuhyo">
+      <h3>改革目標<span class="qs">H23問1（設問イ）</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd><b>その業務の改革</b>で到達したい状態（数字）。前文の例は「生産性を劇的に向上」「問題解決の飛躍的なスピードアップ」。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">会社全体の事業目標（客数の回復など）をそのまま書く。数字がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>食品ロスを3割減らし、発注作業時間を半分にする。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-jigyoshisaku">
+      <h3>事業施策の概要<span class="qs">H21問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>事業戦略を具体化した、<b>事業として取り組むこと</b>（ITの前の段）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">システム化構想の中身を書く（それはイ）。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>廃棄と欠品を同時に減らすため、データで需要を読む店舗運営に変える施策である。</p></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card" id="s3">
+    <h2><span class="step">段3</span>業務の姿 ― 何をどう変えるか</h2>
+    <p class="intro">「<b>〜から〜へ</b>」と前後で書きます。主語は店舗運営・発注・店長で、技術名は出さないか、出しても手段として軽く添えます。</p>
+    <div class="w" id="w-henkaku">
+      <h3>必要となった変革<span class="qs">R7問2</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>経営課題を解くために変える<b>やり方</b>（業務・組織・意識）。効率化より大きな変化。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">DXの企画（施策・IT）を書く。「発注業務の効率化」で終わる。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>勘と経験に頼る店舗運営から、データで地域の需要を読み、廃棄と欠品を同時に減らしながら常連客に合わせた品ぞろえを出す店舗運営への変革である。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-bp">
+      <h3>実現すべきビジネスプロセス<span class="qs">H30問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>目指す<b>業務の流れ</b>。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">有効なIT（需要予測AI）を書く。IT戦略だと思って方針を書く。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>店長の勘や経験による店舗運営から、データで需要を読み、売れる分だけ仕入れて作り、廃棄と欠品を同時に減らす店舗運営への変革である。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-gyomu">
+      <h3>実施した業務改革<span class="qs">H26問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>実際に変えた業務。<b>誰が・いつ・何をするか</b>がどう変わったか。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「需要予測AIを導入した」だけ（業務がどう変わったかが見えない）。ITの説明が中心になる。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>店長の勘に頼る発注を、AIの提案を店長が確認・修正して確定する業務に変えた。朝5時までに提案数が発注画面に出て、店長は出勤後に必要なものだけを直して確定する。店長の役割は、数を一から考えることから、地域の事情を加えて判断することに変わった。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-process">
+      <h3>実現した業務プロセス<span class="qs">R1問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>ディジタル技術を組み込んだ後の<b>業務の手順</b>と、人の役割の変化。その前に「どの業務を選んだか（業務の特定）」も書く。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">技術の仕組みだけ書いて、人の動きが出てこない。業務を選んだ理由がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>業務の特定：廃棄と欠品を直接左右し（品質）、1日約90分かかって店長の時間を最も使う（効率）生鮮・総菜の発注業務を選んだ。</p><p>手順：毎晩POSのデータを集め、早朝に予測して、朝5時までに発注画面に提案数を出す → 店長が確認・修正して確定 → EDIで仕入れ先へ → 修正の理由を記録して予測の改善に生かす。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-kaikaku">
+      <h3>どのような改革をしたか（非定型業務）<span class="qs">H23問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>決まった手順・基準がなかった業務を、<b>判断の仕方・役割・情報の共有</b>の面でどう変えたか。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">ツールの導入だけを書く（前文は、役割の見直しやワークスタイルの見直しも求めている）。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>AIの提案を店長が確認して確定する形に変え、店長ごとにばらついていた判断の土台をそろえた。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-yakuwari">
+      <h3>情報システムが果たすべき役割<span class="qs">H21問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>事業施策の中で、システムが<b>何を担うか</b>（一文）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">システムの機能一覧を並べる。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>店長の発注の判断を、需要予測で支えることである。</p></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card" id="s4">
+    <h2><span class="step">段4</span>計画の全体 ― どう組み立てたか</h2>
+    <p class="intro">「何を・誰が・いくらで・どの順で」をまとめて示す段です。ITの説明だけで終わらせず、前文が挙げている要素を入れます。</p>
+    <div class="w" id="w-dx">
+      <h3>DXの企画<span class="qs">R7問2</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>変革を実現する<b>施策の組み合わせ</b>。前文の3点（デジタル技術とデータ活用が変革にどう貢献するか、部門との役割分担、投資金額）を入れる。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">需要予測AIの説明だけ。役割分担や投資額がない。発注の効率化で終わり、変革（仕入れ方・作り方まで変わる）に触れない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>4つの施策：第一に需要予測AIによる発注提案、第二に予測データを商品部と仕入れ先に共有し、仕入れと生産の計画に使う仕組み、第三に会員の購買データで店舗ごとの品ぞろえを見直す仕組み、第四にこれらの土台となるデータ基盤。</p><p>役割分担：情報システム部が技術とデータ基盤、店舗運営部が店長への展開、商品部が仕入れ先との調整。投資4億円、年約5億円の効果で全店展開から約1年で回収。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-itsenryaku">
+      <h3>IT戦略<span class="qs">H30問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>設問が挙げる<b>有効なIT・IT導入プロセス・推進体制・事業目標達成への貢献</b>をそろえる（前文もIT戦略をこの4つで説明している）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">有効なITだけを詳しく書いて、導入の進め方・体制・貢献（数字）が抜ける。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>4つの中身は、下の<a href="#w-yuko">有効なIT</a>、<a href="#w-donyu">IT導入プロセス</a>、<a href="#w-taisei">推進体制</a>、<a href="#w-koken">貢献内容</a>を見出しにして書く。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-jigyosenryaku">
+      <h3>策定した事業戦略<span class="qs">H24問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>競争戦略を実現する<b>事業のやり方</b>（ITを活用して何を実現するか）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">システム化計画に終始する。競争戦略（差別化）とのつながりが書かれていない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>鮮度を保ちつつ廃棄を減らし、常連との関係を深めて来店頻度を上げる。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-shisaku">
+      <h3>施策の内容<span class="qs">R6問1（設問ア）</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>DXの狙いを実現するために<b>何をするか</b>の概要（1〜2文）。詳しい技術はイで書く。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">アで技術の詳細や机上確認まで書いてしまい、イと重なる。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>生鮮品と総菜の需要を予測して発注数を提案し、店長が確認して確定する仕組みを全店に導入することである。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-koso">
+      <h3>個別情報システム化構想の概要<span class="qs">H21問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>対象の業務・仕組み・範囲・<b>どの順で広げるか</b>。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">事業施策（なぜやるか）を繰り返す。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>生鮮・総菜の発注に需要予測を入れ、3店舗の試行から全店、日配品へと広げる。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-donyu">
+      <h3>IT導入プロセス<span class="qs">H30問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>どの順で導入するか（試行 → 展開の段階と、次に進む条件）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">開発工程（要件定義・設計・テスト）を並べる。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>3店舗の試行を経て、生鮮・総菜から全店へ広げる計画とした。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-taisei">
+      <h3>推進体制<span class="qs">H30問1（R7問2の役割分担も同じ）</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>誰が責任者で、どの部門が何を担うか。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">情報システム部の開発体制（人数）だけを書く。事業部門が出てこない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>社長をオーナーとする委員会のもとに、店舗運営部・商品部を巻き込んだ。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-koken">
+      <h3>事業目標達成への貢献内容<span class="qs">H30問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>事業目標の数字に、<b>どれだけ</b>効くか（効果と回収）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「貢献できる」と言うだけで数字がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>廃棄率を2%から1.4%に下げて年約5億円の効果を出し、投資4億円を全店展開から約1年で回収する。</p></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card" id="s5">
+    <h2><span class="step">段5</span>IT ― 何を使うか</h2>
+    <div class="w" id="w-it">
+      <h3>ITを活用・活用したIT・ディジタル技術・情報通信技術<span class="qs">R1問1・H26問1・H24問1・H23問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>技術の名前 ＋ 使うデータ ＋ <b>それで何ができるか</b> ＋ なぜその技術か。最後に、<a href="#s3">段3 業務の姿</a>とつなげる。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">技術名を並べるだけ。業務がどう変わるかとつながっていない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>POSデータに天気予報・曜日・チラシ・地域の行事のデータを加え、機械学習で翌日から3日先までの販売数を品目・店舗ごとに予測する。勘と経験では読み切れない複数の要因の組み合わせを、過去のデータから学べる点が機械学習を選んだ理由である。</p><p>H24問1（事業戦略）は、会員アプリ（購買データで常連との関係を深める）も活用したITに入れる。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-yuko">
+      <h3>有効なIT<span class="qs">H30問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>上の内容に加えて、<b>なぜ事業目標に有効か</b>。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">技術の一般的な長所（「AIは精度が高い」など）だけで、事業目標との関係がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>需要予測AIとデータ基盤を中心に据えた。発注の精度が上がれば廃棄と欠品が同時に減り、廃棄率1.4%の目標に直接効く。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-shingi">
+      <h3>新たな情報技術とその必要性<span class="qs">R6問1（設問ア）</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>何の技術か ＋ <b>従来の技術ではできなかった理由</b>（前文「従来の情報技術では実現できなかったことを実現するために」）。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">技術の説明だけで、必要性（なぜ今までのやり方では駄目か）がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>品目・店舗・日ごとの販売実績に、天気予報や行事などの多くの要因を組み合わせて予測するには、従来の集計による方法では限界があった。</p></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card" id="s6">
+    <h2><span class="step">段6</span>確かめ ― 本当にできるか・得か</h2>
+    <div class="w" id="w-kijo">
+      <h3>机上確認と技術検証<span class="qs">R6問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>2つを<b>別の見出し</b>にする。机上確認は前文の4観点（業務要件・規制・非機能要件・継続性）、技術検証は試験導入。それぞれの<b>結果</b>と、工夫したこと。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">2つを混ぜる。やったことだけで結果がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>机上確認：4観点で確認し、採用できる見込みを得たが、精度が実際の店舗で十分かは机上では判断できなかった。</p><p>技術検証：立地の違う3店舗で3か月試験導入し、比較した3店舗に対して廃棄率が2%から1.4%に下がり、欠品率は変わらなかった。</p><p>工夫：店長が予測をどう修正したかも記録し、修正の多くが地域の行事だと分かった。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-tanpo">
+      <h3>実現性を担保するための検討<span class="qs">R1問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>前文の<b>機能・性能・信頼性</b>を一つずつと、先行事例の調査・実証実験。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「試行した」だけ。性能や信頼性に触れない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>機能（予測の精度）は先行事例の調査と技術検証で、性能は朝5時までの配信と朝4時の確認で、信頼性は停止したときの代替手順で担保した。そのうえで3店舗で試行した。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-hiyo">
+      <h3>費用対効果の定量的な根拠と、そのときに検討した内容<span class="qs">H26問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>効果の<b>計算の根拠</b>（数字×数字）と回収。検討した内容は前文の「業務の現状と将来見通し、<b>複数の改革案と各案の効果の比較</b>、ITの費用」。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">「効果が大きい」など言葉だけ。案を1つしか書かない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>根拠：売上800億円 × 廃棄率の低下0.6ポイント（2%→1.4%）で年約5億円。投資4億円を全店展開から約1年で回収できる。</p><p>案の比較：<span class="todo">事例設定シートにまだない部品</span>　例えば「発注の手順書と店長研修で判断をそろえる案」と比べ、手順書では天候と行事の組み合わせまでは読み切れず効果が限られるため、需要予測AIの案を選んだ、と書ける。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-kento">
+      <h3>行った検討（事業戦略）<span class="qs">H24問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>前文の3つ：先進事例の調査、<b>ITで変えられる業務プロセスの明確化と課題分析</b>、ITの機能・性能・信頼性の要求レベル。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">システムの比較検討（ベンダー選び）だけになる。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>常連の声と廃棄のデータから、鮮度という強みが生かせていない原因を探った。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-shikumi">
+      <h3>検討した仕組み・構築方法<span class="qs">H21問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd>イの「仕組み」は業務とデータの流れ。ウの「構築方法」は、前文の<b>改修か新規か・パッケージか個別開発か・自社保有か外部サービスか</b>。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">イとウで同じことを書く。構築方法の理由（投資効果を高める）がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>仕組み：POS・天候・行事のデータを毎晩集め、朝に予測を出す。</p><p>構築方法：自社で開発せず、クラウドの機械学習サービスを使った（初期投資を抑え、効果を確かめながら広げられる）。</p></dd>
+      </dl>
+    </div>
+    <div class="w" id="w-kufu">
+      <h3>特に重要と考え、工夫したこと<span class="qs">R7問2・R6問1・H23問1</span></h3>
+      <dl>
+        <dt class="ok">答えること</dt><dd><b>なぜそれが重要か</b>（事業特性や課題から） ＋ 工夫の中身。</dd>
+        <dt class="ng">ずれやすい</dt><dd class="ng">工夫だけ書いて、重要と考えた理由がない。</dd>
+        <dt class="ex">A社なら</dt><dd class="ex"><p>店長が予測を信頼して使い続けることが重要と考え、ベテラン店長のコツを補正ルールに取り込み、店長が修正できる形にした（予測を店長の知恵で育てる仕組み）。</p></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="card" id="s7">
+    <h2><span class="step">段7</span>ウのやり取り ― 誰に何をして、どう返されたか</h2>
+    <p class="intro">ずれやすいのは、<b>相手の取り違え</b>（R1問1は事業部門、R6問1は経営層）と、「評価された」で終わって指摘と改善を書かないことです。</p>
+    <div class="scroll"><table style="min-width:760px">
+      <tr><th>問題</th><th>相手</th><th>聞かれていること（この順で見出し）</th><th>A社なら</th></tr>
+      <tr id="u-r7"><td class="c">R7問2</td><td>経営層・事業部門</td><td>想定した阻害要因 → 協議して取り入れた意思 → 企画に反映した対応策</td><td>阻害要因：店長が予測を使わない、商品部と仕入れ先が受け入れない。意思：店舗運営部「欠品を増やさない」、商品部「最終判断はそれぞれが行う」、社長「試行の結果を見て判断」。対応策：欠品率の悪化なしを全店展開の条件に、週1回予測と実績の差を一緒に確認する場。</td></tr>
+      <tr id="u-r6"><td class="c">R6問1</td><td>経営層</td><td>具体化したリスクと対策 → 経営層への説明 → 指摘 → 改善</td><td>リスク：予測が外れた日の全店同時の欠品、運用費が年3,000万円を超える。説明：店長の確定と昼の追加提案、社内人材の育成。指摘：社長「3店舗だけで40店舗の効果を見込むのは楽観的」。改善：10店舗に展開し、3か月後に確認してから残りへ。</td></tr>
+      <tr id="u-r1"><td class="c">R1問1</td><td><b>事業部門</b>（店舗運営部・商品部）</td><td>事業課題の解決に貢献することの説明 → 指摘 → 改善</td><td>説明：試行3店舗の結果で、廃棄の削減と発注作業の短縮の2つに貢献すること（投資4億円・全店展開から約1年も）。指摘：店舗運営部は欠品への不安、商品部は仕入れの判断への懸念。改善：それぞれに応えて業務プロセスを直した。</td></tr>
+      <tr id="u-h30"><td class="c">H30問1</td><td>経営層</td><td>進言したこと → 受けた評価 → 評価を受けて考慮したこと</td><td>進言：効果を数字で確かめながら進めること、KPIを毎月報告すること（前文は経営資源の配分や組織・業務手順の見直しの進言も挙げる）。評価：予測が当たらなかったらどうするのかと問われた。考慮：効果を確かめながら3段階で広げる計画にした。</td></tr>
+      <tr id="u-h26"><td class="c">H26問1</td><td>経営者</td><td>業務改革の実施結果と経営者の評価 → 更に改善する余地</td><td>評価：試行店で廃棄率が2%から1.4%に下がり、全店への展開が評価された。余地：予測が外れる日への対策、会員アプリによる客数の回復。</td></tr>
+      <tr id="u-h24"><td class="c">H24問1</td><td>経営トップ・事業責任者</td><td>どう提案したか → どう評価されたか → 更に改善する余地</td><td>提案：投資と回収の見込みを示し、段階的に投資する計画が承認された。余地：予測が外れる日への対策、アプリを使わない常連への対応。</td></tr>
+      <tr id="u-h23"><td class="c">H23問1</td><td>（相手なし）</td><td>改革目標の達成のために特に重要と考え工夫した点 → 更に改善できる事項</td><td>工夫：ベテラン店長のコツを補正ルールに取り込み、店長が修正できるようにした。改善：店長による修正のばらつきを減らし、予測が外れる日に備える。</td></tr>
+      <tr id="u-h21"><td class="c">H21問1</td><td>（自分の評価）</td><td>投資効果を高める構築方法の検討・工夫 → 結果の評価</td><td>工夫：クラウドの機械学習サービスを使い、小さく試して効果を確かめてから広げた。評価：試行店で廃棄率が下がり、投資4億円を全店展開から約1年で回収できる見込み。</td></tr>
+    </table></div>
+    <ul class="pts">
+      <li><b>説明・進言・提案の違い：</b>説明は理解してもらうこと、進言は経営層に意見を述べること（体制・資源配分・進め方）、提案は案を示して承認を求めること。</li>
+      <li><b>更に改善する余地：</b>「今後も改善を続けたい」のような一般論ではなく、自分の施策に残った具体的な課題と対策を書きます。</li>
+    </ul>
+  </section>
+
+  <section class="card" id="pair">
+    <h2>紛らわしい組 ― ここで答えがずれやすい</h2>
+    <div class="scroll"><table style="min-width:640px">
+      <tr><th>組</th><th>違い</th><th>A社の例</th></tr>
+      <tr><td>課題 と 目標</td><td>課題は解くべき問題（〜すること）。目標は数字のゴール。</td><td>課題：客数の減少と食品ロスによる利益の圧迫／目標：3年で廃棄率を2%から1.4%に</td></tr>
+      <tr><td>経営課題 と 事業課題</td><td>経営課題は会社の利益・客数の問題。事業課題は事業として取り組むこと（〜できるようにする）。</td><td>経営課題：利益の圧迫／事業課題：経験によらず精度の高い発注を短時間でできるようにする</td></tr>
+      <tr><td>変革・業務改革 と 施策・企画</td><td>変革・業務改革は業務の姿（〜から〜へ）。施策・企画は、そのためにやること。</td><td>変革：勘と経験の店舗運営 → データで需要を読む店舗運営／施策：需要予測AIによる発注提案</td></tr>
+      <tr><td>業務プロセス と IT</td><td>業務プロセスは人の動きの順番。ITはそれを支える道具。</td><td>業務：店長が提案を確認・修正して確定／IT：機械学習の需要予測</td></tr>
+      <tr><td>IT戦略 と 有効なIT</td><td>IT戦略は有効なIT・導入プロセス・推進体制・貢献のセット。有効なITはその一部。</td><td>IT戦略＝需要予測AI＋3店舗→全店＋社長がオーナーの委員会＋年約5億円</td></tr>
+      <tr><td>競争戦略 と 事業戦略</td><td>競争戦略はどう勝つか。事業戦略はそのために事業で何をするか。</td><td>競争戦略：鮮度と地域密着で差別化／事業戦略：鮮度を保ちつつ廃棄を減らし、来店頻度を上げる</td></tr>
+      <tr><td>机上確認 と 技術検証</td><td>机上確認は資料・事例で確かめる。技術検証は実際に動かして確かめる。</td><td>机上：4観点で採用の見込み／検証：3店舗で3か月、廃棄率2%→1.4%</td></tr>
+      <tr><td>事業特性 と 事業背景</td><td>特性は変わらない性質。背景は課題が生まれた変化や事実。</td><td>特性：生鮮4割で需要が変動／背景：客数が5年で1割減、廃棄年16億円</td></tr>
+    </table></div>
+  </section>
+</div>
+</body>
+</html>
