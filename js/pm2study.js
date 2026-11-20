@@ -912,9 +912,9 @@
     }
     return { cls: "ok", text: len + " / " + limit.max + " 字（適合）" };
   }
-  // 本番の字数の数え方（見出し・改行・空白を含めるか）はIPAから公表されていないので、少なめに数える。
-  // 改行は数えない。見出し（「2.1 〜」の行）は数えるが、見出しを除いた字数も並べて出す
-  function bodyLen(s) { return charLen(String(s || "").replace(/[\r\n]/g, "")); }
+  // 本番のCBT（体験版で確認）に合わせる：入力欄の右下に「字数 / 上限」が出て、改行も1字と数え、上限で入力が止まる。
+  // 見出しも欄に打ち込むので字数に入る。下限の目安として、見出しを除いた字数も並べて出す
+  function bodyLen(s) { return charLen(String(s || "").replace(/\r\n/g, "\n")); }
   function headLen(s) {
     return String(s || "").split(/\r?\n/).filter(function (l) { return /^\s*\d\.\d+[ 　]/.test(l) && l.length <= 40; })
       .reduce(function (a, l) { return a + charLen(l); }, 0);
@@ -1348,7 +1348,7 @@
           KEY_ORDER.map(function (k) {
             return '<div class="pm2-field pm2cbt-field">' +
               '<label class="pm2-field-label" for="pm2-essay-' + k + '">' + KANA_LABEL[k] + '（' + escapeHtml(LIMITS[k].label) + '）</label>' +
-              '<textarea class="pm2-essay-ta pm2cbt-ta pm2cbt-ta-' + k + '" id="pm2-essay-' + k + '"></textarea>' +
+              '<textarea class="pm2-essay-ta pm2cbt-ta pm2cbt-ta-' + k + '" id="pm2-essay-' + k + '" maxlength="' + LIMITS[k].max + '"></textarea>' +
               '<div class="pm2-count" id="pm2-count-' + k + '"></div>' +
             '</div>';
           }).join("") +
