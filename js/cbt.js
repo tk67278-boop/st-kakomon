@@ -288,6 +288,25 @@
       }
       return null;
     }
+    // 範囲に色を付ける。段落や図表をまたぐ選択でも，テキストの部分だけを個別に包む
+    function paint(range, cls) {
+      if (!range || range.collapsed) return;
+      var top = range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer;
+      var walker = document.createTreeWalker(top, NodeFilter.SHOW_TEXT, null);
+      var nodes = [], n;
+      while ((n = walker.nextNode())) if (range.intersectsNode(n) && n.nodeValue.trim()) nodes.push(n);
+      var sc = range.startContainer, so = range.startOffset, ec = range.endContainer, eo = range.endOffset;
+      nodes.forEach(function (node) {
+        var s = node === sc ? so : 0;
+        var e = node === ec ? eo : node.nodeValue.length;
+        if (e <= s) return;
+        var r = document.createRange();
+        r.setStart(node, s); r.setEnd(node, e);
+        var mk = document.createElement("mark");
+        mk.className = cls;
+        r.surroundContents(mk);
+      });
+    }
     each(root, ".cbt-pmarks button", function (b) {
       preventBlur(b); // 問題文の選択を外さない
       b.addEventListener("click", function () {
@@ -299,27 +318,20 @@
         var sel = window.getSelection();
         // 選択範囲に掛かる既存のマーカーを外してから塗り直す（消しゴムは外すだけ）。
         // 外すと文字の区切りが組み替わり、選択範囲の位置が外れる。そこで選択を「問題文の何文字目から何文字目」で覚え、外した後に選び直す
+        // 選択の外にはみ出していた部分は、もとの色のまま残す（外した後に、はみ出した部分だけ塗り直す）
         var startAt = textOffset(range.startContainer, range.startOffset), endAt = textOffset(range.endContainer, range.endOffset);
         var hit = [];
-        each(markable, "mark.pmk", function (m) { if (range.intersectsNode(m)) hit.push(m); });
-        hit.forEach(unwrap);
-        if (hit.length) range = rangeAt(startAt, endAt);
-        if (kind !== "x" && range && !range.collapsed) {
-          // 段落や図表をまたぐ選択でも，テキストの部分だけを個別に包む
-          var walker = document.createTreeWalker(range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer, NodeFilter.SHOW_TEXT, null);
-          var nodes = [], n;
-          while ((n = walker.nextNode())) if (range.intersectsNode(n) && n.nodeValue.trim()) nodes.push(n);
-          nodes.forEach(function (node) {
-            var s = node === range.startContainer ? range.startOffset : 0;
-            var e = node === range.endContainer ? range.endOffset : node.nodeValue.length;
-            if (e <= s) return;
-            var r = document.createRange();
-            r.setStart(node, s); r.setEnd(node, e);
-            var mk = document.createElement("mark");
-            mk.className = "pmk pmk-" + kind;
-            r.surroundContents(mk);
-          });
-        }
+        each(markable, "mark.pmk", function (m) {
+          if (!range.intersectsNode(m)) return;
+          var a = textOffset(m, 0);
+          hit.push({ m: m, cls: m.className, a: a, b: a + m.textContent.length });
+        });
+        hit.forEach(function (h) { unwrap(h.m); });
+        hit.forEach(function (h) {
+          if (h.a < startAt) paint(rangeAt(h.a, Math.min(startAt, h.b)), h.cls);
+          if (h.b > endAt) paint(rangeAt(Math.max(endAt, h.a), h.b), h.cls);
+        });
+        if (kind !== "x") paint(hit.length ? rangeAt(startAt, endAt) : range, "pmk pmk-" + kind);
         sel.removeAllRanges();
         lastRange = null;
       });
