@@ -271,6 +271,23 @@
       p.removeChild(m);
       p.normalize();
     }
+    // 問題文の先頭から数えた文字の位置（テキストの長さの合計）と、その逆
+    function textOffset(node, offset) {
+      var r = document.createRange();
+      r.setStart(markable, 0);
+      r.setEnd(node, offset);
+      return r.toString().length;
+    }
+    function rangeAt(start, end) {
+      var walker = document.createTreeWalker(markable, NodeFilter.SHOW_TEXT, null), n, pos = 0, r = document.createRange(), started = false;
+      while ((n = walker.nextNode())) {
+        var len = n.nodeValue.length;
+        if (!started && start <= pos + len) { r.setStart(n, start - pos); started = true; }
+        if (started && end <= pos + len) { r.setEnd(n, end - pos); return r; }
+        pos += len;
+      }
+      return null;
+    }
     each(root, ".cbt-pmarks button", function (b) {
       preventBlur(b); // 問題文の選択を外さない
       b.addEventListener("click", function () {
@@ -280,9 +297,14 @@
         var range = pickRange(markable);
         if (!range) return;
         var sel = window.getSelection();
-        // 選択範囲に掛かる既存のマーカーを外してから塗り直す（消しゴムは外すだけ）
-        each(markable, "mark.pmk", function (m) { if (range.intersectsNode(m)) unwrap(m); });
-        if (kind !== "x") {
+        // 選択範囲に掛かる既存のマーカーを外してから塗り直す（消しゴムは外すだけ）。
+        // 外すと文字の区切りが組み替わり、選択範囲の位置が外れる。そこで選択を「問題文の何文字目から何文字目」で覚え、外した後に選び直す
+        var startAt = textOffset(range.startContainer, range.startOffset), endAt = textOffset(range.endContainer, range.endOffset);
+        var hit = [];
+        each(markable, "mark.pmk", function (m) { if (range.intersectsNode(m)) hit.push(m); });
+        hit.forEach(unwrap);
+        if (hit.length) range = rangeAt(startAt, endAt);
+        if (kind !== "x" && range && !range.collapsed) {
           // 段落や図表をまたぐ選択でも，テキストの部分だけを個別に包む
           var walker = document.createTreeWalker(range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer, NodeFilter.SHOW_TEXT, null);
           var nodes = [], n;
